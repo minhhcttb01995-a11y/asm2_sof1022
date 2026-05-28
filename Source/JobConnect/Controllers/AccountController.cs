@@ -1,96 +1,177 @@
+using JobConnect.Data;
+using JobConnect.Services;
+using JobConnect.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using JobConnect.Data;
-using JobConnect.Models;
-using JobConnect.ViewModels;
+using System.Security.Claims;
 
-namespace JobConnect.Controllers
+namespace JobConnect.Controllers;
+
+public class AccountController : Controller
 {
-    public class AccountController : Controller
+    private readonly IAuthService _auth;
+    private readonly AppDbContext _db;
+
+    public AccountController(IAuthService auth, AppDbContext db)
     {
-        private readonly AppDbContext _context;
+        _auth = auth;
+        _db = db;
+    }
 
-        public AccountController(AppDbContext context) => _context = context;
+    // GET /Account/Login
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        if (User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
+        ViewBag.ReturnUrl = returnUrl;
+        return View();
+    }
 
-        [HttpGet]
-        public IActionResult Login(string returnUrl = "/") { ViewBag.ReturnUrl = returnUrl; return View(); }
+    // POST /Account/Login
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+    {
+        if (!ModelState.IsValid) return View(model);
 
-        [HttpGet]
-        public IActionResult Register() => View();
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        var user = await _auth.LoginAsync(model.Email, model.Password);
+        if (user == null)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            // Kiểm tra email tồn tại
-            if (await _context.Users.AnyAsync(u => u.Email == model.Email))
-            {
-                ModelState.AddModelError("Email", "Email này đã được sử dụng.");
-                return View(model);
-            }
-
-            var user = new User
-            {
-                Email = model.Email,
-                FullName = model.FullName,
-                Role = model.Role,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password), // Dùng BCrypt
-                Status = "Active",
-                CreatedAt = DateTime.Now
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Login");
+            ModelState.AddModelError("", "Email hoặc mật khẩu không đúng.");
+            return View(model);
         }
 
-        [HttpGet]
-        public IActionResult ExternalLogin(string returnUrl = "/")
+        var claims = new List<Claim>
         {
-            var props = new AuthenticationProperties { RedirectUri = Url.Action("GoogleCallback", new { returnUrl }) };
-            return Challenge(props, GoogleDefaults.AuthenticationScheme);
+            new(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+            new(ClaimTypes.Name,           user.FullName),
+            new(ClaimTypes.Email,          user.Email),
+            new(ClaimTypes.Role,           user.Role),
+            new("AvatarURL",               user.AvatarURL ?? "/img/default-avatar.png")
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+            new AuthenticationProperties { IsPersistent = model.RememberMe });
+
+        return Redirect(returnUrl ?? user.Role switch
+        {
+            "Admin" => "/Admin/Dashboard",
+            "Employer" => "/Employer/Dashboard",
+            _ => "/"
+        });
+    }
+
+    // GET /Account/Register
+    public IActionResult Register() => View();
+
+    // POST /Account/Register
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        if (await _auth.EmailExistsAsync(model.Email))
+        {
+            ModelState.AddModelError("Email", "Email này đã được sử dụng.");
+            return View(model);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GoogleCallback(string returnUrl = "/")
+        await _auth.RegisterCandidateAsync(model);
+        TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+        return RedirectToAction("Login");
+    }
+
+    // GET /Account/RegisterEmployer
+    public IActionResult RegisterEmployer() => View();
+
+    // POST /Account/RegisterEmployer
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegisterEmployer(RegisterEmployerViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        if (await _auth.EmailExistsAsync(model.Email))
         {
-            var res = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-            if (!res.Succeeded) return RedirectToAction("Login");
-
-            var email = res.Principal.FindFirstValue(ClaimTypes.Email);
-            var name = res.Principal.FindFirstValue(ClaimTypes.Name);
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
-            {
-                user = new User { Email = email!, FullName = name, Role = "Candidate", PasswordHash = "Google", Status = "Active" };
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-            }
-
-            var claims = new List<Claim> {
-                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
-
-            return LocalRedirect(returnUrl);
+            ModelState.AddModelError("Email", "Email này đã được sử dụng.");
+            return View(model);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Logout()
+        await _auth.RegisterEmployerAsync(model);
+        TempData["Success"] = "Đăng ký tài khoản nhà tuyển dụng thành công!";
+        return RedirectToAction("Login");
+    }
+
+    // POST /Account/Logout
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Index", "Home");
+    }
+
+    [Authorize]
+    public IActionResult Settings() => View();
+
+    [HttpPost, Authorize, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(string CurrentPassword, string NewPassword, string ConfirmPassword)
+    {
+        if (NewPassword != ConfirmPassword)
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
+            TempData["Error"] = "Mật khẩu xác nhận không khớp.";
+            return RedirectToAction("Settings");
         }
+        var uid = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _db.Users.FindAsync(uid);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(CurrentPassword, user.PasswordHash))
+        {
+            TempData["Error"] = "Mật khẩu hiện tại không đúng.";
+            return RedirectToAction("Settings");
+        }
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
+        await _db.SaveChangesAsync();
+        TempData["Success"] = "Đã đổi mật khẩu thành công.";
+        return RedirectToAction("Settings");
+    }
+
+    [HttpPost, Authorize, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeEmail(string NewEmail, string Password)
+    {
+        var uid = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _db.Users.FindAsync(uid);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(Password, user.PasswordHash))
+        {
+            TempData["Error"] = "Mật khẩu không đúng.";
+            return RedirectToAction("Settings");
+        }
+        if (await _db.Users.AnyAsync(u => u.Email == NewEmail && u.UserID != uid))
+        {
+            TempData["Error"] = "Email này đã được sử dụng.";
+            return RedirectToAction("Settings");
+        }
+        user.Email = NewEmail;
+        await _db.SaveChangesAsync();
+        TempData["Success"] = "Đã cập nhật email.";
+        return RedirectToAction("Settings");
+    }
+
+    [HttpPost, Authorize, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAccount(string Password)
+    {
+        var uid = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _db.Users.FindAsync(uid);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(Password, user.PasswordHash))
+        {
+            TempData["Error"] = "Mật khẩu không đúng.";
+            return RedirectToAction("Settings");
+        }
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Index", "Home");
     }
 }
