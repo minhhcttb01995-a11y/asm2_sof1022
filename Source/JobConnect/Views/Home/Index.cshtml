@@ -1,0 +1,559 @@
+﻿@model JobConnect.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<!-- Google Fonts: Import font chữ hiện đại -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* Áp dụng font chữ cao cấp và định hình màu sắc hệ thống */
+    #homepageContainer {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Đổ bóng mềm mại kiểu hiện đại (Soft Ambient Shadows) */
+    .modern-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+    }
+
+    .modern-shadow-lg {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Hiệu ứng nền chuyển mượt cho Toàn bộ Container và Hero */
+    .transition-theme {
+        transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease, border-color 0.4s ease;
+    }
+
+    .hero-bg {
+        transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        background: radial-gradient(circle at 80% 10%, #eff6ff 0%, transparent 40%), radial-gradient(circle at 10% 90%, #f5f3ff 0%, transparent 40%), #fafafa;
+    }
+
+    /* Giao diện tối PRO MODE cực kỳ cao cấp */
+    .pro-mode-active {
+        background-color: #090d16 !important;
+    }
+
+        .pro-mode-active .hero-bg {
+            background: radial-gradient(circle at 80% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%), #090d16;
+        }
+
+    /* Đốm sáng Blur khuếch tán (Glow Blobs) */
+    .blur-blob {
+        filter: blur(100px);
+        opacity: 0.4;
+        pointer-events: none;
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Hiệu ứng kính mờ thời thượng (Glassmorphism) */
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .pro-mode-active .glass-effect {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Các bộ Card tương tác mượt mà */
+    .category-card, .job-card {
+        border: 1px solid #f1f5f9;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+        .category-card:hover, .job-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+            box-shadow: 0 12px 30px -10px rgba(59, 130, 246, 0.15);
+        }
+
+    /* Khi Pro Mode mở rộng sang các thành phần khác */
+    .pro-mode-active .category-card,
+    .pro-mode-active .job-card,
+    .pro-mode-active .company-card {
+        background-color: #111827 !important;
+        border-color: #1f2937 !important;
+    }
+
+        .pro-mode-active .category-card:hover,
+        .pro-mode-active .job-card:hover {
+            border-color: #fbbf24 !important;
+            box-shadow: 0 12px 30px -10px rgba(251, 191, 36, 0.2) !important;
+        }
+
+    /* Tùy chỉnh select ẩn mũi tên mặc định */
+    .custom-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+</style>
+
+<div id="homepageContainer" class="bg-slate-50/50 transition-theme min-h-screen">
+
+    <!-- HERO SECTION -->
+    <section class="hero-bg relative overflow-hidden py-20 md:py-28 border-b border-slate-100 transition-theme">
+        <!-- Decorative blobs -->
+        <div id="blob1" class="blur-blob absolute top-0 right-0 w-[450px] h-[450px] bg-blue-200 rounded-full"></div>
+        <div id="blob2" class="blur-blob absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-100 rounded-full"></div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10 flex flex-col items-center text-center">
+
+            <!-- THANH THƯƠNG HIỆU & NÚT GẠT SWITCH PRO -->
+            <div id="brandHeaderCard" class="flex items-center gap-2 mb-8 select-none glass-effect p-1.5 rounded-full modern-shadow transition-all duration-500">
+                <span id="brandText" class="text-sm font-bold text-slate-800 pl-4 tracking-wide transition-colors duration-300">JobConnect</span>
+                <button type="button" onclick="toggleProMode()" id="proBtn"
+                        class="px-4 py-1.5 text-xs font-bold text-amber-950 rounded-full transition-all duration-500 shadow-sm cursor-pointer tracking-wider flex items-center gap-1 active:scale-95"
+                        style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #fcd34d;">
+                    <span class="material-symbols-outlined text-xs leading-none">workspace_premium</span>
+                    PRO MODE
+                </button>
+            </div>
+
+            <!-- Total Jobs Badge -->
+            <div id="badgeJobs" class="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full text-xs font-semibold text-blue-600 mb-6 shadow-sm transition-all duration-300">
+                <span class="material-symbols-outlined text-sm">bolt</span>
+                <span id="badgeJobsText">@Model.TotalJobs.ToString("N0")+ việc làm đang tuyển</span>
+            </div>
+
+            <!-- Headings -->
+            <h1 id="mainHeading" class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6 leading-[1.15] tracking-tight transition-theme">
+                Kết nối sự nghiệp<br />
+                <span id="subHeadingText" class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300">tương lai</span> của bạn
+            </h1>
+            <p id="mainDesc" class="text-slate-500 text-base md:text-lg mb-10 max-w-xl transition-theme font-medium leading-relaxed">
+                Hàng ngàn cơ hội việc làm hấp dẫn từ những công ty hàng đầu đang chờ đón bạn.
+            </p>
+
+            <!-- Search Bar -->
+            <form id="searchBarForm" asp-controller="Job" asp-action="Index" method="get"
+                  class="w-full max-w-3xl bg-white rounded-2xl modern-shadow-lg border border-slate-200/80 p-2.5 flex flex-col md:flex-row gap-2 items-stretch md:items-center transition-all duration-300">
+                <div class="flex items-center gap-2 flex-1 px-3 border-b md:border-b-0 md:border-r border-slate-100 pb-3 md:pb-0">
+                    <span class="material-symbols-outlined text-slate-400 text-xl">search</span>
+                    <input name="Keyword" type="text" placeholder="Vị trí, kỹ năng hoặc công ty..."
+                           class="w-full py-2 border-none outline-none text-sm bg-transparent placeholder-slate-400 focus:ring-0 text-slate-800 font-medium" />
+                </div>
+
+                <div class="flex items-center gap-2 flex-1 px-3 relative group">
+                    <span class="material-symbols-outlined text-slate-400 text-xl transition-colors group-focus-within:text-blue-500">location_on</span>
+                    <div class="relative flex-1 flex items-center">
+                        <select id="locationSelect" name="Location" class="custom-select w-full py-2 pr-8 border-none outline-none text-sm bg-transparent text-slate-800 font-semibold cursor-pointer focus:ring-0 appearance-none">
+                            <option value="" class="text-slate-400">Tất cả địa điểm</option>
+                            <option>Hà Nội</option>
+                            <option>TP. Hồ Chí Minh</option>
+                            <option>Đà Nẵng</option>
+                            <option>Hải Phòng</option>
+                            <option>Cần Thơ</option>
+                            <option>Thanh Hóa</option>
+                        </select>
+                        <span class="material-symbols-outlined text-slate-400 text-lg absolute right-0 pointer-events-none transition-transform group-hover:translate-y-[1px]">keyboard_arrow_down</span>
+                    </div>
+                </div>
+
+                <button type="submit" id="searchBtn"
+                        class="bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-500/10 whitespace-nowrap active:scale-[0.98]">
+                    Tìm kiếm
+                </button>
+            </form>
+
+            <!-- Trending tags -->
+            <div id="trendingTags" class="flex flex-wrap justify-center gap-2 mt-6 text-xs text-slate-400 transition-theme">
+                <span class="font-medium">Xu hướng:</span>
+                @foreach (var tag in new[] { "Frontend Developer", "UI/UX Designer", "Data Analyst", "Marketing Manager" })
+                {
+                    <a asp-controller="Job" asp-action="Index" asp-route-Keyword="@tag"
+                       class="hover:text-blue-600 text-slate-500 font-medium underline transition-colors">@tag</a>
+                }
+            </div>
+
+            <!-- Stats -->
+            <div class="flex flex-wrap justify-center gap-12 mt-14 text-sm text-slate-400">
+                <div class="flex flex-col items-center">
+                    <span id="stat1" class="text-3xl font-extrabold text-slate-900 tracking-tight transition-theme">@Model.TotalJobs.ToString("N0")</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-400">Việc làm</span>
+                </div>
+                <div class="w-px h-10 bg-slate-200 hidden sm:block self-center opacity-60"></div>
+                <div class="flex flex-col items-center">
+                    <span id="stat2" class="text-3xl font-extrabold text-slate-900 tracking-tight transition-theme">@Model.TotalCompanies.ToString("N0")</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-400">Công ty</span>
+                </div>
+                <div class="w-px h-10 bg-slate-200 hidden sm:block self-center opacity-60"></div>
+                <div class="flex flex-col items-center">
+                    <span id="stat3" class="text-3xl font-extrabold text-slate-900 tracking-tight transition-theme">@Model.TotalCandidates.ToString("N0")</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-400">Ứng viên</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORIES BENTO GRID -->
+    <section class="max-w-6xl mx-auto px-6 py-20">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <h2 id="catHeading" class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 transition-theme">Khám phá theo ngành nghề</h2>
+                <p class="text-slate-400 text-sm mt-1">Tìm kiếm công việc mơ ước theo lĩnh vực bạn quan tâm</p>
+            </div>
+            <a asp-controller="Job" asp-action="Index" class="text-blue-600 text-sm font-bold hover:text-blue-700 flex items-center gap-1 transition-colors">
+                Xem tất cả <span class="material-symbols-outlined text-base">arrow_forward</span>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div id="catCard1" class="col-span-2 bg-white rounded-2xl p-6 flex flex-col justify-between category-card modern-shadow cursor-pointer min-h-[190px]">
+                <div class="flex justify-between items-start">
+                    <div class="p-3 bg-blue-50 rounded-xl shadow-sm">
+                        <span class="material-symbols-outlined text-blue-600 text-3xl">code</span>
+                    </div>
+                    <span class="bg-blue-600 text-white text-[11px] font-bold px-3 py-1 rounded-full">1,200+ việc làm</span>
+                </div>
+                <div class="mt-6">
+                    <h3 id="catTitle1" class="text-lg font-bold text-slate-800 transition-theme">Công nghệ thông tin</h3>
+                    <p class="text-slate-400 text-xs mt-1 leading-relaxed">Phát triển phần mềm, AI, Cloud Computing, và Security.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 category-card modern-shadow cursor-pointer flex flex-col justify-between">
+                <div class="p-3 bg-purple-50 rounded-xl inline-block w-fit mb-4">
+                    <span class="material-symbols-outlined text-purple-600 text-2xl">palette</span>
+                </div>
+                <div>
+                    <h3 id="catTitle2" class="font-bold text-slate-800 text-sm mb-1 transition-theme">Thiết kế</h3>
+                    <p class="text-slate-400 text-xs mb-3">UI/UX, Graphic Design, Product Design.</p>
+                    <span class="text-blue-600 text-xs font-bold">450+ cơ hội</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 category-card modern-shadow cursor-pointer flex flex-col justify-between">
+                <div class="p-3 bg-emerald-50 rounded-xl inline-block w-fit mb-4">
+                    <span class="material-symbols-outlined text-emerald-600 text-2xl">campaign</span>
+                </div>
+                <div>
+                    <h3 id="catTitle3" class="font-bold text-slate-800 text-sm mb-1 transition-theme">Marketing</h3>
+                    <p class="text-slate-400 text-xs mb-3">SEO, Social Media, Content Creator.</p>
+                    <span class="text-blue-600 text-xs font-bold">680+ cơ hội</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 category-card modern-shadow cursor-pointer flex flex-col justify-between">
+                <div class="p-3 bg-amber-50 rounded-xl inline-block w-fit mb-4">
+                    <span class="material-symbols-outlined text-amber-600 text-2xl">payments</span>
+                </div>
+                <div>
+                    <h3 id="catTitle4" class="font-bold text-slate-800 text-sm mb-1 transition-theme">Tài chính</h3>
+                    <p class="text-slate-400 text-xs mb-3">Kế toán, Kiểm toán, Ngân hàng.</p>
+                    <span class="text-blue-600 text-xs font-bold">320+ cơ hội</span>
+                </div>
+            </div>
+
+            <div id="catCard5" class="col-span-2 bg-white rounded-2xl p-6 flex flex-col justify-between category-card modern-shadow cursor-pointer min-h-[170px]">
+                <div>
+                    <div class="p-3 bg-rose-50 rounded-xl inline-block mb-3 shadow-sm">
+                        <span class="material-symbols-outlined text-rose-600 text-2xl">trending_up</span>
+                    </div>
+                    <h3 id="catTitle5" class="text-lg font-bold text-slate-800 transition-theme">Kinh doanh &amp; Bán hàng</h3>
+                    <p class="text-slate-400 text-xs mt-1">Phát triển thị trường, Account Executive, Sales Manager.</p>
+                </div>
+                <span class="text-blue-600 text-xs font-bold mt-3 block">+25 công ty tuyển gấp hôm nay</span>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 category-card modern-shadow cursor-pointer flex flex-col justify-between">
+                <div class="p-3 bg-sky-50 rounded-xl inline-block w-fit mb-4">
+                    <span class="material-symbols-outlined text-sky-600 text-2xl">school</span>
+                </div>
+                <div>
+                    <h3 id="catTitle6" class="font-bold text-slate-800 text-sm mb-1 transition-theme">Giáo dục</h3>
+                    <p class="text-slate-400 text-xs mb-3">Giảng viên, Đào tạo, Tư vấn giáo dục.</p>
+                    <span class="text-blue-600 text-xs font-bold">150+ cơ hội</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED JOBS -->
+    <section id="featuredSection" class="bg-white border-y border-slate-100 py-20 transition-theme">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-[11px] font-bold mb-3 shadow-sm">
+                        <span class="material-symbols-outlined text-xs">bolt</span>
+                        HOT JOB
+                    </div>
+                    <h2 id="jobHeading" class="text-2xl md:text-3xl font-extrabold text-slate-900 transition-theme">Việc làm nổi bật hôm nay</h2>
+                </div>
+                <a asp-controller="Job" asp-action="Index"
+                   class="bg-slate-50 text-slate-700 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all hidden md:block border border-slate-100">
+                    Xem tất cả việc gấp
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                @foreach (var job in Model.FeaturedJobs)
+                {
+                    <div class="bg-white rounded-2xl p-6 job-card modern-shadow flex flex-col justify-between group">
+                        <div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 p-2">
+                                    @if (!string.IsNullOrEmpty(job.Employer.LogoURL))
+                                    {
+                                        <img src="@job.Employer.LogoURL" alt="logo" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-slate-400 text-xl">business</span>
+                                    }
+                                </div>
+                                <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                                   class="text-slate-300 hover:text-blue-600 transition-colors">
+                                    <span class="material-symbols-outlined">bookmark</span>
+                                </a>
+                            </div>
+
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                               class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors block mb-1 line-clamp-1 text-base">
+                                @job.Title
+                            </a>
+                            <p class="text-slate-400 text-xs mb-4 font-medium">@job.Employer.CompanyName</p>
+
+                            <div class="flex flex-wrap gap-1.5 mb-6">
+                                <span class="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg text-[11px] font-semibold">@job.JobType</span>
+                                @if (!string.IsNullOrEmpty(job.Location))
+                                {
+                                    <span class="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg text-[11px] font-semibold">@job.Location</span>
+                                }
+                                <span class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-[11px] font-bold">@job.SalaryDisplay</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-4 border-t border-slate-50">
+                            <span class="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                @((DateTime.Now - job.CreatedAt).TotalHours < 24
+                                    ? $"{(int)(DateTime.Now - job.CreatedAt).TotalHours} giờ trước"
+                                    : $"{(int)(DateTime.Now - job.CreatedAt).TotalDays} ngày trước")
+                            </span>
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                               class="bg-slate-50 text-slate-700 group-hover:bg-blue-600 group-hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all">
+                                Ứng tuyển
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- TOP COMPANIES -->
+    <section class="max-w-6xl mx-auto px-6 py-20">
+        <h2 id="compHeading" class="text-2xl md:text-3xl font-extrabold text-center text-slate-900 mb-2 transition-theme">Đối tác Tuyển dụng Chiến lược</h2>
+        <p class="text-center text-slate-400 text-sm mb-12">Những tập đoàn hàng đầu đang tin tưởng tuyển dụng trên JobConnect</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+            @foreach (var emp in Model.TopCompanies)
+            {
+                <a asp-controller="Company" asp-action="Detail" asp-route-id="@emp.EmployerID"
+                   class="bg-white rounded-2xl p-4 flex flex-col items-center text-center company-card modern-shadow hover:scale-105 hover:border-blue-500 transition-all duration-300 border border-slate-100">
+                    @if (!string.IsNullOrEmpty(emp.LogoURL))
+                    {
+                        <img src="@emp.LogoURL" alt="logo" class="w-12 h-12 object-contain mb-3" />
+                    }
+                    else
+                    {
+                        <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-3">
+                            <span class="material-symbols-outlined text-slate-400">business</span>
+                        </div>
+                    }
+                    <p id="compName" class="text-xs font-bold text-slate-700 line-clamp-1 transition-theme">@emp.CompanyName</p>
+                    @if (emp.IsVerified)
+                    {
+                        <span class="material-symbols-outlined text-blue-500 text-xs mt-1">verified</span>
+                    }
+                </a>
+            }
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="max-w-6xl mx-auto px-6 pb-20">
+        <div class="bg-slate-900 rounded-[2rem] p-10 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl shadow-slate-900/20">
+            <!-- Hiện đại hóa các đốm khuếch tán trong CTA -->
+            <div class="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-blue-600/20 to-transparent rounded-full pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full pointer-events-none filter blur-2xl"></div>
+
+            <div class="relative z-10 text-center md:text-left max-w-lg">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight leading-tight">Sẵn sàng nâng tầm<br>sự nghiệp?</h2>
+                <p class="text-slate-400 text-sm md:text-base mb-8 leading-relaxed font-medium">
+                    Tạo một hồ sơ chuyên nghiệp hoàn toàn miễn phí hôm nay để được tiếp cận bởi hàng nghìn nhà tuyển dụng hàng đầu tự động.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                    <a asp-controller="Candidate" asp-action="CvManager"
+                       class="bg-blue-600 text-white border border-transparent px-6 py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-all text-xs tracking-wide shadow-lg shadow-blue-600/15 text-center">
+                        Tạo CV miễn phí
+                    </a>
+                    <a asp-controller="Job" asp-action="Index"
+                       class="bg-white/5 text-slate-300 border border-white/10 px-6 py-3.5 rounded-xl font-bold hover:bg-white/10 transition-all text-xs tracking-wide text-center">
+                        Tìm hiểu thêm
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Badge dạng Glassmorphism cao cấp trong Dark CTA -->
+            <div class="relative z-10 hidden lg:flex items-center gap-4">
+                <div class="bg-white/[0.02] backdrop-blur-md border border-white/[0.05] rounded-2xl p-6 text-white text-center w-36 shadow-xl">
+                    <span class="material-symbols-outlined text-3xl text-blue-400 block mb-2">work</span>
+                    <div class="text-xl font-extrabold tracking-tight">@Model.TotalJobs.ToString("N0")</div>
+                    <div class="text-slate-500 text-[10px] uppercase font-bold tracking-wider mt-1">Việc làm</div>
+                </div>
+                <div class="bg-white/[0.02] backdrop-blur-md border border-white/[0.05] rounded-2xl p-6 text-white text-center w-36 shadow-xl">
+                    <span class="material-symbols-outlined text-3xl text-purple-400 block mb-2">apartment</span>
+                    <div class="text-xl font-extrabold tracking-tight">@Model.TotalCompanies.ToString("N0")</div>
+                    <div class="text-slate-500 text-[10px] uppercase font-bold tracking-wider mt-1">Công ty</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    let isProMode = false;
+
+    function toggleProMode() {
+        isProMode = !isProMode;
+
+        const container = document.getElementById('homepageContainer');
+        const brandHeaderCard = document.getElementById('brandHeaderCard');
+        const brandText = document.getElementById('brandText');
+        const proBtn = document.getElementById('proBtn');
+        const mainHeading = document.getElementById('mainHeading');
+        const subHeadingText = document.getElementById('subHeadingText');
+        const mainDesc = document.getElementById('mainDesc');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchBarForm = document.getElementById('searchBarForm');
+
+        const blob1 = document.getElementById('blob1');
+        const blob2 = document.getElementById('blob2');
+
+        const stat1 = document.getElementById('stat1');
+        const stat2 = document.getElementById('stat2');
+        const stat3 = document.getElementById('stat3');
+
+        // Dark mode / text selectors
+        const catHeading = document.getElementById('catHeading');
+        const jobHeading = document.getElementById('jobHeading');
+        const compHeading = document.getElementById('compHeading');
+        const featuredSection = document.getElementById('featuredSection');
+
+        // Titles inside cards
+        const textElementsToLight = [
+            'catTitle1', 'catTitle2', 'catTitle3', 'catTitle4', 'catTitle5', 'catTitle6'
+        ];
+
+        if (isProMode) {
+            // KÍCH HOẠT GIAO DIỆN PREMIUM DARK MODE (PRO)
+            container.classList.add('pro-mode-active');
+            featuredSection.style.backgroundColor = '#0c1322';
+            featuredSection.style.borderColor = '#1f2937';
+
+            brandText.style.color = '#f8fafc';
+
+            // Đổi trạng thái Nút bấm PRO sang Active cực kỳ rực rỡ
+            proBtn.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+            proBtn.style.borderColor = '#d97706';
+            proBtn.style.color = '#fff';
+            proBtn.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.4)';
+
+            // Đổi màu Typography Hero và tiêu đề chính
+            mainHeading.classList.remove('text-slate-900');
+            mainHeading.classList.add('text-white');
+            subHeadingText.className = "bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent transition-all duration-300";
+
+            mainDesc.classList.remove('text-slate-500');
+            mainDesc.classList.add('text-slate-400');
+
+            catHeading.className = "text-2xl md:text-3xl font-extrabold tracking-tight text-white transition-theme";
+            jobHeading.className = "text-2xl md:text-3xl font-extrabold tracking-tight text-white transition-theme";
+            compHeading.className = "text-2xl md:text-3xl font-extrabold tracking-tight text-center text-white mb-2 transition-theme";
+
+            textElementsToLight.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.remove('text-slate-800'); el.classList.add('text-slate-200'); }
+            });
+
+            // Chuyển màu Thanh tìm kiếm thành Dark Sleek
+            searchBarForm.style.backgroundColor = '#111827';
+            searchBarForm.style.borderColor = '#1f2937';
+            searchBtn.className = "bg-amber-500 text-slate-950 px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-amber-400 transition-all shadow-md shadow-amber-500/10 whitespace-nowrap active:scale-[0.98]";
+
+            // Thay đổi các đốm Blur sáng huyền bí sâu lắng hơn
+            blob1.style.backgroundColor = '#6366f1';
+            blob1.style.opacity = '0.2';
+            blob2.style.backgroundColor = '#db2777';
+            blob2.style.opacity = '0.15';
+
+            // Đổi màu thông số số liệu thống kê sang Vàng Hổ Phách
+            stat1.className = "text-3xl font-extrabold text-amber-400 tracking-tight transition-theme";
+            stat2.className = "text-3xl font-extrabold text-amber-400 tracking-tight transition-theme";
+            stat3.className = "text-3xl font-extrabold text-amber-400 tracking-tight transition-theme";
+
+            // Sửa màu badge tuyển dụng
+            document.getElementById('badgeJobs').className = "inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 rounded-full text-xs font-semibold text-amber-400 mb-6 shadow-sm transition-all duration-300";
+
+        } else {
+            // QUAY TRỞ LẠI GIAO DIỆN STANDARD LIGHT MODE
+            container.classList.remove('pro-mode-active');
+            featuredSection.style.backgroundColor = '#ffffff';
+            featuredSection.style.borderColor = '#f1f5f9';
+
+            brandText.style.color = '#1e293b';
+
+            // Reset Nút bấm PRO ban đầu
+            proBtn.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+            proBtn.style.borderColor = '#fcd34d';
+            proBtn.style.color = '#78350f';
+            proBtn.style.boxShadow = 'none';
+
+            // Reset Typography Hero và tiêu đề chính
+            mainHeading.classList.remove('text-white');
+            mainHeading.classList.add('text-slate-900');
+            subHeadingText.className = "bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300";
+
+            mainDesc.classList.remove('text-slate-400');
+            mainDesc.classList.add('text-slate-500');
+
+            catHeading.className = "text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 transition-theme";
+            jobHeading.className = "text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 transition-theme";
+            compHeading.className = "text-2xl md:text-3xl font-extrabold tracking-tight text-center text-slate-900 mb-2 transition-theme";
+
+            textElementsToLight.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.remove('text-slate-200'); el.classList.add('text-slate-800'); }
+            });
+
+            // Reset thanh tìm kiếm sáng sủa
+            searchBarForm.style.backgroundColor = '#ffffff';
+            searchBarForm.style.borderColor = '#e2e8f0';
+            searchBtn.className = "bg-blue-600 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-500/10 whitespace-nowrap active:scale-[0.98]";
+
+            // Reset đốm Blur sáng nhẹ nhàng ban đầu
+            blob1.style.backgroundColor = '#bfdbfe';
+            blob1.style.opacity = '0.4';
+            blob2.style.backgroundColor = '#e0e7ff';
+            blob2.style.opacity = '0.4';
+
+            // Reset số liệu thống kê tối giản đậm đà
+            stat1.className = "text-3xl font-extrabold text-slate-900 tracking-tight transition-theme";
+            stat2.className = "text-3xl font-extrabold text-slate-900 tracking-tight transition-theme";
+            stat3.className = "text-3xl font-extrabold text-slate-900 tracking-tight transition-theme";
+
+            // Reset màu badge tuyển dụng
+            document.getElementById('badgeJobs').className = "inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full text-xs font-semibold text-blue-600 mb-6 shadow-sm transition-all duration-300";
+        }
+    }
+</script>

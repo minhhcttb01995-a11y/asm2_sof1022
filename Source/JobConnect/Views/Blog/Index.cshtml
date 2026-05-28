@@ -1,0 +1,333 @@
+﻿@using JobConnect.Models
+@model List<BlogPost>
+@{
+    ViewData["Title"] = "Blog nghề nghiệp";
+    Layout = "_Layout";
+    var featured = Model.FirstOrDefault();
+    var rest = Model.Skip(1).ToList();
+}
+
+<style>
+    .blog-card {
+        transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+        .blog-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,61,155,0.10);
+        }
+
+    .tag-chip {
+        transition: all 0.15s;
+    }
+
+        .tag-chip:hover {
+            background: #003d9b;
+            color: white;
+        }
+
+        .tag-chip.active {
+            background: #003d9b;
+            color: white;
+        }
+
+    .cover-zoom {
+        overflow: hidden;
+    }
+
+        .cover-zoom img {
+            transition: transform 0.4s ease;
+        }
+
+        .cover-zoom:hover img {
+            transform: scale(1.05);
+        }
+</style>
+
+<!-- Hero featured post -->
+@if (featured != null)
+{
+    <div class="max-w-6xl mx-auto px-6 pt-8 pb-4">
+        <a asp-action="Detail" asp-route-slug="@featured.Slug"
+           class="grid grid-cols-1 md:grid-cols-2 bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant hover:shadow-lg transition-shadow group">
+            <div class="cover-zoom h-56 md:h-auto min-h-[240px]">
+                @if (!string.IsNullOrEmpty(featured.CoverURL))
+                {
+                    <img src="@featured.CoverURL" class="w-full h-full object-cover" />
+                }
+                else
+                {
+                    <div class="w-full h-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-6xl">article</span>
+                    </div>
+                }
+            </div>
+            <div class="p-8 flex flex-col justify-center">
+                <span class="inline-block bg-primary text-white text-xs font-bold px-3 py-1 rounded-full mb-4 w-fit">
+                    XU HƯỚNG THỊ TRƯỜNG
+                </span>
+                <h1 class="text-2xl font-bold text-on-surface group-hover:text-primary transition-colors leading-snug mb-3">
+                    @featured.Title
+                </h1>
+                @if (!string.IsNullOrEmpty(featured.Excerpt))
+                {
+                    <p class="text-secondary text-sm leading-relaxed line-clamp-3 mb-5">@featured.Excerpt</p>
+                }
+                <div class="flex items-center gap-4">
+                    <span class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold">Đọc bài viết</span>
+                    <span class="text-secondary text-xs flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">schedule</span>
+                        12 phút đọc
+                    </span>
+                </div>
+            </div>
+        </a>
+    </div>
+}
+
+<!-- Category filter chips -->
+<div class="max-w-6xl mx-auto px-6 py-4">
+    <div class="flex flex-wrap gap-2">
+        @foreach (var (label, val) in new[]{
+            ("Tất cả bài viết", ""),
+            ("Bí quyết phỏng vấn", "interview"),
+            ("Lộ trình nghề nghiệp", "career"),
+            ("Quản lý tài chính", "finance"),
+            ("Lãnh đạo & Quản lý", "leadership"),
+            ("Thương hiệu cá nhân", "personal-brand"),
+        })
+        {
+            <a href="?category=@val"
+               class="tag-chip px-4 py-1.5 rounded-full text-sm font-semibold border border-outline-variant bg-white text-on-surface @(ViewBag.Category == val || (string.IsNullOrEmpty(val) && ViewBag.Category == null) ? "active" : "")">
+                @label
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Main grid -->
+<div class="max-w-6xl mx-auto px-6 pb-12">
+    @if (!Model.Any())
+    {
+        <div class="text-center py-16 text-secondary">
+            <span class="material-symbols-outlined text-5xl block mb-3">article</span>
+            <p>Chưa có bài viết nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- Left: large card -->
+            @if (rest.Any())
+            {
+                var main = rest.First();
+                <a asp-action="Detail" asp-route-slug="@main.Slug"
+                   class="lg:col-span-2 bg-white rounded-2xl border border-outline-variant overflow-hidden blog-card group block">
+                    <div class="cover-zoom h-64">
+                        @if (!string.IsNullOrEmpty(main.CoverURL))
+                        {
+                            <img src="@main.CoverURL" class="w-full h-full object-cover" />
+                        }
+                        else
+                        {
+                            <div class="w-full h-full bg-surface-container flex items-center justify-center">
+                                <span class="material-symbols-outlined text-4xl text-secondary">article</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="p-6">
+                        @if (false)
+                        {
+                            <span class="text-xs font-bold text-primary uppercase tracking-wider"></span>
+                        }
+                        <h2 class="font-bold text-on-surface text-lg group-hover:text-primary transition-colors mt-1 mb-2 line-clamp-2">
+                            @main.Title
+                        </h2>
+                        @if (!string.IsNullOrEmpty(main.Excerpt))
+                        {
+                            <p class="text-secondary text-sm line-clamp-2 mb-4">@main.Excerpt</p>
+                        }
+                        <div class="flex items-center justify-between text-xs text-secondary pt-3 border-t border-outline-variant">
+                            <span>@main.Author?.FullName · @main.PublishedAt?.ToString("d 'Tháng' M, yyyy")</span>
+                            <span class="text-primary font-bold flex items-center gap-1">
+                                Đọc tiếp <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            }
+
+            <!-- Right: stacked small cards -->
+            <div class="space-y-4">
+                @foreach (var post in rest.Skip(1).Take(2))
+                {
+                    <a asp-action="Detail" asp-route-slug="@post.Slug"
+                       class="bg-white rounded-2xl border border-outline-variant overflow-hidden blog-card group flex flex-col block">
+                        <div class="cover-zoom h-36">
+                            @if (!string.IsNullOrEmpty(post.CoverURL))
+                            {
+                                <img src="@post.CoverURL" class="w-full h-full object-cover" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full bg-surface-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-3xl text-secondary">article</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            @if (false)
+                            {
+                                <span class="text-xs font-bold text-primary uppercase tracking-wider mb-1"></span>
+                            }
+                            <h3 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors line-clamp-2 mb-2">@post.Title</h3>
+                            @if (!string.IsNullOrEmpty(post.Excerpt))
+                            {
+                                <p class="text-secondary text-xs line-clamp-2">@post.Excerpt</p>
+                            }
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Newsletter CTA -->
+        <div class="bg-primary rounded-2xl p-8 my-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="text-white">
+                <div class="font-bold text-lg mb-1">Nhận tin tức sự nghiệp hàng tuần</div>
+                <p class="text-blue-200 text-sm">Hơn 50,000 chuyên gia đã đăng ký nhận bản tin về xu hướng thị trường và cơ hội việc làm tốt nhất.</p>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <input type="email" placeholder="Email của bạn"
+                       class="flex-1 md:w-64 px-4 py-2.5 rounded-xl text-sm outline-none border-none" />
+                <button class="bg-white text-primary px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 whitespace-nowrap">
+                    Đăng ký ngay
+                </button>
+            </div>
+        </div>
+
+        <!-- Xu hướng thị trường -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-on-surface">Xu hướng thị trường</h2>
+                    <p class="text-secondary text-sm mt-0.5">Cập nhật những chuyển động mới nhất của thị trường lao động Việt Nam</p>
+                </div>
+                <a asp-action="Index" class="text-primary text-sm font-bold hover:underline flex items-center gap-1">
+                    Xem tất cả <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @foreach (var post in rest.Skip(3).Take(3))
+                {
+                    <a asp-action="Detail" asp-route-slug="@post.Slug"
+                       class="bg-white rounded-2xl border border-outline-variant p-4 blog-card group flex gap-3 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-primary text-xl">trending_up</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-on-surface group-hover:text-primary transition-colors line-clamp-2 mb-1">@post.Title</h3>
+                            @if (!string.IsNullOrEmpty(post.Excerpt))
+                            {
+                                <p class="text-secondary text-xs line-clamp-2">@post.Excerpt</p>
+                            }
+                        </div>
+                    </a>
+                }
+                @if (!rest.Skip(3).Any())
+                {
+                    @foreach (var (title, desc) in new[]{
+                        ("Mức lương ngành IT 2024", "Báo cáo khảo sát từ 500 doanh nghiệp hàng đầu."),
+                        ("Sự trỗi dậy của Hybrid Work", "60% doanh nghiệp chuyển đổi sang mô hình linh hoạt."),
+                        ("Nhu cầu nhân sự Gen Z", "Nhà tuyển dụng tìm kiếm gì ở thế hệ mới?"),
+                    })
+                    {
+                        <div class="bg-white rounded-2xl border border-outline-variant p-4 flex gap-3 items-start">
+                            <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-primary text-xl">trending_up</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-on-surface mb-1">@title</h3>
+                                <p class="text-secondary text-xs">@desc</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- More posts grid -->
+        @if (rest.Count > 3)
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach (var post in rest.Skip(3))
+                {
+                    <a asp-action="Detail" asp-route-slug="@post.Slug"
+                       class="bg-white rounded-2xl border border-outline-variant overflow-hidden blog-card group block">
+                        <div class="cover-zoom h-44">
+                            @if (!string.IsNullOrEmpty(post.CoverURL))
+                            {
+                                <img src="@post.CoverURL" class="w-full h-full object-cover" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-44 bg-surface-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-3xl text-secondary">article</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="p-4">
+                            @if (false)
+                            {
+                                <span class="text-xs font-bold text-primary uppercase tracking-wider"></span>
+                            }
+                            <h3 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors line-clamp-2 mt-1 mb-2">@post.Title</h3>
+                            <div class="flex items-center justify-between text-xs text-secondary">
+                                <span>@post.Author?.FullName</span>
+                                <span>@post.PublishedAt?.ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+
+        <!-- Pagination -->
+        @if ((int)(ViewBag.TotalPages ?? 1) > 1)
+        {
+            int currentPage = (int)(ViewBag.Page ?? 1);
+            int totalPages = (int)ViewBag.TotalPages;
+            <div class="flex justify-center items-center gap-1.5 mt-8">
+                @if (currentPage > 1)
+                {
+                    <a asp-action="Index" asp-route-page="@(currentPage - 1)"
+                       class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container text-secondary">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                }
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    if (i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
+                    {
+                        <a asp-action="Index" asp-route-page="@i"
+                           class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-colors
+                            @(i == currentPage ? "bg-primary text-white" : "border border-outline-variant text-secondary hover:bg-surface-container")">
+                            @i
+                        </a>
+                    }
+                    else if (i == currentPage - 2 || i == currentPage + 2)
+                    {
+                        <span class="w-10 h-10 flex items-center justify-center text-secondary">…</span>
+                    }
+                }
+                @if (currentPage < totalPages)
+                {
+                    <a asp-action="Index" asp-route-page="@(currentPage + 1)"
+                       class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container text-secondary">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                }
+            </div>
+        }
+    }
+</div>

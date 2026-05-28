@@ -1,0 +1,367 @@
+﻿@using JobConnect.Models
+@model JobPost
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_Layout";
+}
+
+<style>
+    .prose ul {
+        list-style: disc;
+        padding-left: 1.25rem;
+    }
+
+    .prose ol {
+        list-style: decimal;
+        padding-left: 1.25rem;
+    }
+
+    .prose li {
+        margin-bottom: 0.35rem;
+    }
+
+    .prose p {
+        margin-bottom: 0.75rem;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 1rem;
+        border: 1px solid #c3c6d6;
+        padding: 1.5rem;
+    }
+
+    .req-item {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+        margin-bottom: 0.6rem;
+        font-size: 0.875rem;
+        color: #434654;
+    }
+
+        .req-item::before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            background: #e7eeff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+</style>
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- MAIN CONTENT -->
+        <div class="lg:col-span-2 space-y-5">
+
+            <!-- Job Header Card -->
+            <div class="section-card">
+                <div class="flex items-start gap-4 mb-5">
+                    <div class="w-16 h-16 rounded-xl border border-outline-variant flex items-center justify-center bg-surface-container shrink-0 overflow-hidden">
+                        @if (!string.IsNullOrEmpty(Model.Employer?.LogoURL))
+                        {
+                            <img src="@Model.Employer.LogoURL" class="w-full h-full object-contain" />
+                        }
+                        else
+                        {
+                            <span class="material-symbols-outlined text-secondary text-3xl">business</span>
+                        }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-1.5 mb-2">
+                            @if (!string.IsNullOrEmpty(Model.JobType))
+                            {
+                                <span class="px-2.5 py-0.5 bg-surface-container text-on-surface-variant rounded-full text-xs font-semibold">@Model.JobType</span>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ExperienceLevel))
+                            {
+                                <span class="px-2.5 py-0.5 bg-surface-container text-on-surface-variant rounded-full text-xs font-semibold">@Model.ExperienceLevel</span>
+                            }
+                            @if (Model.IsFeatured)
+                            {
+                                <span class="px-2.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Nổi bật</span>
+                            }
+                        </div>
+                        <h1 class="text-xl font-bold text-on-surface leading-snug">@Model.Title</h1>
+                        <a asp-controller="Company" asp-action="Detail" asp-route-id="@Model.Employer?.EmployerID"
+                           class="text-primary font-semibold text-sm hover:underline">
+                            @Model.Employer?.CompanyName
+                        </a>
+                    </div>
+
+                    <!-- Action buttons (desktop) -->
+                    <div class="hidden md:flex flex-col gap-2 shrink-0">
+                        @if (User.IsInRole("Candidate"))
+                        {
+                            if ((bool)(ViewBag.HasApplied ?? false))
+                            {
+                                <span class="px-6 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-bold text-center flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">check_circle</span> Đã ứng tuyển
+                                </span>
+                            }
+                            else
+                            {
+                                <button onclick="document.getElementById('applyModal').classList.remove('hidden')"
+                                        class="px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity">
+                                    Ứng tuyển ngay
+                                </button>
+                            }
+                            <form asp-controller="Job" asp-action="ToggleSave" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="jobId" value="@Model.JobID" />
+                                <button type="submit"
+                                        class="w-full px-6 py-3 border border-outline-variant rounded-xl text-sm font-bold text-secondary hover:bg-surface-container transition-colors flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-sm @((bool)(ViewBag.IsSaved ?? false) ? "text-primary" : "")">bookmark</span>
+                                    @((bool)(ViewBag.IsSaved ?? false) ? "Đã lưu" : "Lưu việc làm")
+                                </button>
+                            </form>
+                        }
+                        else if (!User.Identity!.IsAuthenticated)
+                        {
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Job/Detail/@Model.JobID"
+                               class="px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 text-center">
+                                Ứng tuyển ngay
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Meta info grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-surface-container-low rounded-xl">
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="material-symbols-outlined text-secondary text-lg">payments</span>
+                        <div>
+                            <div class="text-xs text-secondary">Mức lương</div>
+                            <div class="font-bold text-primary">@Model.SalaryDisplay</div>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Location))
+                    {
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-secondary text-lg">location_on</span>
+                            <div>
+                                <div class="text-xs text-secondary">Địa điểm</div>
+                                <div class="font-semibold text-on-surface">@Model.Location</div>
+                            </div>
+                        </div>
+                    }
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="material-symbols-outlined text-secondary text-lg">event</span>
+                        <div>
+                            <div class="text-xs text-secondary">Hạn nộp</div>
+                            <div class="font-semibold text-on-surface">@(Model.Deadline?.ToString("dd/MM/yyyy") ?? "Không giới hạn")</div>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Employer?.CompanySize))
+                    {
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="material-symbols-outlined text-secondary text-lg">group</span>
+                            <div>
+                                <div class="text-xs text-secondary">Quy mô</div>
+                                <div class="font-semibold text-on-surface">@Model.Employer.CompanySize nhân viên</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Mobile action buttons -->
+                <div class="flex gap-2 mt-4 md:hidden">
+                    @if (User.IsInRole("Candidate"))
+                    {
+                        if ((bool)(ViewBag.HasApplied ?? false))
+                        {
+                            <span class="flex-1 py-2.5 bg-green-100 text-green-700 rounded-xl text-sm font-bold text-center">✓ Đã ứng tuyển</span>
+                        }
+                        else
+                        {
+                            <button onclick="document.getElementById('applyModal').classList.remove('hidden')"
+                                    class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90">
+                                Ứng tuyển ngay
+                            </button>
+                        }
+                        <form asp-controller="Job" asp-action="ToggleSave" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="jobId" value="@Model.JobID" />
+                            <button type="submit" class="px-4 py-2.5 border border-outline-variant rounded-xl text-sm text-secondary hover:bg-surface-container">
+                                <span class="material-symbols-outlined text-sm">bookmark</span>
+                            </button>
+                        </form>
+                    }
+                    else if (!User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="Account" asp-action="Login"
+                           class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-bold text-center">
+                            Ứng tuyển ngay
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Description -->
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="section-card">
+                    <h2 class="font-bold text-on-surface mb-4 flex items-center gap-2">
+                        <span class="w-1 h-5 bg-primary rounded-full inline-block"></span>
+                        Mô tả công việc
+                    </h2>
+                    <div class="prose text-sm text-secondary leading-relaxed">@Html.Raw(Model.Description)</div>
+                </div>
+            }
+
+            <!-- Requirements + Benefits side by side -->
+            @if (!string.IsNullOrEmpty(Model.Requirements) || !string.IsNullOrEmpty(Model.Benefits))
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    @if (!string.IsNullOrEmpty(Model.Requirements))
+                    {
+                        <div class="section-card">
+                            <h2 class="font-bold text-on-surface mb-4 flex items-center gap-2">
+                                <span class="w-1 h-5 bg-primary rounded-full inline-block"></span>
+                                Yêu cầu công việc
+                            </h2>
+                            <div class="prose text-sm text-secondary leading-relaxed">@Html.Raw(Model.Requirements)</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Benefits))
+                    {
+                        <div class="section-card">
+                            <h2 class="font-bold text-on-surface mb-4 flex items-center gap-2">
+                                <span class="w-1 h-5 bg-green-500 rounded-full inline-block"></span>
+                                Quyền lợi
+                            </h2>
+                            <div class="prose text-sm text-secondary leading-relaxed">@Html.Raw(Model.Benefits)</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- SIDEBAR -->
+        <aside class="space-y-4">
+
+            <!-- Company Info -->
+            <div class="section-card">
+                <h3 class="font-bold text-on-surface mb-3">Về @Model.Employer?.CompanyName</h3>
+                @if (!string.IsNullOrEmpty(Model.Employer?.Description))
+                {
+                    <p class="text-sm text-secondary leading-relaxed mb-3 line-clamp-4">@Model.Employer.Description</p>
+                }
+                <div class="space-y-2 text-sm text-secondary mb-4">
+                    @if (!string.IsNullOrEmpty(Model.Employer?.Website))
+                    {
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-primary">public</span>
+                            <a href="@Model.Employer.Website" target="_blank" class="text-primary hover:underline truncate">@Model.Employer.Website</a>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Employer?.Address))
+                    {
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base">apartment</span>
+                            <span>@Model.Employer.Address</span>
+                        </div>
+                    }
+                </div>
+                <a asp-controller="Company" asp-action="Detail" asp-route-id="@Model.Employer?.EmployerID"
+                   class="block w-full text-center py-2.5 border border-primary text-primary rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all">
+                    Xem trang công ty
+                </a>
+            </div>
+
+            <!-- Job Stats -->
+            <div class="section-card">
+                <h3 class="font-bold text-on-surface mb-3">Thông tin chung</h3>
+                <dl class="space-y-3">
+                    @foreach (var (icon, label, value) in new[]{
+                        ("event", "Hạn nộp hồ sơ", Model.Deadline?.ToString("dd/MM/yyyy") ?? "Không giới hạn"),
+                        ("work", "Hình thức", Model.JobType ?? "–"),
+                        ("stairs", "Cấp bậc", Model.ExperienceLevel ?? "–"),
+                        ("visibility", "Lượt xem", Model.ViewCount.ToString("N0")),
+                        ("send", "Đã ứng tuyển", Model.Applications.Count.ToString())
+                    })
+                    {
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="flex items-center gap-2 text-secondary">
+                                <span class="material-symbols-outlined text-base">@icon</span>
+                                @label
+                            </span>
+                            <span class="font-semibold text-on-surface">@value</span>
+                        </div>
+                    }
+                </dl>
+            </div>
+
+            <!-- Similar Jobs -->
+            @if (ViewBag.SimilarJobs is List<JobPost> similar && similar.Any())
+            {
+                <div class="section-card">
+                    <h3 class="font-bold text-on-surface mb-3">Việc làm tương tự</h3>
+                    <div class="space-y-3">
+                        @foreach (var sj in similar.Take(3))
+                        {
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@sj.JobID"
+                               class="block hover:bg-surface-container-low rounded-lg p-2 -mx-2 transition-colors">
+                                <div class="font-semibold text-sm text-on-surface hover:text-primary transition-colors">@sj.Title</div>
+                                <div class="text-xs text-secondary mt-0.5">@sj.Employer?.CompanyName</div>
+                                <div class="flex justify-between items-center mt-1">
+                                    <span class="text-xs font-bold text-primary">@sj.SalaryDisplay</span>
+                                    <span class="text-xs text-secondary">
+                                        @((DateTime.Now - sj.CreatedAt).TotalDays < 1 ? "Hôm nay" : $"{(int)(DateTime.Now - sj.CreatedAt).TotalDays} ngày trước")
+                                    </span>
+                                </div>
+                            </a>
+                            @if (sj != similar.Take(3).Last())
+                            {
+                                <div class="border-t border-outline-variant"></div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </aside>
+    </div>
+</div>
+
+<!-- APPLY MODAL -->
+<div id="applyModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+        <div class="flex justify-between items-center mb-5">
+            <div>
+                <h3 class="font-bold text-on-surface text-lg">Ứng tuyển vị trí</h3>
+                <p class="text-primary text-sm font-semibold">@Model.Title</p>
+            </div>
+            <button onclick="document.getElementById('applyModal').classList.add('hidden')"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-secondary">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        <form asp-controller="Job" asp-action="Apply" method="post" class="space-y-4">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="jobId" value="@Model.JobID" />
+            <div>
+                <label class="block text-sm font-semibold text-on-surface mb-1.5">Thư giới thiệu</label>
+                <textarea name="coverLetter" rows="6"
+                          placeholder="Giới thiệu bản thân và lý do bạn phù hợp với vị trí này..."
+                          class="w-full px-4 py-3 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none transition-colors"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="document.getElementById('applyModal').classList.add('hidden')"
+                        class="flex-1 py-3 border border-outline-variant text-secondary rounded-xl text-sm font-bold hover:bg-surface-container transition-colors">
+                    Hủy
+                </button>
+                <button type="submit"
+                        class="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-opacity text-sm">
+                    Gửi hồ sơ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

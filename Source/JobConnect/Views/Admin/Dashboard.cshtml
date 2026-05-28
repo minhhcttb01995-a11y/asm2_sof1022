@@ -1,0 +1,71 @@
+﻿@using JobConnect.Models
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-on-surface mb-6">Tổng quan hệ thống</h1>
+
+    <!-- Stats grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Người dùng</p>
+            <p class="text-3xl font-bold text-on-surface mt-1">@ViewBag.UserCount</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Nhà tuyển dụng</p>
+            <p class="text-3xl font-bold text-primary mt-1">@ViewBag.EmployerCount</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Tin tuyển dụng</p>
+            <p class="text-3xl font-bold text-on-surface mt-1">@ViewBag.JobCount</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Đơn ứng tuyển</p>
+            <p class="text-3xl font-bold text-on-surface mt-1">@ViewBag.AppCount</p>
+        </div>
+    </div>
+
+    <!-- Pending jobs -->
+    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-5 py-4 border-b border-outline-variant flex justify-between items-center">
+            <h2 class="font-semibold text-on-surface">Tin chờ duyệt</h2>
+            <a asp-action="Jobs" asp-route-status="Pending" class="text-primary text-sm hover:underline">Xem tất cả</a>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-surface-container-low">
+                <tr>
+                    <th class="text-left px-5 py-3 font-semibold">Tiêu đề</th>
+                    <th class="text-left px-5 py-3 font-semibold">Công ty</th>
+                    <th class="text-left px-5 py-3 font-semibold">Ngày đăng</th>
+                    <th class="px-5 py-3">Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @foreach (var job in (ViewBag.PendingJobs as List<JobPost> ?? new()))
+                {
+                    <tr class="hover:bg-surface-container-low">
+                        <td class="px-5 py-3 font-medium">@job.Title</td>
+                        <td class="px-5 py-3 text-secondary">@job.Employer.CompanyName</td>
+                        <td class="px-5 py-3 text-secondary">@job.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-5 py-3">
+                            <form asp-action="ApproveJob" method="post" class="inline flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="jobId" value="@job.JobID" />
+                                <button type="submit" name="action" value="approve"
+                                        class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200">
+                                    Duyệt
+                                </button>
+                                <button type="submit" name="action" value="reject"
+                                        class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">
+                                    Từ chối
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

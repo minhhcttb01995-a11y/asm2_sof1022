@@ -1,0 +1,129 @@
+﻿@model JobConnect.ViewModels.RegisterEmployerViewModel
+@{
+    ViewData["Title"] = "Đăng ký Nhà tuyển dụng";
+    Layout = "_Layout";
+}
+
+<!-- Cố định font chữ Inter đồng bộ toàn hệ thống -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<div class="w-full min-h-[85vh] flex items-center justify-center bg-[#f9f9ff] font-[Inter] py-12 px-4">
+    <div class="w-full max-w-xl bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,61,155,0.05)] border border-gray-100 p-8 md:p-10">
+
+        <!-- Header Form -->
+        <div class="text-center mb-8">
+            <a href="/" class="text-2xl font-bold text-[#003d9b] tracking-tight">JobConnect</a>
+            <h1 class="text-xl font-bold text-gray-900 mt-2">Đăng ký tài khoản Nhà tuyển dụng</h1>
+            <p class="text-gray-500 text-xs mt-1">Tìm kiếm và kết nối với nguồn nhân lực chất lượng cao</p>
+        </div>
+
+        <form asp-action="RegisterEmployer" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="All" class="text-red-600 text-sm bg-red-50 p-3.5 rounded-xl font-medium"></div>
+
+            <!-- PHÂN KHU 1: THÔNG TIN LIÊN HỆ -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                    <span class="w-1 h-4 bg-[#003d9b] rounded-full"></span>
+                    <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider">Thông tin người liên hệ</h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Họ và tên <span class="text-red-500">*</span></label>
+                        <input asp-for="ContactName" placeholder="Ví dụ: Nguyễn Văn A"
+                               class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                        <span asp-validation-for="ContactName" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Số điện thoại</label>
+                        <input asp-for="PhoneNumber" type="tel" placeholder="0901234567"
+                               class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                        <span asp-validation-for="PhoneNumber" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Email làm việc <span class="text-red-500">*</span></label>
+                    <input asp-for="Email" type="email" placeholder="hr@@company.com"
+                           class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                    <span asp-validation-for="Email" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Mật khẩu <span class="text-red-500">*</span></label>
+                        <input asp-for="Password" type="password" placeholder="Tối thiểu 8 ký tự"
+                               class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                        <span asp-validation-for="Password" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
+                        <input asp-for="ConfirmPassword" type="password" placeholder="Nhập lại mật khẩu"
+                               class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                        <span asp-validation-for="ConfirmPassword" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHÂN KHU 2: THÔNG TIN CÔNG TY -->
+            <div class="space-y-4 pt-4">
+                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                    <span class="w-1 h-4 bg-[#003d9b] rounded-full"></span>
+                    <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider">Thông tin doanh nghiệp</h3>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Tên công ty đăng ký kinh doanh <span class="text-red-500">*</span></label>
+                    <input asp-for="CompanyName" placeholder="Công ty TNHH Công nghệ Đa quốc gia"
+                           class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                    <span asp-validation-for="CompanyName" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Mã số thuế</label>
+                        <input asp-for="TaxCode" placeholder="Mã số doanh nghiệp"
+                               class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                        <span asp-validation-for="TaxCode" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Lĩnh vực hoạt động</label>
+                        <input asp-for="Industry" placeholder="Ví dụ: Công nghệ thông tin"
+                               class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                        <span asp-validation-for="Industry" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Địa chỉ trụ sở chính</label>
+                    <input asp-for="Address" placeholder="Số, Tên đường, Quận/Huyện, Tỉnh/Thành phố"
+                           class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                    <span asp-validation-for="Address" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Trang web công ty (Website)</label>
+                    <input asp-for="Website" type="url" placeholder="https://example.com"
+                           class="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm outline-none transition-all focus:bg-white focus:border-[#003d9b] focus:ring-4 focus:ring-blue-50" />
+                    <span asp-validation-for="Website" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="w-full py-3.5 bg-[#003d9b] text-white font-bold rounded-xl hover:bg-[#002d75] active:scale-[0.99] transition-all text-sm tracking-wide shadow-md shadow-blue-900/10">
+                    Đăng ký Nhà tuyển dụng
+                </button>
+            </div>
+        </form>
+
+        <!-- Chuyển hướng đăng nhập -->
+        <div class="mt-6 text-center text-sm text-gray-500 font-medium">
+            Doanh nghiệp đã có tài khoản?
+            <a asp-controller="Account" asp-action="Login" class="text-[#003d9b] font-bold hover:underline ml-1">Đăng nhập tại đây</a>
+        </div>
+    </div>
+</div>

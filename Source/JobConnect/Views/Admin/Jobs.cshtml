@@ -1,0 +1,109 @@
+﻿@using JobConnect.Models
+@model List<JobPost>
+@{
+    ViewData["Title"] = "Quản lý tin tuyển dụng";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-on-surface mb-6">Quản lý tin tuyển dụng</h1>
+
+    <!-- Filter tabs -->
+    <div class="flex gap-2 mb-6">
+        @foreach (var (label, value) in new[]{
+      ("Tất cả", ""), ("Chờ duyệt", "Pending"), ("Đang mở", "Open"),
+      ("Đã từ chối", "Rejected"), ("Đã đóng", "Closed")
+    })
+        {
+            <a asp-action="Jobs" asp-route-status="@value"
+               class="px-4 py-2 rounded-xl text-sm font-medium border transition-colors
+                @(ViewBag.Status?.ToString() == value ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                @label
+            </a>
+        }
+    </div>
+
+    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                    <th class="text-left px-5 py-3 font-semibold">Tiêu đề</th>
+                    <th class="text-left px-5 py-3 font-semibold">Công ty</th>
+                    <th class="text-left px-5 py-3 font-semibold">Trạng thái</th>
+                    <th class="text-left px-5 py-3 font-semibold">Ngày đăng</th>
+                    <th class="px-5 py-3 font-semibold">Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @foreach (var job in Model)
+                {
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-5 py-3">
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                               class="font-medium text-on-surface hover:text-primary">@job.Title</a>
+                            @if (job.IsFeatured)
+                            {
+                                <span class="ml-1 text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">Nổi bật</span>
+                            }
+                        </td>
+                        <td class="px-5 py-3 text-secondary">@job.Employer?.CompanyName</td>
+                        <td class="px-5 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                                @(job.Status == "Open" ? "bg-green-100 text-green-700" :
+                                    job.Status == "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                    job.Status == "Rejected" ? "bg-red-100 text-red-700" :
+                                                               "bg-gray-100 text-gray-600")">
+                                @(job.Status switch
+                                {
+                                    "Open" => "Đang mở",
+                                    "Pending" => "Chờ duyệt",
+                                    "Rejected" => "Từ chối",
+                                    "Closed" => "Đã đóng",
+                                    "Draft" => "Nháp",
+                                    _ => job.Status
+                                })
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-secondary text-xs">@job.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-5 py-3">
+                            @if (job.Status == "Pending")
+                            {
+                                <form asp-action="ApproveJob" method="post" class="inline flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="jobId" value="@job.JobID" />
+                                    <button type="submit" name="action" value="approve"
+                                            class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200">
+                                        Duyệt
+                                    </button>
+                                    <button type="submit" name="action" value="reject"
+                                            class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">
+                                        Từ chối
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-secondary text-xs">–</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="flex justify-center gap-2 mt-6">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <a asp-action="Jobs" asp-route-page="@i" asp-route-status="@ViewBag.Status"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border
+                    @(i == (int)(ViewBag.Page ?? 1) ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                    @i
+                </a>
+            }
+        </div>
+    }
+</div>

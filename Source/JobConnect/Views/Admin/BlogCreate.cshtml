@@ -1,0 +1,89 @@
+﻿@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Viết bài mới";
+}
+
+<div class="max-w-3xl mx-auto space-y-5">
+    <div class="flex items-center gap-3 mb-2">
+        <a asp-action="Blog" class="p-2 rounded-lg hover:bg-surface-container text-secondary">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h1 class="text-xl font-bold text-on-surface">Viết bài mới</h1>
+    </div>
+
+    <form asp-action="BlogCreate" method="post"
+          class="space-y-5">
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant space-y-4">
+            <h2 class="font-semibold text-on-surface">Thông tin bài viết</h2>
+            <div>
+                <label class="block text-sm font-medium text-secondary mb-1">Tiêu đề <span class="text-red-500">*</span></label>
+                <input type="text" name="Title" class="form-input" placeholder="Tiêu đề bài viết..."
+                       data-counter="120" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-secondary mb-1">Slug (URL thân thiện)</label>
+                <input type="text" name="Slug" id="slugInput" class="form-input"
+                       placeholder="vd: meo-tim-viec-hieu-qua" />
+                <p class="text-xs text-secondary mt-1">Để trống sẽ tự tạo từ tiêu đề.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-secondary mb-1">Tóm tắt</label>
+                <textarea name="Excerpt" rows="2" class="form-input resize-none"
+                          data-counter="200"
+                          placeholder="Mô tả ngắn hiển thị trong danh sách bài viết..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-secondary mb-1">URL ảnh bìa</label>
+                <input type="url" name="CoverURL" class="form-input"
+                       placeholder="https://example.com/image.jpg" />
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+            <label class="block text-sm font-medium text-secondary mb-2">Nội dung bài viết <span class="text-red-500">*</span></label>
+            <textarea name="Content" rows="18" class="form-input resize-y font-mono text-xs"
+                      placeholder="Nội dung HTML hoặc văn bản thuần..." required></textarea>
+            <p class="text-xs text-secondary mt-1">Hỗ trợ HTML. Dùng thẻ &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;strong&gt;...</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+            <h2 class="font-semibold text-on-surface mb-3">Trạng thái xuất bản</h2>
+            <div class="flex gap-3">
+                <label class="flex items-center gap-2 px-4 py-2.5 border border-outline-variant rounded-xl cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-blue-50 text-sm">
+                    <input type="radio" name="Status" value="Draft" checked class="accent-primary" /> Bản nháp
+                </label>
+                <label class="flex items-center gap-2 px-4 py-2.5 border border-outline-variant rounded-xl cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-blue-50 text-sm">
+                    <input type="radio" name="Status" value="Published" class="accent-primary" /> Đăng ngay
+                </label>
+            </div>
+        </div>
+
+        <div class="flex justify-between pt-2">
+            <a asp-action="Blog"
+               class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm text-secondary hover:bg-surface-container">
+                Hủy
+            </a>
+            <button type="submit"
+                    class="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:opacity-90"
+                    onclick="this.classList.add('btn-loading')">
+                Lưu bài viết
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Tự tạo slug từ tiêu đề
+    document.querySelector('[name="Title"]')?.addEventListener('blur', function() {
+      const slug = document.getElementById('slugInput');
+      if (!slug.value) {
+        slug.value = this.value
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd').replace(/Đ/g, 'd')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim().replace(/\s+/g, '-');
+      }
+    });
+</script>

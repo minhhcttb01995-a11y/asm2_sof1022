@@ -1,0 +1,160 @@
+﻿@using JobConnect.Models
+@model IEnumerable<BlogPost>
+@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Quản lý Blog";
+}
+
+<div class="space-y-5">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-bold text-on-surface">Quản lý Blog</h1>
+            <p class="text-sm text-secondary">Tổng: <strong>@Model.Count()</strong> bài viết</p>
+        </div>
+        <a asp-action="BlogCreate"
+           class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+            <span class="material-symbols-outlined text-sm">add</span>
+            Viết bài mới
+        </a>
+    </div>
+
+    <!-- Filter -->
+    <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs text-secondary mb-1">Tìm bài viết</label>
+            <input type="text" name="q" value="@ViewBag.Q" class="form-input" placeholder="Tiêu đề bài viết..." />
+        </div>
+        <div>
+            <label class="block text-xs text-secondary mb-1">Trạng thái</label>
+            <select name="status" class="form-input w-36">
+                <option value="">Tất cả</option>
+                <option value="Published" selected="@(ViewBag.Status == "Published")">Đã đăng</option>
+                <option value="Draft" selected="@(ViewBag.Status == "Draft")">Bản nháp</option>
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:opacity-90">
+            Lọc
+        </button>
+    </form>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-surface-container text-secondary text-xs uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left w-1/2">Bài viết</th>
+                        <th class="px-4 py-3 text-left">Tác giả</th>
+                        <th class="px-4 py-3 text-center">Trạng thái</th>
+                        <th class="px-4 py-3 text-center">Ngày đăng</th>
+                        <th class="px-4 py-3 text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="px-4 py-10 text-center text-secondary">
+                                <span class="material-symbols-outlined text-3xl block mb-2 opacity-40">article</span>
+                                Chưa có bài viết nào.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var post in Model)
+                    {
+                        <tr class="hover:bg-surface-container/50 transition-colors">
+                            <!-- Title + excerpt -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-start gap-3">
+                                    @if (!string.IsNullOrEmpty(post.CoverURL))
+                                    {
+                                        <img src="@post.CoverURL" class="w-14 h-10 rounded-lg object-cover shrink-0 border border-outline-variant" />
+                                    }
+                                    else
+                                    {
+                                        <div class="w-14 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
+                                            <span class="material-symbols-outlined text-sm text-secondary">image</span>
+                                        </div>
+                                    }
+                                    <div>
+                                        <p class="font-medium text-on-surface line-clamp-1">@post.Title</p>
+                                        <p class="text-xs text-secondary line-clamp-1 mt-0.5">@post.Excerpt</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Author -->
+                            <td class="px-4 py-3 text-secondary">@(post.Author?.FullName ?? "—")</td>
+                            <!-- Status -->
+                            <td class="px-4 py-3 text-center">
+                                @if (post.IsPublished)
+                                {
+                                    <span class="badge badge-active">Đã đăng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-draft">Bản nháp</span>
+                                }
+                            </td>
+                            <!-- Published date -->
+                            <td class="px-4 py-3 text-center text-xs text-secondary">
+                                @(post.PublishedAt?.ToString("dd/MM/yyyy") ?? "—")
+                            </td>
+                            <!-- Actions -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-1">
+                                    <a asp-controller="Blog" asp-action="Detail" asp-route-slug="@post.Slug"
+                                       target="_blank"
+                                       class="p-1.5 rounded-lg hover:bg-surface-container text-secondary"
+                                       data-tooltip="Xem bài">
+                                        <span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    </a>
+                                    <a asp-action="BlogEdit" asp-route-id="@post.PostID"
+                                       class="p-1.5 rounded-lg hover:bg-blue-50 text-primary"
+                                       data-tooltip="Sửa bài">
+                                        <span class="material-symbols-outlined text-sm">edit</span>
+                                    </a>
+                                    @if (!post.IsPublished)
+                                    {
+                                        <form asp-action="BlogPublish" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@post.PostID" />
+                                            <button type="submit"
+                                                    class="p-1.5 rounded-lg hover:bg-green-50 text-green-600"
+                                                    data-tooltip="Đăng bài">
+                                                <span class="material-symbols-outlined text-sm">publish</span>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form asp-action="BlogDelete" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@post.PostID" />
+                                        <button type="submit"
+                                                data-confirm="Xóa bài viết '@post.Title'?"
+                                                class="p-1.5 rounded-lg hover:bg-red-50 text-red-500"
+                                                data-tooltip="Xóa bài">
+                                            <span class="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if ((int)(ViewBag.TotalPages ?? 1) > 1)
+        {
+            <div class="flex justify-center gap-2 p-4 border-t border-outline-variant">
+                @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                {
+                    <a asp-action="Blog" asp-route-page="@i"
+                       class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border
+                        @(i == (int)(ViewBag.Page ?? 1) ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                        @i
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

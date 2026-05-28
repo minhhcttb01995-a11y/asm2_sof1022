@@ -1,0 +1,244 @@
+﻿@using JobConnect.Models
+@model List<Employer>
+@{
+    ViewData["Title"] = "Danh sách công ty";
+    Layout = "_Layout";
+}
+
+<style>
+    .company-card {
+        transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+        .company-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,61,155,0.10);
+        }
+</style>
+
+<!-- Hero Banner -->
+<div class="bg-gradient-to-br from-slate-50 to-blue-50 border-b border-outline-variant py-12">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-on-surface mb-3">Khám phá các Công ty hàng đầu</h1>
+        <p class="text-secondary text-base max-w-xl mx-auto mb-8">
+            Tìm hiểu về môi trường làm việc, văn hóa và cơ hội nghề nghiệp tại những doanh nghiệp tốt nhất Việt Nam.
+        </p>
+        <form method="get" class="flex gap-2 max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-outline-variant p-2">
+            <div class="flex items-center gap-2 flex-1 px-3">
+                <span class="material-symbols-outlined text-secondary">search</span>
+                <input name="keyword" value="@ViewBag.Keyword" type="text"
+                       placeholder="Tìm kiếm theo tên công ty..."
+                       class="flex-1 border-none outline-none text-sm bg-transparent" />
+            </div>
+            <button type="submit" class="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:opacity-90 transition-opacity">
+                Tìm kiếm
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Sidebar Filter -->
+        <aside class="lg:col-span-3">
+            <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm sticky top-4">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="font-bold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">tune</span>
+                        Bộ lọc
+                    </h2>
+                    <a asp-action="Index" class="text-primary text-xs font-bold hover:underline">Xóa tất cả</a>
+                </div>
+
+                <form method="get">
+                    <!-- Industry -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold uppercase text-secondary tracking-wider mb-2">Ngành nghề</label>
+                        <select name="industry"
+                                onchange="this.form.submit()"
+                                class="w-full px-3 py-2.5 border border-outline-variant rounded-lg bg-white text-sm focus:border-primary outline-none">
+                            <option value="">Tất cả ngành nghề</option>
+                            @foreach (var cat in (ViewBag.Industries as List<Category> ?? new()))
+                            {
+                                <option value="@cat.Name" selected="@(ViewBag.Industry == cat.Name ? "selected" : null)">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Company Size -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold uppercase text-secondary tracking-wider mb-2">Quy mô công ty</label>
+                        <div class="space-y-2">
+                            @foreach (var (label, val) in new[]{
+                                ("1 - 50 nhân viên","1-50"),
+                                ("51 - 200 nhân viên","51-200"),
+                                ("201 - 500 nhân viên","201-500"),
+                                ("500+ nhân viên","500+")
+                            })
+                            {
+                                <label class="flex items-center gap-2.5 cursor-pointer group">
+                                    <input type="checkbox" name="Size" value="@val"
+                                           checked="@(ViewBag.Size == val ? "checked" : null)"
+                                           class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" />
+                                    <span class="text-sm text-on-surface group-hover:text-primary transition-colors">@label</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-secondary tracking-wider mb-2">Địa điểm</label>
+                        <select name="location"
+                                onchange="this.form.submit()"
+                                class="w-full px-3 py-2.5 border border-outline-variant rounded-lg bg-white text-sm focus:border-primary outline-none">
+                            <option value="">Toàn quốc</option>
+                            <option value="Hà Nội">Hà Nội</option>
+                            <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                            <option value="Đà Nẵng">Đà Nẵng</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <section class="lg:col-span-9">
+            <!-- Result bar -->
+            <div class="flex items-center justify-between mb-5">
+                <p class="text-sm text-secondary">
+                    Hiển thị <strong class="text-on-surface">@Model.Count</strong> kết quả
+                    @if (!string.IsNullOrEmpty(ViewBag.Keyword as string))
+                    {
+                        <span> cho "<strong class="text-primary">@ViewBag.Keyword</strong>"</span>
+                    }
+                </p>
+                <div class="flex items-center gap-2 bg-white border border-outline-variant rounded-lg px-3 py-2">
+                    <span class="text-xs text-secondary">Sắp xếp:</span>
+                    <select class="border-none bg-transparent text-primary text-sm font-bold outline-none cursor-pointer">
+                        <option>Phổ biến nhất</option>
+                        <option>Mới nhất</option>
+                        <option>Nhiều việc nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="bg-white rounded-2xl border border-outline-variant p-16 text-center">
+                    <span class="material-symbols-outlined text-5xl text-secondary block mb-3">domain_disabled</span>
+                    <p class="text-secondary font-medium">Không tìm thấy công ty phù hợp.</p>
+                    <a asp-action="Index" class="text-primary text-sm mt-3 inline-block hover:underline">← Xóa bộ lọc</a>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach (var emp in Model)
+                    {
+                        <a asp-controller="Company" asp-action="Detail" asp-route-id="@emp.EmployerID"
+                           class="bg-white rounded-2xl border border-outline-variant p-5 company-card block">
+                            <div class="flex justify-between items-start mb-3">
+                                <!-- Logo -->
+                                <div class="w-14 h-14 rounded-xl border border-outline-variant bg-surface-container flex items-center justify-center overflow-hidden shrink-0">
+                                    @if (!string.IsNullOrEmpty(emp.LogoURL))
+                                    {
+                                        <img src="@emp.LogoURL" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-secondary text-2xl">business</span>
+                                    }
+                                </div>
+                                <span class="text-secondary hover:text-error transition-colors">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </span>
+                            </div>
+
+                            <!-- Name + verified -->
+                            <div class="flex items-center gap-1.5 mb-0.5">
+                                <h3 class="font-bold text-on-surface text-base group-hover:text-primary">@emp.CompanyName</h3>
+                                @if (emp.IsVerified)
+                                {
+                                    <span class="material-symbols-outlined text-primary text-base" title="Đã xác minh">verified</span>
+                                }
+                            </div>
+
+                            <!-- Industry tag -->
+                            @if (!string.IsNullOrEmpty(emp.Industry))
+                            {
+                                <div class="flex items-center gap-1 text-xs text-secondary mb-2">
+                                    <span class="material-symbols-outlined text-sm">category</span>
+                                    @emp.Industry
+                                </div>
+                            }
+
+                            <!-- Description -->
+                            @if (!string.IsNullOrEmpty(emp.Description))
+                            {
+                                <p class="text-sm text-secondary line-clamp-2 mb-3">@emp.Description</p>
+                            }
+                            else
+                            {
+                                <div class="mb-3"></div>
+                            }
+
+                            <!-- Footer -->
+                            <div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+                                <span class="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold">
+                                    @(emp.JobPosts?.Count(j => j.Status == "Open") ?? 0) Việc làm đang tuyển
+                                </span>
+                                @if (!string.IsNullOrEmpty(emp.Address))
+                                {
+                                    <span class="flex items-center gap-1 text-xs text-secondary">
+                                        <span class="material-symbols-outlined text-sm">location_on</span>
+                                        @emp.Address
+                                    </span>
+                                }
+                            </div>
+                        </a>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if ((int)(ViewBag.TotalPages ?? 1) > 1)
+                {
+                    int currentPage = (int)(ViewBag.Page ?? 1);
+                    int totalPages = (int)ViewBag.TotalPages;
+                    <div class="flex justify-center items-center gap-1.5 mt-8">
+                        @if (currentPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-keyword="@ViewBag.Keyword"
+                               class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container text-secondary">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </a>
+                        }
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            if (i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
+                            {
+                                <a asp-action="Index" asp-route-page="@i" asp-route-keyword="@ViewBag.Keyword"
+                                   class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-colors
+                                    @(i == currentPage ? "bg-primary text-white" : "border border-outline-variant text-secondary hover:bg-surface-container")">
+                                    @i
+                                </a>
+                            }
+                            else if (i == currentPage - 2 || i == currentPage + 2)
+                            {
+                                <span class="w-10 h-10 flex items-center justify-center text-secondary">…</span>
+                            }
+                        }
+                        @if (currentPage < totalPages)
+                        {
+                            <a asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-keyword="@ViewBag.Keyword"
+                               class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container text-secondary">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+        </section>
+    </div>
+</div>

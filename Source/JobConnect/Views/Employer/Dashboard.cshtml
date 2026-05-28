@@ -1,0 +1,74 @@
+﻿@using JobConnect.Models
+@model List<JobPost>
+@{
+    ViewData["Title"] = "Dashboard – Nhà tuyển dụng";
+    Layout = "_LayoutEmployer";
+}
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Dashboard tuyển dụng</h1>
+            <p class="text-secondary text-sm mt-1">@(ViewBag.Employer as Employer)?.CompanyName</p>
+        </div>
+        <a asp-action="PostJob" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+            + Đăng tin mới
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Tổng tin đăng</p>
+            <p class="text-3xl font-bold text-on-surface mt-1">@ViewBag.JobCount</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Tin đang mở</p>
+            <p class="text-3xl font-bold text-primary mt-1">@ViewBag.OpenCount</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-outline-variant">
+            <p class="text-secondary text-sm">Tổng đơn ứng tuyển</p>
+            <p class="text-3xl font-bold text-on-surface mt-1">@ViewBag.AppCount</p>
+        </div>
+    </div>
+
+    <!-- Job list -->
+    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                    <th class="text-left px-5 py-3 font-semibold text-on-surface">Tiêu đề</th>
+                    <th class="text-left px-5 py-3 font-semibold text-on-surface">Trạng thái</th>
+                    <th class="text-left px-5 py-3 font-semibold text-on-surface">Đơn</th>
+                    <th class="text-left px-5 py-3 font-semibold text-on-surface">Hết hạn</th>
+                    <th class="px-5 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @foreach (var job in Model)
+                {
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-5 py-3">
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                               class="font-medium text-on-surface hover:text-primary">@job.Title</a>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                                @(job.Status == "Open" ? "bg-green-100 text-green-700" :
+                                    job.Status == "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                    job.Status == "Rejected" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600")">
+                                @job.Status
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-secondary">@job.Applications.Count</td>
+                        <td class="px-5 py-3 text-secondary">@(job.Deadline?.ToString("dd/MM/yyyy") ?? "–")</td>
+                        <td class="px-5 py-3">
+                            <a asp-action="ManageApplications" asp-route-jobId="@job.JobID"
+                               class="text-primary text-xs hover:underline">Quản lý đơn</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

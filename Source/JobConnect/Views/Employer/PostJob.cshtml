@@ -1,0 +1,97 @@
+﻿@model JobConnect.Models.JobPost
+@{
+    ViewData["Title"] = "Đăng tin tuyển dụng";
+    Layout = "_LayoutEmployer";
+}
+
+<div class="max-w-3xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-on-surface mb-6">Đăng tin tuyển dụng mới</h1>
+    <form asp-action="PostJob" method="post" class="bg-white rounded-xl p-6 border border-outline-variant space-y-5">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-red-600 text-sm bg-red-50 p-3 rounded-lg"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề công việc <span class="text-red-500">*</span></label>
+                <input asp-for="Title" placeholder="VD: Senior Backend Developer"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                <span asp-validation-for="Title" class="text-red-500 text-xs"></span>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Loại công việc</label>
+                <select asp-for="JobType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none">
+                    <option value="FullTime">Full-time</option>
+                    <option value="PartTime">Part-time</option>
+                    <option value="Contract">Hợp đồng</option>
+                    <option value="Intern">Thực tập</option>
+                    <option value="Remote">Remote</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cấp bậc kinh nghiệm</label>
+                <select asp-for="ExperienceLevel" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none">
+                    <option value="">Không yêu cầu</option>
+                    <option value="Fresher">Fresher</option>
+                    <option value="Junior">Junior</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Manager">Manager</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Địa điểm làm việc</label>
+                <input asp-for="Location" placeholder="VD: Hà Nội, TP. HCM"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ngành nghề</label>
+                <select asp-for="CategoryID" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none">
+                    <option value="">Chọn ngành nghề</option>
+                    @foreach (var cat in (ViewBag.Categories as List<JobConnect.Models.Category> ?? new()))
+                    {
+                        <option value="@cat.CategoryID">@cat.Name</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lương tối thiểu (VND)</label>
+                <input asp-for="SalaryMin" type="number" placeholder="VD: 15000000"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lương tối đa (VND)</label>
+                <input asp-for="SalaryMax" type="number" placeholder="VD: 30000000"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ngày hết hạn</label>
+                <input asp-for="Deadline" type="date"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả công việc <span class="text-red-500">*</span></label>
+                <textarea asp-for="Description" rows="6" placeholder="Mô tả chi tiết về vị trí công việc..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-y"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Yêu cầu ứng viên</label>
+                <textarea asp-for="Requirements" rows="4" placeholder="Kỹ năng, kinh nghiệm yêu cầu..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-y"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Quyền lợi</label>
+                <textarea asp-for="Benefits" rows="3" placeholder="Các quyền lợi hấp dẫn dành cho ứng viên..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-y"></textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:opacity-90 transition-opacity">
+                Gửi tin để duyệt
+            </button>
+            <a asp-action="Dashboard" class="px-8 py-3 border border-outline-variant text-secondary rounded-xl hover:bg-surface-container transition-colors text-sm font-medium">
+                Hủy
+            </a>
+        </div>
+    </form>
+</div>

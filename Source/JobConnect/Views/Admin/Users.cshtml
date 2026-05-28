@@ -1,0 +1,106 @@
+﻿@using JobConnect.Models
+@model List<User>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-on-surface mb-6">Quản lý người dùng</h1>
+
+    <!-- Search -->
+    <form method="get" class="flex gap-3 mb-6">
+        <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên hoặc email..."
+               class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+        <select name="role" class="px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none">
+            <option value="">Tất cả vai trò</option>
+            <option value="Candidate" selected="@(ViewBag.Role == "Candidate" ? "selected" : null)">Ứng viên</option>
+            <option value="Employer" selected="@(ViewBag.Role == "Employer" ? "selected" : null)">Nhà tuyển dụng</option>
+            <option value="Admin" selected="@(ViewBag.Role == "Admin" ? "selected" : null)">Admin</option>
+        </select>
+        <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">Tìm</button>
+    </form>
+
+    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                    <th class="text-left px-5 py-3 font-semibold">Người dùng</th>
+                    <th class="text-left px-5 py-3 font-semibold">Vai trò</th>
+                    <th class="text-left px-5 py-3 font-semibold">Trạng thái</th>
+                    <th class="text-left px-5 py-3 font-semibold">Ngày tạo</th>
+                    <th class="px-5 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @foreach (var user in Model)
+                {
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center flex-shrink-0">
+                                    @if (!string.IsNullOrEmpty(user.AvatarURL))
+                                    {
+                                        <img src="@user.AvatarURL" class="w-8 h-8 rounded-full object-cover" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-sm text-secondary">person</span>
+                                    }
+                                </div>
+                                <div>
+                                    <p class="font-medium text-on-surface">@user.FullName</p>
+                                    <p class="text-xs text-secondary">@user.Email</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                                @(user.Role == "Admin" ? "bg-purple-100 text-purple-700" :
+                                    user.Role == "Employer" ? "bg-blue-100 text-blue-700" :
+                                                              "bg-gray-100 text-gray-600")">
+                                @(user.Role == "Admin" ? "Admin" : user.Role == "Employer" ? "Nhà tuyển dụng" : "Ứng viên")
+                            </span>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                                @(user.Status == "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")">
+                                @(user.Status == "Active" ? "Hoạt động" : "Đã khoá")
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-secondary text-xs">@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-5 py-3">
+                            @if (user.Role != "Admin")
+                            {
+                                <form asp-action="BanUser" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.UserID" />
+                                    <button type="submit"
+                                            class="px-3 py-1 text-xs font-medium rounded-lg transition-colors
+                                        @(user.Status == "Active" ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-green-100 text-green-700 hover:bg-green-200")">
+                                        @(user.Status == "Active" ? "Khoá" : "Mở khoá")
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="flex justify-center gap-2 mt-6">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <a asp-action="Users" asp-route-page="@i" asp-route-keyword="@ViewBag.Keyword" asp-route-role="@ViewBag.Role"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border
+                    @(i == (int)(ViewBag.Page ?? 1) ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                    @i
+                </a>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,155 @@
+﻿@using JobConnect.Models
+@model IEnumerable<Employer>
+@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Quản lý công ty";
+}
+
+<div class="space-y-5">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-bold text-on-surface">Quản lý công ty</h1>
+            <p class="text-sm text-secondary">Tổng: <strong>@Model.Count()</strong> công ty đã đăng ký</p>
+        </div>
+    </div>
+
+    <!-- Filter bar -->
+    <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs text-secondary mb-1">Tìm công ty</label>
+            <input type="text" name="q" value="@ViewBag.Q"
+                   class="form-input" placeholder="Tên công ty..." />
+        </div>
+        <div>
+            <label class="block text-xs text-secondary mb-1">Xác minh</label>
+            <select name="status" class="form-input w-36">
+                <option value="">Tất cả</option>
+                <option value="Verified" selected="@(ViewBag.Status == "Verified")">Đã xác minh</option>
+                <option value="Unverified" selected="@(ViewBag.Status == "Unverified")">Chưa xác minh</option>
+            </select>
+        </div>
+        <button type="submit"
+                class="px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:opacity-90">
+            Lọc
+        </button>
+    </form>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-surface-container text-secondary text-xs uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Công ty</th>
+                        <th class="px-4 py-3 text-left">Email liên hệ</th>
+                        <th class="px-4 py-3 text-center">Tin đăng</th>
+                        <th class="px-4 py-3 text-center">Xác minh</th>
+                        <th class="px-4 py-3 text-center">Ngày đăng ký</th>
+                        <th class="px-4 py-3 text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="px-4 py-10 text-center text-secondary">
+                                <span class="material-symbols-outlined text-3xl block mb-2 opacity-40">apartment</span>
+                                Không tìm thấy công ty nào.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var c in Model)
+                    {
+                        <tr class="hover:bg-surface-container/50 transition-colors">
+                            <!-- Tên công ty -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(c.LogoURL))
+                                    {
+                                        <img src="@c.LogoURL" class="w-9 h-9 rounded-lg object-contain border border-outline-variant" />
+                                    }
+                                    else
+                                    {
+                                        <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+                                            <span class="material-symbols-outlined text-sm">apartment</span>
+                                        </div>
+                                    }
+                                    <div>
+                                        <p class="font-medium text-on-surface">@c.CompanyName</p>
+                                        <p class="text-xs text-secondary">@c.Industry</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Email -->
+                            <td class="px-4 py-3 text-secondary">@(c.User?.Email ?? "—")</td>
+                            <!-- Số tin đăng -->
+                            <td class="px-4 py-3 text-center">
+                                <span class="font-medium text-on-surface">@(c.JobPosts?.Count ?? 0)</span>
+                            </td>
+                            <!-- Verified badge -->
+                            <td class="px-4 py-3 text-center">
+                                @if (c.IsVerified)
+                                {
+                                    <span class="badge badge-active">Đã xác minh</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-pending">Chưa xác minh</span>
+                                }
+                            </td>
+                            <!-- Ngày đăng ký -->
+                            <td class="px-4 py-3 text-center text-secondary text-xs">
+                                @c.CreatedAt.ToString("dd/MM/yyyy")
+                            </td>
+                            <!-- Actions -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-1">
+                                    @if (!c.IsVerified)
+                                    {
+                                        <form asp-action="ApproveCompany" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@c.EmployerID" />
+                                            <button type="submit"
+                                                    class="p-1.5 rounded-lg hover:bg-green-50 text-green-600"
+                                                    data-tooltip="Xác minh công ty">
+                                                <span class="material-symbols-outlined text-sm">check_circle</span>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (c.IsVerified)
+                                    {
+                                        <form asp-action="SuspendCompany" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@c.EmployerID" />
+                                            <button type="submit"
+                                                    data-confirm="Hủy xác minh công ty '@c.CompanyName'?"
+                                                    class="p-1.5 rounded-lg hover:bg-red-50 text-red-500"
+                                                    data-tooltip="Hủy xác minh">
+                                                <span class="material-symbols-outlined text-sm">block</span>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if ((int)(ViewBag.TotalPages ?? 1) > 1)
+        {
+            <div class="flex justify-center gap-2 p-4 border-t border-outline-variant">
+                @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                {
+                    <a asp-action="Companies" asp-route-page="@i" asp-route-q="@ViewBag.Q" asp-route-status="@ViewBag.Status"
+                       class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border
+                        @(i == (int)(ViewBag.Page ?? 1) ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                        @i
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
