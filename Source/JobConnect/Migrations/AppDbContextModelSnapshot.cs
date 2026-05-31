@@ -215,14 +215,11 @@ namespace JobConnect.Migrations
 
             modelBuilder.Entity("JobConnect.Models.CvFile", b =>
                 {
-                    b.Property<int>("CVID")
+                    b.Property<int>("CvFileID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CVID"));
-
-                    b.Property<int>("CandidateProfileProfileID")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CvFileID"));
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -232,7 +229,7 @@ namespace JobConnect.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("FileSize")
+                    b.Property<int>("FileSize")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsDefault")
@@ -244,9 +241,9 @@ namespace JobConnect.Migrations
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("CVID");
+                    b.HasKey("CvFileID");
 
-                    b.HasIndex("CandidateProfileProfileID");
+                    b.HasIndex("ProfileID");
 
                     b.ToTable("CvFiles");
                 });
@@ -723,13 +720,13 @@ namespace JobConnect.Migrations
 
             modelBuilder.Entity("JobConnect.Models.CvFile", b =>
                 {
-                    b.HasOne("JobConnect.Models.CandidateProfile", "CandidateProfile")
+                    b.HasOne("JobConnect.Models.CandidateProfile", "Profile")
                         .WithMany("CvFiles")
-                        .HasForeignKey("CandidateProfileProfileID")
+                        .HasForeignKey("ProfileID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CandidateProfile");
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("JobConnect.Models.Employer", b =>

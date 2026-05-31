@@ -15,11 +15,13 @@ public class EmployerController : Controller
 {
     private readonly AppDbContext _db;
     private readonly IJobService _jobSvc;
+    private readonly IWebHostEnvironment _env;
 
-    public EmployerController(AppDbContext db, IJobService jobSvc)
+    public EmployerController(AppDbContext db, IJobService jobSvc, IWebHostEnvironment env)
     {
         _db = db;
         _jobSvc = jobSvc;
+        _env = env;
     }
 
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -83,6 +85,35 @@ public class EmployerController : Controller
 
         ViewBag.Job = job;
         return View(apps);
+    }
+
+    // GET /Employer/DownloadCv?cvId=123
+    public async Task<IActionResult> DownloadCv(int cvId)
+    {
+        var emp = await GetEmployerAsync();
+        if (emp == null) return Forbid();
+
+        var cv = await _db.CvFiles.FindAsync(cvId);
+        if (cv == null) return NotFound();
+
+        // find application that references this CV
+        var app = await _db.Applications.FirstOrDefaultAsync(a => a.CVID == cvId);
+        if (app == null) return NotFound();
+
+        var job = await _db.JobPosts.FindAsync(app.JobID);
+        if (job == null || job.EmployerID != emp.EmployerID) return Forbid();
+
+        var relPath = cv.FilePath?.TrimStart('/') ?? string.Empty;
+        var fullPath = Path.Combine(_env.WebRootPath, relPath.Replace('/', Path.DirectorySeparatorChar));
+        if (!System.IO.File.Exists(fullPath)) return NotFound();
+
+        var contentType = "application/octet-stream";
+        var ext = Path.GetExtension(fullPath).ToLower();
+        if (ext == ".pdf") contentType = "application/pdf";
+        else if (ext == ".docx") contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+        var fileName = cv.FileName ?? Path.GetFileName(fullPath);
+        return PhysicalFile(fullPath, contentType, fileName);
     }
 
     // POST /Employer/UpdateApplicationStatus
@@ -191,8 +222,27 @@ public class EmployerController : Controller
         emp.CompanySize = model.CompanySize;
         emp.Address = model.Address;
         emp.Website = model.Website;
-        emp.LogoURL = model.LogoURL;
-        emp.CoverURL = model.CoverURL;
+        // If LogoURL/CoverURL are data URIs (base64 uploaded via client), save them to disk
+        if (!string.IsNullOrEmpty(model.LogoURL) && model.LogoURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            try { emp.LogoURL = await _jobSvc.SaveImageFromDataUriAsync(model.LogoURL, "uploads/company/logo"); }
+            catch { /* ignore save errors */ }
+        }
+        else
+        {
+            emp.LogoURL = model.LogoURL;
+        }
+
+        if (!string.IsNullOrEmpty(model.CoverURL) && model.CoverURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            try { emp.CoverURL = await _jobSvc.SaveImageFromDataUriAsync(model.CoverURL, "uploads/company/cover"); }
+            catch { /* ignore save errors */ }
+        }
+        else
+        {
+            emp.CoverURL = model.CoverURL;
+        }
+
         emp.Description = model.Description;
 
         await _db.SaveChangesAsync();

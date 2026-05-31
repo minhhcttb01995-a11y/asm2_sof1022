@@ -109,11 +109,12 @@ namespace JobConnect.Controllers
                 return RedirectToAction("Detail", new { id = jobId });
             }
 
-            bool ok = await _jobSvc.ApplyAsync(jobId, profile.ProfileID, cvId, coverLetter);
+            bool applied = await _jobSvc.ToggleApplyAsync(jobId, profile.ProfileID, cvId, coverLetter);
 
-            TempData[ok ? "Success" : "Error"] = ok
-                ? "Ứng tuyển thành công!"
-                : "Bạn đã ứng tuyển tin này rồi.";
+            if (applied)
+                TempData["Success"] = "Ứng tuyển thành công!";
+            else
+                TempData["Success"] = "Bạn đã rút đơn ứng tuyển.";
 
             return RedirectToAction("Detail", new { id = jobId });
         }

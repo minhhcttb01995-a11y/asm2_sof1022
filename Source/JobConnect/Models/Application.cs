@@ -7,20 +7,36 @@ public class Application
 {
     [Key]
     public int AppID { get; set; }
+
     public int JobID { get; set; }
     public int ProfileID { get; set; }
     public int? CVID { get; set; }
+
     public string? CoverLetter { get; set; }
-    public string Status { get; set; } = "Pending"; // Pending | Reviewed | Accepted | Rejected | Interview
+
+    [Required]
+    public string Status { get; set; } = "Pending"; // Pending, Reviewed, Interview, Offered, Rejected
+
+    // Temporarily not mapped to DB to avoid runtime errors when the database lacks these columns.
+    [NotMapped]
+    public int? Rating { get; set; }  // Đánh giá hồ sơ (1-5 sao)
+
+    // THÊM DÒNG NÀY - property Note
+    [NotMapped]
+    public string? Note { get; set; }  // Ghi chú của nhà tuyển dụng
+
     public DateTime AppliedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
 
+    // Navigation properties
     [ForeignKey("JobID")]
-    public JobPost JobPost { get; set; } = null!;
+    [InverseProperty("Applications")]
+    public virtual JobPost? JobPost { get; set; }
 
     [ForeignKey("ProfileID")]
-    public CandidateProfile CandidateProfile { get; set; } = null!;
+    [InverseProperty("Applications")]
+    public virtual CandidateProfile? CandidateProfile { get; set; }
 
     [ForeignKey("CVID")]
-    public CvFile? CvFile { get; set; }
+    public virtual CvFile? CvFile { get; set; }
 }

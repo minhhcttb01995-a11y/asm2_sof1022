@@ -1,94 +1,169 @@
 ﻿@using JobConnect.Models
 @model List<Application>
+
 @{
-    ViewData["Title"] = "Đơn ứng tuyển của tôi";
+    ViewData["Title"] = "Việc làm đã ứng tuyển";
     Layout = "_Layout";
 }
 
-<div class="max-w-4xl mx-auto px-6 py-8">
+<style>
+    body {
+        background-color: #000000 !important;
+    }
+
+    .glass-card {
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid #fbbf2440;
+    }
+
+    .status-reviewed {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border: 1px solid #3b82f640;
+    }
+
+    .status-interview {
+        background: rgba(139, 92, 246, 0.2);
+        color: #a78bfa;
+        border: 1px solid #8b5cf640;
+    }
+
+    .status-offered {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ade80;
+        border: 1px solid #22c55e40;
+    }
+
+    .status-rejected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid #ef444440;
+    }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
     <div class="flex items-center gap-3 mb-6">
-        <a asp-action="Profile" class="text-secondary hover:text-primary">
-            <span class="material-symbols-outlined align-middle">arrow_back</span>
-        </a>
-        <h1 class="text-2xl font-bold text-on-surface">Đơn ứng tuyển của tôi</h1>
-        <span class="ml-2 bg-surface-container text-secondary text-sm px-3 py-1 rounded-full">@Model.Count đơn</span>
+        <span class="material-symbols-outlined text-3xl text-blue-400">work_history</span>
+        <h1 class="text-2xl font-bold text-white">Việc làm đã ứng tuyển</h1>
     </div>
 
-    @if (!Model.Any())
+    @if (Model == null || !Model.Any())
     {
-        <div class="bg-white rounded-xl border border-outline-variant p-16 text-center">
-            <span class="material-symbols-outlined text-5xl text-secondary block mb-3">send</span>
-            <p class="text-secondary mb-3">Bạn chưa ứng tuyển vào vị trí nào.</p>
-            <a asp-controller="Job" asp-action="Index"
-               class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
-                Tìm việc làm ngay
+        <div class="glass-card p-16 text-center">
+            <span class="material-symbols-outlined text-6xl text-slate-500 block mb-4">send</span>
+            <p class="text-slate-400 text-lg mb-2">Bạn chưa ứng tuyển việc làm nào</p>
+            <p class="text-slate-500 text-sm mb-6">Hãy khám phá các cơ hội việc làm hấp dẫn ngay hôm nay!</p>
+            <a href="/Job" class="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all">
+                🔍 Tìm việc ngay
             </a>
         </div>
     }
     else
     {
-        <div class="space-y-3">
+        <div class="space-y-4">
             @foreach (var app in Model)
             {
-                <div class="bg-white rounded-xl border border-outline-variant p-5 hover:shadow-md transition-shadow">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl border border-outline-variant bg-surface-container-low flex items-center justify-center flex-shrink-0">
-                            @if (!string.IsNullOrEmpty(app.JobPost?.Employer?.LogoURL))
-                            {
-                                <img src="@app.JobPost.Employer.LogoURL" class="w-full h-full object-contain rounded-xl" />
-                            }
-                            else
-                            {
-                                <span class="material-symbols-outlined text-secondary">business</span>
-                            }
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@app.JobID"
-                                       class="font-semibold text-on-surface hover:text-primary text-sm">
-                                        @app.JobPost?.Title
-                                    </a>
-                                    <p class="text-secondary text-xs mt-0.5">@app.JobPost?.Employer?.CompanyName</p>
-                                </div>
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0
-                                    @(app.Status == "Accepted" ? "bg-green-100 text-green-700" :
-                                        app.Status == "Rejected" ? "bg-red-100 text-red-700" :
-                                        app.Status == "Interview" ? "bg-blue-100 text-blue-700" :
-                                        app.Status == "Reviewed" ? "bg-yellow-100 text-yellow-700" :
-                                                                    "bg-gray-100 text-gray-600")">
-                                    @(app.Status switch
+                <div class="glass-card p-6 transition-all hover:scale-[1.01]">
+                    <div class="flex flex-col md:flex-row justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center overflow-hidden">
+                                    @if (app.JobPost?.Employer != null && !string.IsNullOrEmpty(app.JobPost.Employer.LogoURL))
                                     {
-                                        "Pending" => "Chờ xem xét",
-                                        "Reviewed" => "Đã xem",
-                                        "Interview" => "Mời phỏng vấn",
-                                        "Accepted" => "Chấp nhận",
-                                        "Rejected" => "Từ chối",
-                                        _ => app.Status
-                                    })
-                                </span>
+                                        <img src="@app.JobPost.Employer.LogoURL" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-slate-500">business</span>
+                                    }
+                                </div>
+                                <div>
+                                    <a href="/Job/Detail/@app.JobID" class="text-white font-bold text-lg hover:text-blue-400 transition-colors">
+                                        @(app.JobPost?.Title ?? "Không có tiêu đề")
+                                    </a>
+                                    <p class="text-slate-400 text-sm">@(app.JobPost?.Employer?.CompanyName ?? "Đang cập nhật")</p>
+                                    <div class="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">location_on</span>
+                                            @(app.JobPost?.Location ?? "Toàn quốc")
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">payments</span>
+                                            @(app.JobPost?.SalaryMin?.ToString("N0") ?? "0") - @(app.JobPost?.SalaryMax?.ToString("N0") ?? "0")đ
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">schedule</span>
+                                            @app.AppliedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex flex-wrap gap-4 mt-2 text-xs text-secondary">
-                                <span>
-                                    <span class="material-symbols-outlined text-xs align-middle">schedule</span>
-                                    Nộp: @app.AppliedAt.ToString("dd/MM/yyyy")
-                                </span>
-                                @if (app.JobPost?.Location != null)
+                        </div>
+
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="status-badge status-@(app.Status?.ToLower() ?? "pending")">
+                                @(app.Status switch
                                 {
-                                    <span>
-                                        <span class="material-symbols-outlined text-xs align-middle">location_on</span>
-                                        @app.JobPost.Location
-                                    </span>
-                                }
-                                <span>
-                                    <span class="material-symbols-outlined text-xs align-middle">work</span>
-                                    @app.JobPost?.JobType
-                                </span>
-                            </div>
+                                    "Pending" => "⏳ Chờ xét duyệt",
+                                    "Reviewed" => "📄 Đã xem hồ sơ",
+                                    "Interview" => "🎯 Phỏng vấn",
+                                    "Offered" => "🎉 Nhận offer",
+                                    "Rejected" => "❌ Không phù hợp",
+                                    _ => "📌 " + (app.Status ?? "Chờ xét duyệt")
+                                })
+                            </span>
+
+                            <!-- Comment hoặc bỏ phần Note nếu chưa có -->
+                            @* @if (!string.IsNullOrEmpty(app.Note))
+                            {
+                                <p class="text-slate-400 text-xs mt-2 text-right italic">📝 Ghi chú: @app.Note</p>
+                            } *@
                         </div>
                     </div>
                 </div>
             }
+        </div>
+
+        <!-- Thống kê -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-blue-400">@Model.Count</div>
+                <div class="text-slate-400 text-xs">Tổng ứng tuyển</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-yellow-400">@Model.Count(x => x.Status == "Pending")</div>
+                <div class="text-slate-400 text-xs">Đang xét duyệt</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-purple-400">@Model.Count(x => x.Status == "Interview")</div>
+                <div class="text-slate-400 text-xs">Phỏng vấn</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-green-400">@Model.Count(x => x.Status == "Offered")</div>
+                <div class="text-slate-400 text-xs">Offer nhận được</div>
+            </div>
         </div>
     }
 </div>

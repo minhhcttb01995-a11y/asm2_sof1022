@@ -1,0 +1,32 @@
+@model JobConnect.Models.BlogPost
+@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Sửa bài viết";
+}
+
+<div class="max-w-3xl mx-auto">
+    <h1 class="text-xl font-bold mb-4">Sửa bài viết</h1>
+    <form method="post" asp-action="BlogEdit">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="PostID" value="@Model.PostID" />
+        <div class="space-y-3 bg-white p-4 rounded-lg border border-outline-variant">
+            <label class="block text-sm">Tiêu đề</label>
+            <input name="Title" value="@Model.Title" class="form-input w-full" />
+            <label class="block text-sm">Slug</label>
+            <input name="Slug" value="@Model.Slug" class="form-input w-full" />
+            <label class="block text-sm">Excerpt</label>
+            <textarea name="Excerpt" class="form-input w-full">@Model.Excerpt</textarea>
+            <label class="block text-sm">Cover URL or paste image (data URI)</label>
+            <input name="CoverURL" value="@Model.CoverURL" class="form-input w-full" />
+            <label class="block text-sm">Nội dung</label>
+            <textarea name="Content" class="form-input w-full" rows="10">@Model.Content</textarea>
+            <label class="block text-sm">Trạng thái</label>
+            <select name="Status" class="form-input w-44">
+                <option value="Published" selected="@(Model.IsPublished ? "selected" : null)">Published</option>
+                <option value="Draft" selected="@(!Model.IsPublished ? "selected" : null)">Draft</option>
+            </select>
+            <div class="pt-3">
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg">Lưu thay đổi</button>
+            </div>
+        </div>
+    </form>
+</div>

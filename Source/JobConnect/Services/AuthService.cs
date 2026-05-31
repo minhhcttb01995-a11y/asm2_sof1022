@@ -2,68 +2,109 @@ using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;  // Thêm dòng này
 
 namespace JobConnect.Services;
 
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
-    public AuthService(AppDbContext db) => _db = db;
+
+    public AuthService(AppDbContext db)
+    {
+        _db = db;
+    }
 
     public async Task<User?> LoginAsync(string email, string password)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.Status == "Active");
-        if (user == null) return null;
-        return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash) ? user : null;
+        var normalizedEmail = email?.Trim().ToLowerInvariant();
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+        if (user == null)
+            return null;
+
+        // Sửa: BCrypt.Net.BCrypt.Verify
+        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            return null;
+
+        return user;
     }
 
     public async Task<bool> EmailExistsAsync(string email)
-        => await _db.Users.AnyAsync(u => u.Email == email);
-
-    public async Task<User> RegisterCandidateAsync(RegisterViewModel model)
     {
-        var user = new User
-        {
-            Email = model.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            FullName = model.FullName,
-            PhoneNumber = model.PhoneNumber,
-            Role = "Candidate",
-            Status = "Active"
-        };
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-
-        // Tạo profile rỗng cho ứng viên
-        _db.CandidateProfiles.Add(new CandidateProfile { UserID = user.UserID });
-        await _db.SaveChangesAsync();
-        return user;
+        var normalized = email?.Trim().ToLowerInvariant();
+        return await _db.Users.AnyAsync(u => u.Email.ToLower() == normalized);
     }
 
-    public async Task<User> RegisterEmployerAsync(RegisterEmployerViewModel model)
+    public async Task<bool> RegisterCandidateAsync(RegisterViewModel model)
     {
-        var user = new User
+        try
         {
-            Email = model.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            FullName = model.ContactName,
-            PhoneNumber = model.PhoneNumber,
-            Role = "Employer",
-            Status = "Active"
-        };
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+            var user = new User
+            {
+                Email = model.Email,
+                FullName = model.FullName,
+                PhoneNumber = model.PhoneNumber,
+                // Sửa: BCrypt.Net.BCrypt.HashPassword
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                Role = "Candidate",
+                CreatedAt = DateTime.Now,
+                AvatarURL = "/img/default-avatar.png"
+            };
 
-        _db.Employers.Add(new Employer
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
         {
-            UserID = user.UserID,
-            CompanyName = model.CompanyName,
-            TaxCode = model.TaxCode,
-            Industry = model.Industry,
-            Address = model.Address,
-            Website = model.Website
-        });
-        await _db.SaveChangesAsync();
-        return user;
+            Console.WriteLine($"Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> RegisterEmployerAsync(RegisterEmployerViewModel model)
+    {
+        try
+        {
+            var user = new User
+            {
+                Email = model.Email,
+                FullName = model.ContactName,
+                PhoneNumber = model.PhoneNumber,
+                // Sửa: BCrypt.Net.BCrypt.HashPassword
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                Role = "Employer",
+                CreatedAt = DateTime.Now,
+                AvatarURL = "/img/default-avatar.png"
+            };
+
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+
+            // Tạo employer profile
+            var employer = new Employer
+            {
+                UserID = user.UserID,
+                CompanyName = model.CompanyName,
+                TaxCode = model.TaxCode,
+                Industry = model.Industry,
+                Address = model.Address,
+                Website = model.Website,
+                IsVerified = false,
+                CreatedAt = DateTime.Now
+            };
+
+            _db.Employers.Add(employer);
+            await _db.SaveChangesAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return false;
+        }
     }
 }

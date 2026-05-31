@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JobConnect.Models;
 
@@ -11,5 +12,6 @@ public class SavedJob
     public DateTime SavedAt { get; set; } = DateTime.Now;
 
     public User User { get; set; } = null!;
+    [ForeignKey(nameof(JobID))]
     public JobPost JobPost { get; set; } = null!;
 }

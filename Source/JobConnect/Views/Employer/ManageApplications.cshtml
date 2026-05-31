@@ -107,7 +107,7 @@
 
                             @if (app.CvFile != null)
                             {
-                                <a href="@app.CvFile.FilePath" target="_blank"
+                                <a asp-action="DownloadCv" asp-route-cvId="@app.CvFile.CvFileID" target="_blank"
                                    class="flex items-center gap-1.5 text-xs text-primary border border-primary px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-colors">
                                     <span class="material-symbols-outlined text-sm">download</span>
                                     Tải CV

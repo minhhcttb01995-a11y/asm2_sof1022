@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JobConnect.Models;
 
@@ -19,5 +20,6 @@ public class CandidateProfile
     public User User { get; set; } = null!;
     public ICollection<CvFile> CvFiles { get; set; } = new List<CvFile>();
     public ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
+    [InverseProperty("CandidateProfile")]
     public ICollection<Application> Applications { get; set; } = new List<Application>();
 }

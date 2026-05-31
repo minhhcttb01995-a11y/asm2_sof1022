@@ -8,7 +8,8 @@ namespace JobConnect.Services;
 public class JobService : IJobService
 {
     private readonly AppDbContext _db;
-    public JobService(AppDbContext db) => _db = db;
+    private readonly IFileService _fileSvc;
+    public JobService(AppDbContext db, IFileService fileSvc) { _db = db; _fileSvc = fileSvc; }
 
     public async Task<List<JobPost>> SearchAsync(JobSearchViewModel f)
     {
@@ -43,6 +44,37 @@ public class JobService : IJobService
         };
 
         return await q.Skip((f.Page - 1) * f.PageSize).Take(f.PageSize).ToListAsync();
+    }
+
+    public async Task<bool> ToggleApplyAsync(int jobId, int profileId, int? cvId, string? coverLetter)
+    {
+        var existing = await _db.Applications.FirstOrDefaultAsync(a => a.ProfileID == profileId && a.JobID == jobId);
+        if (existing != null)
+        {
+            _db.Applications.Remove(existing);
+            await _db.SaveChangesAsync();
+            return false; // now withdrawn
+        }
+
+        _db.Applications.Add(new Application
+        {
+            JobID = jobId,
+            ProfileID = profileId,
+            CVID = cvId,
+            CoverLetter = coverLetter
+        });
+        await _db.SaveChangesAsync();
+
+        var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobID == jobId);
+        _db.Notifications.Add(new Notification
+        {
+            UserID = job.Employer.UserID,
+            Title = $"Có ứng viên mới cho tin \"{job.Title}\"",
+            Type = "Application",
+            RelatedID = jobId
+        });
+        await _db.SaveChangesAsync();
+        return true; // now applied
     }
 
     public async Task<JobPost?> GetByIdAsync(int id)
@@ -121,5 +153,10 @@ public class JobService : IJobService
         job.UpdatedAt = DateTime.Now;
         _db.JobPosts.Update(job);
         await _db.SaveChangesAsync();
+    }
+
+    public async Task<string> SaveImageFromDataUriAsync(string dataUri, string relativeFolder)
+    {
+        return await _fileSvc.SaveImageFromDataUriAsync(dataUri, relativeFolder);
     }
 }

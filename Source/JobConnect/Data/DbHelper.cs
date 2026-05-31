@@ -25,6 +25,8 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        base.OnModelCreating(mb);
+
         // CandidateSkill – composite PK
         mb.Entity<CandidateSkill>()
           .HasKey(cs => new { cs.ProfileID, cs.SkillID });
@@ -47,33 +49,45 @@ public class AppDbContext : DbContext
         // ===== FIX CASCADE PATHS =====
         mb.Entity<Application>()
           .HasOne(a => a.JobPost)
-          .WithMany()
+          .WithMany(j => j.Applications)
           .HasForeignKey(a => a.JobID)
           .OnDelete(DeleteBehavior.Restrict);
 
         mb.Entity<Application>()
           .HasOne(a => a.CandidateProfile)
-          .WithMany()
+          .WithMany(p => p.Applications)
           .HasForeignKey(a => a.ProfileID)
           .OnDelete(DeleteBehavior.Restrict);
 
         mb.Entity<SavedJob>()
           .HasOne(sj => sj.JobPost)
-          .WithMany()
+          .WithMany(j => j.SavedJobs)
           .HasForeignKey(sj => sj.JobID)
           .OnDelete(DeleteBehavior.Restrict);
 
         mb.Entity<Notification>()
           .HasOne(n => n.User)
-          .WithMany()
+          .WithMany(u => u.Notifications)
           .HasForeignKey(n => n.UserID)
           .OnDelete(DeleteBehavior.Restrict);
 
         mb.Entity<Transaction>()
           .HasOne(t => t.Employer)
-          .WithMany()
+          .WithMany(e => e.Transactions)
           .HasForeignKey(t => t.EmployerID)
           .OnDelete(DeleteBehavior.Restrict);
+
+        // ===== CvFile Configuration (QUAN TRỌNG) =====
+        mb.Entity<CvFile>(entity =>
+        {
+            entity.HasKey(e => e.CvFileID);
+            entity.Property(e => e.CvFileID).ValueGeneratedOnAdd();
+
+            entity.HasOne(e => e.Profile)
+                  .WithMany(p => p.CvFiles)
+                  .HasForeignKey(e => e.ProfileID)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // ===== DECIMAL PRECISION =====
         mb.Entity<JobPost>().Property(j => j.SalaryMin).HasColumnType("decimal(15,0)");

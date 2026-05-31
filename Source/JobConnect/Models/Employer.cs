@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JobConnect.Models;
 
@@ -13,9 +14,12 @@ public class Employer
     public string? CompanySize { get; set; } // 1-10 | 11-50 | 51-200 | 200+
     public string? Address { get; set; }
     public string? Website { get; set; }
+    [Column(TypeName = "nvarchar(max)")]
     public string? LogoURL { get; set; }
+    [Column(TypeName = "nvarchar(max)")]
     public string? CoverURL { get; set; }
     public bool IsVerified { get; set; } = false;
+    [Column(TypeName = "nvarchar(max)")]
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public User User { get; set; } = null!;

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\MrTao\\Downloads\\JobConnect\\JobConnect\\JobConnect\\JobConnect.csproj": {}
+    "D:\\Source\\JobConnect\\JobConnect.csproj": {}
   },
   "projects": {
-    "C:\\Users\\MrTao\\Downloads\\JobConnect\\JobConnect\\JobConnect\\JobConnect.csproj": {
+    "D:\\Source\\JobConnect\\JobConnect.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\MrTao\\Downloads\\JobConnect\\JobConnect\\JobConnect\\JobConnect.csproj",
+        "projectUniqueName": "D:\\Source\\JobConnect\\JobConnect.csproj",
         "projectName": "JobConnect",
-        "projectPath": "C:\\Users\\MrTao\\Downloads\\JobConnect\\JobConnect\\JobConnect\\JobConnect.csproj",
-        "packagesPath": "C:\\Users\\MrTao\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\MrTao\\Downloads\\JobConnect\\JobConnect\\JobConnect\\obj\\",
+        "projectPath": "D:\\Source\\JobConnect\\JobConnect.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "D:\\Source\\JobConnect\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\MrTao\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -60,6 +60,10 @@
             "Microsoft.Data.SqlClient": {
               "target": "Package",
               "version": "[7.0.1, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[10.0.8, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",

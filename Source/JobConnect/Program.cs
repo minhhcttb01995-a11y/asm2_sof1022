@@ -2,6 +2,7 @@ using JobConnect.Data;
 using JobConnect.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +15,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options => {
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";   // Nên có trang riêng
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
     });
 
-// ── Services (Dependency Injection) ──────────────────────
+// ── Services ──────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IFileService, FileService>();
@@ -47,11 +48,23 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ── Auto migrate ──────────────────────────────────────────
+// ── Auto Migrate (safe) ───────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        // Log the migration error and continue so the web server can start in development.
+        logger.LogError(ex, "Database migration failed during startup. Skipping migration to avoid crashing the web server.");
+    }
 }
+
+// ── Debug route (xóa sau khi test xong) ───────────────────
 app.MapGet("/gen", () => BCrypt.Net.BCrypt.HashPassword("Admin@123"));
+
 app.Run();

@@ -1,5 +1,6 @@
 using JobConnect.Data;
 using JobConnect.Models;
+using JobConnect.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,14 @@ namespace JobConnect.Controllers;
 public class AdminController : Controller
 {
     private readonly AppDbContext _db;
-    public AdminController(AppDbContext db) => _db = db;
+    private readonly IJobService _jobSvc;
+    public AdminController(AppDbContext db, IJobService jobSvc) { _db = db; _jobSvc = jobSvc; }
+
+    // GET /Admin
+    public IActionResult Index()
+    {
+        return RedirectToAction("Dashboard");
+    }
 
     // GET /Admin/Dashboard
     public async Task<IActionResult> Dashboard()
@@ -151,18 +159,59 @@ public class AdminController : Controller
 
     public IActionResult BlogCreate() => View();
 
+    // GET /Admin/BlogEdit/5
+    public async Task<IActionResult> BlogEdit(int id)
+    {
+        var post = await _db.BlogPosts.FindAsync(id);
+        if (post == null) return NotFound();
+        return View(post);
+    }
+
+    // POST /Admin/BlogEdit
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BlogEdit(int PostID, string Title, string? Slug, string? Excerpt, string? CoverURL, string Content, string Status)
+    {
+        var post = await _db.BlogPosts.FindAsync(PostID);
+        if (post == null) return NotFound();
+
+        post.Title = Title;
+        post.Slug = string.IsNullOrEmpty(Slug) ? Title.ToLower().Replace(" ", "-") : Slug;
+        post.Excerpt = Excerpt;
+        post.Content = Content;
+        post.IsPublished = Status == "Published";
+        post.PublishedAt = post.IsPublished ? (post.PublishedAt ?? DateTime.Now) : null;
+
+        if (!string.IsNullOrEmpty(CoverURL) && CoverURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            try { post.CoverURL = await _jobSvc.SaveImageFromDataUriAsync(CoverURL, "uploads/blog/cover"); }
+            catch { }
+        }
+        else post.CoverURL = CoverURL;
+
+        await _db.SaveChangesAsync();
+        TempData["Success"] = "Đã cập nhật bài viết.";
+        return RedirectToAction("Blog");
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> BlogCreate(string Title, string? Slug, string? Excerpt,
         string? CoverURL, string Content, string Status)
     {
         var uid = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var slug = string.IsNullOrEmpty(Slug) ? Title.ToLower().Replace(" ", "-") : Slug;
+        string? coverPath = CoverURL;
+        if (!string.IsNullOrEmpty(CoverURL) && CoverURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            try { coverPath = await _jobSvc.SaveImageFromDataUriAsync(CoverURL, "uploads/blog/cover"); }
+            catch { coverPath = null; }
+        }
+
         _db.BlogPosts.Add(new BlogPost
         {
             Title = Title,
             Slug = slug,
             Excerpt = Excerpt,
-            CoverURL = CoverURL,
+            CoverURL = coverPath,
             Content = Content,
             IsPublished = Status == "Published",
             AuthorID = uid,
