@@ -139,7 +139,7 @@
 															"top": 87,
 															"width": 119,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -2240,7 +2240,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGed+31J+56qPw="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGed/u8TO6PGMc="
 									},
@@ -2320,10 +2320,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGed+31J+5551E="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2481,7 +2478,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -4320,7 +4317,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeBy2VfARhqc="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGeeB2JJ/AlZ6s="
 									},
@@ -4400,10 +4397,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeBy2VfAQhr8="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -4553,7 +4547,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -6695,7 +6689,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeDG/o/FDX5s="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGeeDH1QvFUJuQ="
 									},
@@ -6775,10 +6769,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeDG/o/FCpjY="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6928,7 +6919,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng Viên"
 														},
 														{
 															"_type": "LabelView",
@@ -9074,7 +9065,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeDmY2fMOrWw="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng Viên",
 									"represent": {
 										"$ref": "AAAAAAGeeDnoJPMgJAE="
 									},
@@ -9154,10 +9145,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeDmY2fMNryo="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -9307,7 +9295,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -11162,7 +11150,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeD4XrPTWQR8="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGeeD5B0PTnps0="
 									},
@@ -11242,10 +11230,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeD4XrPTV5vU="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -11394,7 +11379,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -13230,7 +13215,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeEOtjvYULoo="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGeeEP9zPYlMYQ="
 									},
@@ -13310,10 +13295,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeEOtjvYTiHI="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -13411,7 +13393,7 @@
 											"parentStyle": false,
 											"left": 104,
 											"width": 768,
-											"height": 776,
+											"height": 696,
 											"nameLabel": {
 												"$ref": "AAAAAAGeeEr4OvclQ0c="
 											},
@@ -13463,7 +13445,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -13526,7 +13508,7 @@
 													"left": 176,
 													"top": 106,
 													"width": 1,
-													"height": 670
+													"height": 590
 												}
 											],
 											"font": "Arial;13;0",
@@ -13534,7 +13516,7 @@
 											"left": 120,
 											"top": 40,
 											"width": 111.8544921875,
-											"height": 736,
+											"height": 656,
 											"stereotypeDisplay": "icon",
 											"nameCompartment": {
 												"$ref": "AAAAAAGeeEst7vc2z3g="
@@ -13650,7 +13632,7 @@
 													"left": 353,
 													"top": 81,
 													"width": 1,
-													"height": 695
+													"height": 615
 												}
 											],
 											"font": "Arial;13;0",
@@ -13658,7 +13640,7 @@
 											"left": 280,
 											"top": 40,
 											"width": 146.419921875,
-											"height": 736,
+											"height": 656,
 											"nameCompartment": {
 												"$ref": "AAAAAAGeeEt9xvdXoIE="
 											},
@@ -13770,7 +13752,7 @@
 													"left": 558,
 													"top": 81,
 													"width": 1,
-													"height": 695
+													"height": 615
 												}
 											],
 											"font": "Arial;13;0",
@@ -13778,7 +13760,7 @@
 											"left": 472,
 											"top": 40,
 											"width": 172.419921875,
-											"height": 736,
+											"height": 656,
 											"nameCompartment": {
 												"$ref": "AAAAAAGeeEt/Bvd2To4="
 											},
@@ -14241,7 +14223,7 @@
 													"left": 757,
 													"top": 81,
 													"width": 1,
-													"height": 695
+													"height": 615
 												}
 											],
 											"font": "Arial;13;0",
@@ -14249,7 +14231,7 @@
 											"left": 704,
 											"top": 40,
 											"width": 105.68701171875,
-											"height": 736,
+											"height": 656,
 											"nameCompartment": {
 												"$ref": "AAAAAAGeeEuBNveVNYM="
 											},
@@ -15088,7 +15070,7 @@
 											"left": 144,
 											"top": 256,
 											"width": 640,
-											"height": 488,
+											"height": 416,
 											"nameLabel": {
 												"$ref": "AAAAAAGem9zfqnN2Jk8="
 											},
@@ -15373,7 +15355,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeEr4Ovcif3Q="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGeeEst7vczYwQ="
 									},
@@ -15453,10 +15435,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeEr4OvchSns="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -15606,7 +15585,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Ứng viên"
 														},
 														{
 															"_type": "LabelView",
@@ -17737,7 +17716,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeE9TY/hG9dA="
 									},
-									"name": "Lifeline1",
+									"name": "Ứng viên",
 									"represent": {
 										"$ref": "AAAAAAGeeE9yA/hWMWE="
 									},
@@ -17817,10 +17796,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeE9TY/hFbAk="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -17969,7 +17945,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Nhà tuyển dụng"
 														},
 														{
 															"_type": "LabelView",
@@ -20095,7 +20071,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeFb0WflbDS0="
 									},
-									"name": "Lifeline1",
+									"name": "Nhà tuyển dụng",
 									"represent": {
 										"$ref": "AAAAAAGeeFca2/lrsTc="
 									},
@@ -20175,10 +20151,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeFb0Wflatmo="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -20328,7 +20301,7 @@
 															"top": 87,
 															"width": 102.8544921875,
 															"height": 13,
-															"text": "Lifeline1: Actor1"
+															"text": "Quản trị viên"
 														},
 														{
 															"_type": "LabelView",
@@ -23139,7 +23112,7 @@
 									"_parent": {
 										"$ref": "AAAAAAGeeFrCGvqcwqU="
 									},
-									"name": "Lifeline1",
+									"name": "Quản trị viên",
 									"represent": {
 										"$ref": "AAAAAAGeeFr4Yvquy/g="
 									},
@@ -23219,10 +23192,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeFrCGvqbGhA="
 							},
-							"name": "Role1",
-							"type": {
-								"$ref": "AAAAAAGed/uyE+6MeyU="
-							}
+							"name": "Role1"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -23295,9 +23265,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 160.72998046875,
+													"left": 158.55908203125,
 													"top": 5,
-													"width": 59.26171875,
+													"width": 53.7900390625,
 													"height": 13,
 													"text": "Đăng xuất"
 												},
@@ -23311,7 +23281,7 @@
 													"parentStyle": true,
 													"left": 141,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -24065,9 +24035,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 120.72998046875,
+													"left": 118.55908203125,
 													"top": 5,
-													"width": 76.5908203125,
+													"width": 70.763671875,
 													"height": 13,
 													"text": "Đổi mật khẩu"
 												},
@@ -24081,7 +24051,7 @@
 													"parentStyle": true,
 													"left": 101,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -24955,7 +24925,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 288.72998046875,
+													"left": 287.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -24969,7 +24939,7 @@
 													"parentStyle": true,
 													"left": 269,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -26104,9 +26074,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 256.72998046875,
+													"left": 254.55908203125,
 													"top": 5,
-													"width": 59.236328125,
+													"width": 57.04638671875,
 													"height": 13,
 													"text": " Đổi Email"
 												},
@@ -26120,7 +26090,7 @@
 													"parentStyle": true,
 													"left": 237,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -26997,7 +26967,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 304.72998046875,
+													"left": 303.99365234375,
 													"top": 269,
 													"height": 13
 												},
@@ -27011,7 +26981,7 @@
 													"parentStyle": true,
 													"left": 285,
 													"top": 269,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -28410,9 +28380,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 44.8017578125,
+													"width": 42.96728515625,
 													"height": 13,
 													"text": "Xóa CV"
 												},
@@ -28426,7 +28396,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -29303,7 +29273,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 183.99365234375,
 													"top": 237,
 													"height": 13
 												},
@@ -29317,7 +29287,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 237,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -30688,9 +30658,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 96.72998046875,
+													"left": 94.55908203125,
 													"top": 5,
-													"width": 96.83984375,
+													"width": 90.44140625,
 													"height": 13,
 													"text": "Hủy lưu việc làm"
 												},
@@ -30704,7 +30674,7 @@
 													"parentStyle": true,
 													"left": 77,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -31581,7 +31551,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 151.99365234375,
 													"top": 245,
 													"height": 13
 												},
@@ -31595,7 +31565,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 245,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -32994,9 +32964,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 160.72998046875,
+													"left": 158.55908203125,
 													"top": 5,
-													"width": 138.048828125,
+													"width": 124.92822265625,
 													"height": 13,
 													"text": "Cập nhật tin tuyển dụng"
 												},
@@ -33010,7 +32980,7 @@
 													"parentStyle": true,
 													"left": 141,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -34822,7 +34792,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 200.72998046875,
+													"left": 199.99365234375,
 													"top": 261,
 													"height": 13
 												},
@@ -34836,7 +34806,7 @@
 													"parentStyle": true,
 													"left": 181,
 													"top": 261,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -35336,9 +35306,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 168.72998046875,
+													"left": 166.55908203125,
 													"top": 5,
-													"width": 108.41796875,
+													"width": 100.013671875,
 													"height": 13,
 													"text": "Xóa tin tuyển dụng"
 												},
@@ -35352,7 +35322,7 @@
 													"parentStyle": true,
 													"left": 149,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -36229,7 +36199,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 216.72998046875,
+													"left": 215.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -36243,7 +36213,7 @@
 													"parentStyle": true,
 													"left": 197,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -37642,9 +37612,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 88.72998046875,
+													"left": 86.55908203125,
 													"top": 5,
-													"width": 144.56787109375,
+													"width": 129.06689453125,
 													"height": 13,
 													"text": "Xem danh sách ứng viên"
 												},
@@ -37658,7 +37628,7 @@
 													"parentStyle": true,
 													"left": 69,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -38532,7 +38502,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 128.72998046875,
+													"left": 127.99365234375,
 													"top": 269,
 													"height": 13
 												},
@@ -38546,7 +38516,7 @@
 													"parentStyle": true,
 													"left": 109,
 													"top": 269,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -39683,9 +39653,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 176.72998046875,
+													"left": 174.55908203125,
 													"top": 5,
-													"width": 124.90283203125,
+													"width": 112.13134765625,
 													"height": 13,
 													"text": "Duyệt hồ sơ ứng viên"
 												},
@@ -39699,7 +39669,7 @@
 													"parentStyle": true,
 													"left": 157,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -40576,7 +40546,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 208.72998046875,
+													"left": 207.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -40590,7 +40560,7 @@
 													"parentStyle": true,
 													"left": 189,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -42252,9 +42222,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 90.3271484375,
+													"width": 83.40185546875,
 													"height": 13,
 													"text": "Quản lý công ty"
 												},
@@ -42268,7 +42238,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -43145,7 +43115,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 192.72998046875,
+													"left": 191.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -43159,7 +43129,7 @@
 													"parentStyle": true,
 													"left": 173,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -44296,9 +44266,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 160.72998046875,
+													"left": 158.55908203125,
 													"top": 5,
-													"width": 83.09716796875,
+													"width": 76.90185546875,
 													"height": 13,
 													"text": " Duyệt công ty"
 												},
@@ -44312,7 +44282,7 @@
 													"parentStyle": true,
 													"left": 141,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -45189,7 +45159,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 200.72998046875,
+													"left": 199.99365234375,
 													"top": 261,
 													"height": 13
 												},
@@ -45203,7 +45173,7 @@
 													"parentStyle": true,
 													"left": 181,
 													"top": 261,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -46854,9 +46824,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 160.72998046875,
+													"left": 158.55908203125,
 													"top": 5,
-													"width": 86.734375,
+													"width": 79.421875,
 													"height": 13,
 													"text": "Khóa tài khoản"
 												},
@@ -46870,7 +46840,7 @@
 													"parentStyle": true,
 													"left": 141,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -47744,7 +47714,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 192.72998046875,
+													"left": 191.99365234375,
 													"top": 261,
 													"height": 13
 												},
@@ -47758,7 +47728,7 @@
 													"parentStyle": true,
 													"left": 173,
 													"top": 261,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -49129,9 +49099,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 144.72998046875,
+													"left": 142.55908203125,
 													"top": 5,
-													"width": 107.529296875,
+													"width": 98.21728515625,
 													"height": 13,
 													"text": "Mở khóa tài khoản"
 												},
@@ -49145,7 +49115,7 @@
 													"parentStyle": true,
 													"left": 125,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -50022,7 +49992,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 183.99365234375,
 													"top": 269,
 													"height": 13
 												},
@@ -50036,7 +50006,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 269,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -51435,9 +51405,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 160.72998046875,
+													"left": 158.55908203125,
 													"top": 5,
-													"width": 104.634765625,
+													"width": 93.5263671875,
 													"height": 13,
 													"text": "Tạo hồ sơ công ty"
 												},
@@ -51451,7 +51421,7 @@
 													"parentStyle": true,
 													"left": 141,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -52328,7 +52298,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 200.72998046875,
+													"left": 199.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -52342,7 +52312,7 @@
 													"parentStyle": true,
 													"left": 181,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -53741,9 +53711,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 240.72998046875,
+													"left": 238.55908203125,
 													"top": 5,
-													"width": 134.99560546875,
+													"width": 119.88818359375,
 													"height": 13,
 													"text": "Cập nhật hồ sơ công ty"
 												},
@@ -53757,7 +53727,7 @@
 													"parentStyle": true,
 													"left": 221,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -54634,7 +54604,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 288.72998046875,
+													"left": 287.99365234375,
 													"top": 261,
 													"height": 13
 												},
@@ -54648,7 +54618,7 @@
 													"parentStyle": true,
 													"left": 269,
 													"top": 261,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -56019,9 +55989,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 168.72998046875,
+													"left": 166.55908203125,
 													"top": 5,
-													"width": 152.521484375,
+													"width": 135.56689453125,
 													"height": 13,
 													"text": "Xem danh sách ứng tuyển"
 												},
@@ -56035,7 +56005,7 @@
 													"parentStyle": true,
 													"left": 149,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -56912,7 +56882,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 183.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -56926,7 +56896,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -58063,9 +58033,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 182.55908203125,
 													"top": 5,
-													"width": 104.8505859375,
+													"width": 94.60546875,
 													"height": 13,
 													"text": "Lịch sử ứng tuyển"
 												},
@@ -58079,7 +58049,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -58953,7 +58923,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 224.72998046875,
+													"left": 223.99365234375,
 													"top": 261,
 													"height": 13
 												},
@@ -58967,7 +58937,7 @@
 													"parentStyle": true,
 													"left": 205,
 													"top": 261,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -60076,9 +60046,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 79.50439453125,
+													"width": 72.921875,
 													"height": 13,
 													"text": "Xóa tài khoản"
 												},
@@ -60092,7 +60062,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -60969,7 +60939,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 176.72998046875,
+													"left": 175.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -60983,7 +60953,7 @@
 													"parentStyle": true,
 													"left": 157,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -62382,9 +62352,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 135.13525390625,
+													"width": 122.0146484375,
 													"height": 13,
 													"text": "Xem danh sách bài viết"
 												},
@@ -62398,7 +62368,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -63275,7 +63245,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 183.99365234375,
 													"top": 237,
 													"height": 13
 												},
@@ -63289,7 +63259,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 237,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -64426,9 +64396,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 135.13525390625,
+													"width": 122.0146484375,
 													"height": 13,
 													"text": "Xem danh sách bài viết"
 												},
@@ -64442,7 +64412,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -65319,7 +65289,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 200.72998046875,
+													"left": 199.99365234375,
 													"top": 237,
 													"height": 13
 												},
@@ -65333,7 +65303,7 @@
 													"parentStyle": true,
 													"left": 181,
 													"top": 237,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -66470,9 +66440,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 136.72998046875,
+													"left": 134.55908203125,
 													"top": 5,
-													"width": 67.20263671875,
+													"width": 62.08642578125,
 													"height": 13,
 													"text": "Tạo bài viết"
 												},
@@ -66486,7 +66456,7 @@
 													"parentStyle": true,
 													"left": 117,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -67360,7 +67330,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 168.72998046875,
+													"left": 167.99365234375,
 													"top": 269,
 													"height": 13
 												},
@@ -67374,7 +67344,7 @@
 													"parentStyle": true,
 													"left": 149,
 													"top": 269,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -68794,9 +68764,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 104.8125,
+													"width": 94.783203125,
 													"height": 13,
 													"text": "Chỉnh sửa bài viết"
 												},
@@ -68810,7 +68780,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -69687,7 +69657,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 176.72998046875,
+													"left": 175.99365234375,
 													"top": 245,
 													"height": 13
 												},
@@ -69701,7 +69671,7 @@
 													"parentStyle": true,
 													"left": 157,
 													"top": 245,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -71100,9 +71070,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 144.72998046875,
+													"left": 142.55908203125,
 													"top": 5,
-													"width": 96.84619140625,
+													"width": 89.16552734375,
 													"height": 13,
 													"text": "Xuất bản bài viết"
 												},
@@ -71116,7 +71086,7 @@
 													"parentStyle": true,
 													"left": 125,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -71990,7 +71960,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 176.72998046875,
+													"left": 175.99365234375,
 													"top": 245,
 													"height": 13
 												},
@@ -72004,7 +71974,7 @@
 													"parentStyle": true,
 													"left": 157,
 													"top": 245,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -73403,9 +73373,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 168.72998046875,
+													"left": 166.55908203125,
 													"top": 5,
-													"width": 67.9326171875,
+													"width": 63.53369140625,
 													"height": 13,
 													"text": "Xóa bài viết"
 												},
@@ -73419,7 +73389,7 @@
 													"parentStyle": true,
 													"left": 149,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -74296,7 +74266,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 200.72998046875,
+													"left": 199.99365234375,
 													"top": 253,
 													"height": 13
 												},
@@ -74310,7 +74280,7 @@
 													"parentStyle": true,
 													"left": 181,
 													"top": 253,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -75709,9 +75679,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 182.55908203125,
 													"top": 5,
-													"width": 130.81884765625,
+													"width": 116.9619140625,
 													"height": 13,
 													"text": "Xem báo cáo hệ thống"
 												},
@@ -75725,7 +75695,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -76599,7 +76569,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 224.72998046875,
+													"left": 223.99365234375,
 													"top": 269,
 													"height": 13
 												},
@@ -76613,7 +76583,7 @@
 													"parentStyle": true,
 													"left": 205,
 													"top": 269,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},

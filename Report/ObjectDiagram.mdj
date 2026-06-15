@@ -5858,6 +5858,7 @@
 								"$ref": "AAAAAAGefZDW7N9e3XE="
 							},
 							"name": "userId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -5867,6 +5868,7 @@
 								"$ref": "AAAAAAGefZDW7N9e3XE="
 							},
 							"name": "fullName",
+							"type": "",
 							"value": "\"Nguyễn Văn A\""
 						},
 						{
@@ -5876,6 +5878,7 @@
 								"$ref": "AAAAAAGefZDW7N9e3XE="
 							},
 							"name": "email",
+							"type": "",
 							"value": "\"nguyenvana@gmail.com\""
 						},
 						{
@@ -5885,6 +5888,7 @@
 								"$ref": "AAAAAAGefZDW7N9e3XE="
 							},
 							"name": "role",
+							"type": "",
 							"value": "\"Candidate\""
 						},
 						{
@@ -5894,6 +5898,7 @@
 								"$ref": "AAAAAAGefZDW7N9e3XE="
 							},
 							"name": "status",
+							"type": "",
 							"value": "\"Active\""
 						},
 						{
@@ -5903,6 +5908,7 @@
 								"$ref": "AAAAAAGefZDW7N9e3XE="
 							},
 							"name": "createdAt",
+							"type": "",
 							"value": "\"2024-05-01\""
 						}
 					]
@@ -6006,6 +6012,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "candidateProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6015,6 +6022,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "userId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6024,6 +6032,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "phone",
+							"type": "",
 							"value": "\"0901234567\""
 						},
 						{
@@ -6033,6 +6042,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "address",
+							"type": "",
 							"value": "\"Hà Nội; Việt Nam\""
 						},
 						{
@@ -6042,6 +6052,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "title",
+							"type": "",
 							"value": "\"Kỹ sư phần mềm\""
 						},
 						{
@@ -6051,6 +6062,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "experience",
+							"type": "",
 							"value": "\"2 năm\""
 						},
 						{
@@ -6060,6 +6072,7 @@
 								"$ref": "AAAAAAGefZOYWt+ndCk="
 							},
 							"name": "createdAt",
+							"type": "",
 							"value": "\"2024-05-01\""
 						}
 					]
@@ -6109,6 +6122,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "employerProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6118,6 +6132,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "userId",
+							"type": "",
 							"value": "2"
 						},
 						{
@@ -6127,6 +6142,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "companyName",
+							"type": "",
 							"value": "\"Tech Corp\""
 						},
 						{
@@ -6136,6 +6152,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "companySize",
+							"type": "",
 							"value": "\"50-100\""
 						},
 						{
@@ -6145,6 +6162,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "industry",
+							"type": "",
 							"value": "\"Công nghệ thông tin\""
 						},
 						{
@@ -6154,6 +6172,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "website",
+							"type": "",
 							"value": "\"httpstechcorp.vn\""
 						},
 						{
@@ -6163,6 +6182,7 @@
 								"$ref": "AAAAAAGefZh4mN/9DZo="
 							},
 							"name": "createdAt",
+							"type": "",
 							"value": "\"2024-05-02\""
 						}
 					]
@@ -6212,6 +6232,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "jobPostId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6221,6 +6242,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "employerProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6230,6 +6252,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "title",
+							"type": "",
 							"value": "\"Lập trình viên Backend\""
 						},
 						{
@@ -6239,6 +6262,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "location",
+							"type": "",
 							"value": "\"Hà Nội\""
 						},
 						{
@@ -6248,6 +6272,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "type",
+							"type": "",
 							"value": "\"Full-time\""
 						},
 						{
@@ -6257,6 +6282,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "salaryMin",
+							"type": "",
 							"value": "15000000"
 						},
 						{
@@ -6266,6 +6292,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "salaryMax",
+							"type": "",
 							"value": "20000000"
 						},
 						{
@@ -6275,6 +6302,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "status",
+							"type": "",
 							"value": "\"Active\""
 						},
 						{
@@ -6284,6 +6312,7 @@
 								"$ref": "AAAAAAGefZl20eBN3lU="
 							},
 							"name": "createdAt",
+							"type": "",
 							"value": "\"2024-05-10\""
 						}
 					]
@@ -6304,6 +6333,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "jobPostId",
+							"type": "",
 							"value": "2"
 						},
 						{
@@ -6313,6 +6343,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "employerProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6322,6 +6353,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "title",
+							"type": "",
 							"value": "\"Frontend Developer\""
 						},
 						{
@@ -6331,6 +6363,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "location",
+							"type": "",
 							"value": "\"Hồ Chí Minh\""
 						},
 						{
@@ -6340,6 +6373,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "type",
+							"type": "",
 							"value": "\"Full-time\""
 						},
 						{
@@ -6349,6 +6383,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "salaryMin",
+							"type": "",
 							"value": "12000000"
 						},
 						{
@@ -6358,6 +6393,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "salaryMax",
+							"type": "",
 							"value": "18000000"
 						},
 						{
@@ -6367,6 +6403,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "status",
+							"type": "",
 							"value": "\"Active\""
 						},
 						{
@@ -6376,6 +6413,7 @@
 								"$ref": "AAAAAAGefZ1oj+Cqqi8="
 							},
 							"name": "createdAt",
+							"type": "",
 							"value": "\"2024-05-11\""
 						}
 					]
@@ -6425,6 +6463,7 @@
 								"$ref": "AAAAAAGefZ4acOEHlKU="
 							},
 							"name": "savedJobId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6434,6 +6473,7 @@
 								"$ref": "AAAAAAGefZ4acOEHlKU="
 							},
 							"name": "candidateProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6443,6 +6483,7 @@
 								"$ref": "AAAAAAGefZ4acOEHlKU="
 							},
 							"name": "jobPostId",
+							"type": "",
 							"value": "2"
 						},
 						{
@@ -6452,6 +6493,7 @@
 								"$ref": "AAAAAAGefZ4acOEHlKU="
 							},
 							"name": "savedAt",
+							"type": "",
 							"value": "\"2024-05-12\""
 						}
 					]
@@ -6501,6 +6543,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "applicationId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6510,6 +6553,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "jobPostId",
+							"type": "",
 							"value": "2"
 						},
 						{
@@ -6519,6 +6563,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "candidateProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6528,6 +6573,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "cvFileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6537,6 +6583,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "status",
+							"type": "",
 							"value": "\"Pending\""
 						},
 						{
@@ -6546,6 +6593,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "coverLetter",
+							"type": "",
 							"value": "\"Tôi rất quan tâm...\""
 						},
 						{
@@ -6555,6 +6603,7 @@
 								"$ref": "AAAAAAGefZ6V1eFCdXo="
 							},
 							"name": "appliedAt",
+							"type": "",
 							"value": "\"2024-05-15\""
 						}
 					]
@@ -6575,6 +6624,7 @@
 								"$ref": "AAAAAAGefZ84eOGSb3A="
 							},
 							"name": "applicationStatusId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6584,6 +6634,7 @@
 								"$ref": "AAAAAAGefZ84eOGSb3A="
 							},
 							"name": "name",
+							"type": "",
 							"value": "\"Pending\""
 						},
 						{
@@ -6593,6 +6644,7 @@
 								"$ref": "AAAAAAGefZ84eOGSb3A="
 							},
 							"name": "description",
+							"type": "",
 							"value": "\"Đang chờ duyệt\""
 						}
 					]
@@ -6642,6 +6694,7 @@
 								"$ref": "AAAAAAGefZ+Vx+HGqjE="
 							},
 							"name": "categoryId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6651,6 +6704,7 @@
 								"$ref": "AAAAAAGefZ+Vx+HGqjE="
 							},
 							"name": "name",
+							"type": "",
 							"value": "\"Công nghệ thông tin\""
 						},
 						{
@@ -6660,6 +6714,7 @@
 								"$ref": "AAAAAAGefZ+Vx+HGqjE="
 							},
 							"name": "description",
+							"type": "",
 							"value": "\"Các việc làm IT\""
 						}
 					]
@@ -6680,6 +6735,7 @@
 								"$ref": "AAAAAAGefZ/6fOH6eec="
 							},
 							"name": "locationId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6689,6 +6745,7 @@
 								"$ref": "AAAAAAGefZ/6fOH6eec="
 							},
 							"name": "city",
+							"type": "",
 							"value": "\"Hà Nội\""
 						},
 						{
@@ -6698,6 +6755,7 @@
 								"$ref": "AAAAAAGefZ/6fOH6eec="
 							},
 							"name": "district",
+							"type": "",
 							"value": "\"Cầu Giấy\""
 						},
 						{
@@ -6707,6 +6765,7 @@
 								"$ref": "AAAAAAGefZ/6fOH6eec="
 							},
 							"name": "address",
+							"type": "",
 							"value": "\"Hà Nội; Việt Nam\""
 						}
 					]
@@ -6756,6 +6815,7 @@
 								"$ref": "AAAAAAGefaLNI+I4Qk0="
 							},
 							"name": "cvFileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6765,6 +6825,7 @@
 								"$ref": "AAAAAAGefaLNI+I4Qk0="
 							},
 							"name": "candidateProfileId",
+							"type": "",
 							"value": "1"
 						},
 						{
@@ -6774,6 +6835,7 @@
 								"$ref": "AAAAAAGefaLNI+I4Qk0="
 							},
 							"name": "fileName",
+							"type": "",
 							"value": "\"CV_NguyenVanA.pdf\""
 						},
 						{
@@ -6783,6 +6845,7 @@
 								"$ref": "AAAAAAGefaLNI+I4Qk0="
 							},
 							"name": "fileUrl",
+							"type": "",
 							"value": "\"-uploads-cv-cv1.pdf\""
 						},
 						{
@@ -6792,6 +6855,7 @@
 								"$ref": "AAAAAAGefaLNI+I4Qk0="
 							},
 							"name": "isPrimary",
+							"type": "",
 							"value": "true"
 						},
 						{
@@ -6801,6 +6865,7 @@
 								"$ref": "AAAAAAGefaLNI+I4Qk0="
 							},
 							"name": "uploadedAt",
+							"type": "",
 							"value": "\"2024-05-03\""
 						}
 					]
