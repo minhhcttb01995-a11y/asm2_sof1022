@@ -8,35 +8,41 @@ public class Application
     [Key]
     public int AppID { get; set; }
 
+    [Required]
     public int JobID { get; set; }
+
+    [Required]
     public int ProfileID { get; set; }
+
     public int? CVID { get; set; }
 
+    [StringLength(1000)]
     public string? CoverLetter { get; set; }
 
     [Required]
-    public string Status { get; set; } = "Pending"; // Pending, Reviewed, Interview, Offered, Rejected
-
-    // Temporarily not mapped to DB to avoid runtime errors when the database lacks these columns.
-    [NotMapped]
-    public int? Rating { get; set; }  // Đánh giá hồ sơ (1-5 sao)
-
-    // THÊM DÒNG NÀY - property Note
-    [NotMapped]
-    public string? Note { get; set; }  // Ghi chú của nhà tuyển dụng
+    [StringLength(50)]
+    public string Status { get; set; } = "Pending"; // Pending, Reviewing, Interview, Offered, Rejected
 
     public DateTime AppliedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
 
-    // Navigation properties
+    // Các trường hỗ trợ cho nhà tuyển dụng (không lưu vào DB)
+    [NotMapped]
+    public int? Rating { get; set; }           // Đánh giá 1-5
+
+    [NotMapped]
+    public string? Note { get; set; }          // Ghi chú của nhà tuyển dụng
+
+    // ==================== NAVIGATION PROPERTIES ====================
     [ForeignKey("JobID")]
-    [InverseProperty("Applications")]
-    public virtual JobPost? JobPost { get; set; }
+    public virtual JobPost? Job { get; set; }   // Đổi từ JobPost thành Job cho nhất quán
 
     [ForeignKey("ProfileID")]
-    [InverseProperty("Applications")]
     public virtual CandidateProfile? CandidateProfile { get; set; }
 
     [ForeignKey("CVID")]
     public virtual CvFile? CvFile { get; set; }
+
+    // Optional: Thêm collection nếu cần
+    // public virtual ICollection<Interview>? Interviews { get; set; }
 }

@@ -31,9 +31,7 @@ namespace JobConnect.Controllers
 
             ViewBag.Filter = filter;
             ViewBag.TotalCount = totalCount;
-            ViewBag.TotalPages = (int)Math.Ceiling(
-                totalCount / (double)filter.PageSize
-            );
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize);
 
             ViewBag.Industries = await _db.Categories
                 .Where(c => c.Type == "Industry")
@@ -50,9 +48,7 @@ namespace JobConnect.Controllers
         public async Task<IActionResult> Detail(int id)
         {
             var job = await _jobSvc.GetByIdAsync(id);
-
-            if (job == null)
-                return NotFound();
+            if (job == null) return NotFound();
 
             int? profileId = null;
             bool hasApplied = false;
@@ -60,9 +56,7 @@ namespace JobConnect.Controllers
 
             if (User.Identity?.IsAuthenticated == true)
             {
-                int userId = int.Parse(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier)!
-                );
+                int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
                 var profile = await _db.CandidateProfiles
                     .FirstOrDefaultAsync(p => p.UserID == userId);
@@ -71,6 +65,15 @@ namespace JobConnect.Controllers
                 {
                     profileId = profile.ProfileID;
                     hasApplied = await _jobSvc.HasAppliedAsync(profile.ProfileID, id);
+
+                    // Load danh sách CV của candidate
+                    var cvs = await _db.CvFiles
+                        .Where(c => c.ProfileID == profile.ProfileID)
+                        .OrderByDescending(c => c.UploadedAt)
+                        .ToListAsync();
+
+                    ViewBag.CVs = cvs;
+                    ViewBag.DefaultCV = cvs.FirstOrDefault(c => c.IsDefault);
                 }
 
                 isSaved = await _db.SavedJobs
@@ -83,7 +86,6 @@ namespace JobConnect.Controllers
                 .Take(4)
                 .ToListAsync();
 
-            ViewBag.ProfileID = profileId;
             ViewBag.HasApplied = hasApplied;
             ViewBag.IsSaved = isSaved;
             ViewBag.SimilarJobs = relatedJobs;
@@ -91,9 +93,10 @@ namespace JobConnect.Controllers
             return View(job);
         }
 
+        // POST: Ứng tuyển (Chọn CV + Thư xin việc)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Apply(int jobId, int? cvId, string? coverLetter)
+        public async Task<IActionResult> Apply(int jobId, int cvId, string? coverLetter)
         {
             if (User.Identity?.IsAuthenticated != true)
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Job/Detail/{jobId}" });
@@ -105,16 +108,27 @@ namespace JobConnect.Controllers
 
             if (profile == null)
             {
-                TempData["Error"] = "Bạn cần tạo hồ sơ trước.";
+                TempData["Error"] = "Bạn cần tạo hồ sơ ứng viên trước khi ứng tuyển.";
                 return RedirectToAction("Detail", new { id = jobId });
             }
 
-            bool applied = await _jobSvc.ToggleApplyAsync(jobId, profile.ProfileID, cvId, coverLetter);
+            // Kiểm tra CV hợp lệ
+            var cv = await _db.CvFiles
+                .FirstOrDefaultAsync(c => c.CvID == cvId && c.ProfileID == profile.ProfileID);
 
-            if (applied)
-                TempData["Success"] = "Ứng tuyển thành công!";
+            if (cv == null)
+            {
+                TempData["Error"] = "CV không hợp lệ!";
+                return RedirectToAction("Detail", new { id = jobId });
+            }
+
+            // Gọi service để ứng tuyển
+            bool result = await _jobSvc.ToggleApplyAsync(jobId, profile.ProfileID, cvId, coverLetter);
+
+            if (result)
+                TempData["Success"] = "Ứng tuyển thành công! Nhà tuyển dụng sẽ xem hồ sơ của bạn sớm nhất.";
             else
-                TempData["Success"] = "Bạn đã rút đơn ứng tuyển.";
+                TempData["Error"] = "Có lỗi xảy ra khi gửi đơn ứng tuyển.";
 
             return RedirectToAction("Detail", new { id = jobId });
         }
@@ -127,7 +141,6 @@ namespace JobConnect.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Job/Detail/{jobId}" });
 
             int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
             await _jobSvc.ToggleSaveAsync(userId, jobId);
 
             return RedirectToAction("Detail", new { id = jobId });

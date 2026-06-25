@@ -41,13 +41,17 @@ public class EmployerController : Controller
         ViewBag.JobCount = jobs.Count;
         ViewBag.AppCount = jobs.Sum(j => j.Applications.Count);
         ViewBag.OpenCount = jobs.Count(j => j.Status == "Open");
+
         return View(jobs);
     }
 
     // GET /Employer/PostJob
     public async Task<IActionResult> PostJob()
     {
-        ViewBag.Categories = await _db.Categories.Where(c => c.Type == "Industry").ToListAsync();
+        ViewBag.Categories = await _db.Categories
+            .Where(c => c.Type == "Industry")
+            .ToListAsync();
+
         return View(new JobPost());
     }
 
@@ -60,26 +64,34 @@ public class EmployerController : Controller
 
         model.EmployerID = emp.EmployerID;
         await _jobSvc.CreateAsync(model);
+
         TempData["Success"] = "Tin tuyển dụng đã được gửi duyệt!";
         return RedirectToAction("Dashboard");
     }
 
-    // GET /Employer/ManageApplications?jobId=5
-    public async Task<IActionResult> ManageApplications(int jobId = 0)
+    // GET /Employer/ManageApplications?jobId=5&status=Pending
+    public async Task<IActionResult> ManageApplications(int jobId = 0, string? status = null)
     {
         if (jobId == 0) return RedirectToAction("Dashboard");
 
         var emp = await GetEmployerAsync();
+        if (emp == null) return RedirectToAction("RegisterEmployer", "Account");
+
         var job = await _db.JobPosts
             .Include(j => j.Employer)
-            .FirstOrDefaultAsync(j => j.JobID == jobId && j.EmployerID == emp!.EmployerID);
+            .FirstOrDefaultAsync(j => j.JobID == jobId && j.EmployerID == emp.EmployerID);
 
         if (job == null) return NotFound();
 
-        var apps = await _db.Applications
-            .Include(a => a.CandidateProfile).ThenInclude(p => p.User)
+        var query = _db.Applications
+            .Include(a => a.CandidateProfile!).ThenInclude(p => p!.User)
             .Include(a => a.CvFile)
-            .Where(a => a.JobID == jobId)
+            .Where(a => a.JobID == jobId);
+
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(a => a.Status == status);
+
+        var apps = await query
             .OrderByDescending(a => a.AppliedAt)
             .ToListAsync();
 
@@ -87,33 +99,53 @@ public class EmployerController : Controller
         return View(apps);
     }
 
+    // ====================== DOWNLOAD CV ======================
     // GET /Employer/DownloadCv?cvId=123
     public async Task<IActionResult> DownloadCv(int cvId)
     {
         var emp = await GetEmployerAsync();
         if (emp == null) return Forbid();
 
-        var cv = await _db.CvFiles.FindAsync(cvId);
-        if (cv == null) return NotFound();
+        // Lấy CV + kiểm tra quyền qua Application và Job
+        var cv = await _db.CvFiles
+            .Include(c => c.Applications)           // Nếu có navigation ICollection<Application>
+            .FirstOrDefaultAsync(c => c.CvID == cvId);
 
-        // find application that references this CV
-        var app = await _db.Applications.FirstOrDefaultAsync(a => a.CVID == cvId);
-        if (app == null) return NotFound();
+        if (cv == null) return NotFound("Không tìm thấy CV.");
 
-        var job = await _db.JobPosts.FindAsync(app.JobID);
-        if (job == null || job.EmployerID != emp.EmployerID) return Forbid();
+        // Kiểm tra xem CV này có thuộc đơn ứng tuyển của Job do Employer này đăng không
+        var hasPermission = await _db.Applications
+            .AnyAsync(a => a.CVID == cvId
+                        && a.Job != null
+                        && a.Job.EmployerID == emp.EmployerID);
+
+        if (!hasPermission)
+            return Forbid("Bạn không có quyền tải CV này.");
 
         var relPath = cv.FilePath?.TrimStart('/') ?? string.Empty;
-        var fullPath = Path.Combine(_env.WebRootPath, relPath.Replace('/', Path.DirectorySeparatorChar));
-        if (!System.IO.File.Exists(fullPath)) return NotFound();
+        var fullPath = Path.Combine(_env.WebRootPath,
+            relPath.Replace('/', Path.DirectorySeparatorChar));
 
-        var contentType = "application/octet-stream";
-        var ext = Path.GetExtension(fullPath).ToLower();
-        if (ext == ".pdf") contentType = "application/pdf";
-        else if (ext == ".docx") contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        if (!System.IO.File.Exists(fullPath))
+            return NotFound("File CV không tồn tại trên server.");
 
-        var fileName = cv.FileName ?? Path.GetFileName(fullPath);
+        var contentType = GetContentType(Path.GetExtension(fullPath));
+        var fileName = string.IsNullOrEmpty(cv.FileName)
+            ? Path.GetFileName(fullPath)
+            : cv.FileName;
+
         return PhysicalFile(fullPath, contentType, fileName);
+    }
+
+    private string GetContentType(string extension)
+    {
+        return extension.ToLower() switch
+        {
+            ".pdf" => "application/pdf",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".doc" => "application/msword",
+            _ => "application/octet-stream"
+        };
     }
 
     // POST /Employer/UpdateApplicationStatus
@@ -122,6 +154,7 @@ public class EmployerController : Controller
     {
         var app = await _db.Applications
             .Include(a => a.CandidateProfile)
+            .Include(a => a.Job)
             .FirstOrDefaultAsync(a => a.AppID == appId);
 
         if (app == null) return NotFound();
@@ -129,15 +162,17 @@ public class EmployerController : Controller
         app.Status = status;
         app.UpdatedAt = DateTime.Now;
 
-        var job = await _db.JobPosts.FindAsync(app.JobID);
         _db.Notifications.Add(new Notification
         {
-            UserID = app.CandidateProfile.UserID,
-            Title = $"Đơn ứng tuyển \"{job?.Title}\" đã được cập nhật: {status}",
+            UserID = app.CandidateProfile?.UserID ?? 0,
+            Title = $"Đơn ứng tuyển \"{app.Job?.Title}\" đã được cập nhật: {status}",
             Type = "Application",
-            RelatedID = app.JobID
+            RelatedID = app.JobID,
+            CreatedAt = DateTime.Now
         });
+
         await _db.SaveChangesAsync();
+
         TempData["Success"] = "Cập nhật trạng thái thành công!";
         return RedirectToAction("ManageApplications", new { jobId });
     }
@@ -148,6 +183,7 @@ public class EmployerController : Controller
     {
         var job = await _db.JobPosts.FindAsync(id);
         if (job == null) return NotFound();
+
         var vm = new PostJobViewModel
         {
             JobID = job.JobID,
@@ -164,8 +200,11 @@ public class EmployerController : Controller
             Status = job.Status,
             CategoryID = job.CategoryID
         };
+
         ViewBag.Categories = new SelectList(await _db.Categories
-            .Where(c => c.Type == "Industry").ToListAsync(), "CategoryID", "Name", vm.CategoryID);
+            .Where(c => c.Type == "Industry").ToListAsync(),
+            "CategoryID", "Name", vm.CategoryID);
+
         return View(vm);
     }
 
@@ -176,9 +215,11 @@ public class EmployerController : Controller
         if (!ModelState.IsValid)
         {
             ViewBag.Categories = new SelectList(await _db.Categories
-                .Where(c => c.Type == "Industry").ToListAsync(), "CategoryID", "Name", model.CategoryID);
+                .Where(c => c.Type == "Industry").ToListAsync(),
+                "CategoryID", "Name", model.CategoryID);
             return View(model);
         }
+
         var job = await _db.JobPosts.FindAsync(model.JobID);
         if (job == null) return NotFound();
 
@@ -197,6 +238,7 @@ public class EmployerController : Controller
         job.UpdatedAt = DateTime.Now;
 
         await _db.SaveChangesAsync();
+
         TempData["Success"] = "Đã cập nhật tin tuyển dụng.";
         return RedirectToAction("Dashboard");
     }
@@ -222,28 +264,28 @@ public class EmployerController : Controller
         emp.CompanySize = model.CompanySize;
         emp.Address = model.Address;
         emp.Website = model.Website;
-        // If LogoURL/CoverURL are data URIs (base64 uploaded via client), save them to disk
-        if (!string.IsNullOrEmpty(model.LogoURL) && model.LogoURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        emp.Description = model.Description;
+
+        // Xử lý upload Logo & Cover từ base64
+        if (!string.IsNullOrEmpty(model.LogoURL) && model.LogoURL.StartsWith("data:"))
         {
             try { emp.LogoURL = await _jobSvc.SaveImageFromDataUriAsync(model.LogoURL, "uploads/company/logo"); }
-            catch { /* ignore save errors */ }
+            catch { /* ignore */ }
         }
-        else
+        else if (!string.IsNullOrEmpty(model.LogoURL))
         {
             emp.LogoURL = model.LogoURL;
         }
 
-        if (!string.IsNullOrEmpty(model.CoverURL) && model.CoverURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(model.CoverURL) && model.CoverURL.StartsWith("data:"))
         {
             try { emp.CoverURL = await _jobSvc.SaveImageFromDataUriAsync(model.CoverURL, "uploads/company/cover"); }
-            catch { /* ignore save errors */ }
+            catch { /* ignore */ }
         }
-        else
+        else if (!string.IsNullOrEmpty(model.CoverURL))
         {
             emp.CoverURL = model.CoverURL;
         }
-
-        emp.Description = model.Description;
 
         await _db.SaveChangesAsync();
         TempData["Success"] = "Cập nhật hồ sơ công ty thành công!";

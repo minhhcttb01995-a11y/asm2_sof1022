@@ -13,7 +13,9 @@ public class CompanyController : Controller
     public async Task<IActionResult> Index(string? keyword, string? industry, int page = 1)
     {
         const int pageSize = 12;
-        var q = _db.Employers.AsQueryable();
+        var q = _db.Employers
+            .Where(e => !e.IsLocked)   // ← Không hiện công ty bị khoá
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(keyword))
             q = q.Where(e => e.CompanyName.Contains(keyword));
@@ -39,7 +41,7 @@ public class CompanyController : Controller
     {
         var emp = await _db.Employers
             .Include(e => e.User)
-            .FirstOrDefaultAsync(e => e.EmployerID == id);
+            .FirstOrDefaultAsync(e => e.EmployerID == id && !e.IsLocked);  // ← Ẩn nếu bị khoá
 
         if (emp == null) return NotFound();
 

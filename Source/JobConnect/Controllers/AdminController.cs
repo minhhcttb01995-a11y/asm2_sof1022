@@ -16,25 +16,50 @@ public class AdminController : Controller
     public AdminController(AppDbContext db, IJobService jobSvc) { _db = db; _jobSvc = jobSvc; }
 
     // GET /Admin
-    public IActionResult Index()
-    {
-        return RedirectToAction("Dashboard");
-    }
+    public IActionResult Index() => RedirectToAction("Dashboard");
 
     // GET /Admin/Dashboard
     public async Task<IActionResult> Dashboard()
     {
+        // Thống kê tổng
         ViewBag.UserCount = await _db.Users.CountAsync();
-        ViewBag.JobCount = await _db.JobPosts.CountAsync();
-        ViewBag.AppCount = await _db.Applications.CountAsync();
+        ViewBag.CandidateCount = await _db.Users.CountAsync(u => u.Role == "Candidate");
         ViewBag.EmployerCount = await _db.Employers.CountAsync();
+        ViewBag.JobCount = await _db.JobPosts.CountAsync();
+        ViewBag.OpenJobCount = await _db.JobPosts.CountAsync(j => j.Status == "Open");
+        ViewBag.PendingJobCount = await _db.JobPosts.CountAsync(j => j.Status == "Pending");
+        ViewBag.AppCount = await _db.Applications.CountAsync();
+        ViewBag.BannedCount = await _db.Users.CountAsync(u => u.Status == "Banned");
+
+        // Đơn ứng tuyển theo trạng thái
+        ViewBag.AppPending = await _db.Applications.CountAsync(a => a.Status == "Pending");
+        ViewBag.AppAccepted = await _db.Applications.CountAsync(a => a.Status == "Accepted");
+        ViewBag.AppRejected = await _db.Applications.CountAsync(a => a.Status == "Rejected");
+        ViewBag.AppInterview = await _db.Applications.CountAsync(a => a.Status == "Interview");
+
+        // Tin chờ duyệt
         ViewBag.PendingJobs = await _db.JobPosts
             .Include(j => j.Employer)
             .Where(j => j.Status == "Pending")
             .OrderByDescending(j => j.CreatedAt)
-            .Take(10).ToListAsync();
+            .Take(8).ToListAsync();
+
+        // 5 người dùng mới nhất
+        ViewBag.NewUsers = await _db.Users
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(5).ToListAsync();
+
+        // 5 đơn ứng tuyển mới nhất
+        ViewBag.NewApps = await _db.Applications
+            .Include(a => a.CandidateProfile)
+            .Include(a => a.Job).ThenInclude(j => j.Employer)
+            .OrderByDescending(a => a.AppliedAt)
+            .Take(5).ToListAsync();
+
         return View();
     }
+
+    // ====================== USERS ======================
 
     // GET /Admin/Users
     public async Task<IActionResult> Users(string? keyword, string? role, int page = 1)
@@ -43,27 +68,112 @@ public class AdminController : Controller
         var q = _db.Users.AsQueryable();
         if (!string.IsNullOrWhiteSpace(keyword))
             q = q.Where(u => u.FullName.Contains(keyword) || u.Email.Contains(keyword));
-        if (!string.IsNullOrWhiteSpace(role)) q = q.Where(u => u.Role == role);
+        if (!string.IsNullOrWhiteSpace(role))
+            q = q.Where(u => u.Role == role);
         var total = await q.CountAsync();
         var results = await q.OrderByDescending(u => u.CreatedAt)
                               .Skip((page - 1) * ps).Take(ps).ToListAsync();
         ViewBag.TotalPages = (int)Math.Ceiling(total / (double)ps);
         ViewBag.Page = page;
+        ViewBag.Keyword = keyword;
+        ViewBag.Role = role;
         return View(results);
+    }
+
+    // GET /Admin/UserDetail/5
+    public async Task<IActionResult> UserDetail(int id)
+    {
+        var user = await _db.Users
+            .Include(u => u.CandidateProfile)
+                .ThenInclude(p => p!.CvFiles)
+            .Include(u => u.CandidateProfile)
+                .ThenInclude(p => p!.Applications)
+                    .ThenInclude(a => a.Job)
+            .Include(u => u.Employer)
+                .ThenInclude(e => e!.JobPosts)
+            .FirstOrDefaultAsync(u => u.UserID == id);
+
+        if (user == null) return NotFound();
+        return View(user);
+    }
+
+    // GET /Admin/CreateUser
+    public IActionResult CreateUser() => View();
+
+    // POST /Admin/CreateUser
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateUser(string fullName, string email, string password, string role)
+    {
+        if (await _db.Users.AnyAsync(u => u.Email == email))
+        {
+            ModelState.AddModelError("", "Email đã tồn tại.");
+            return View();
+        }
+
+        var user = new User
+        {
+            FullName = fullName,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = role,
+            Status = "Active",
+            CreatedAt = DateTime.Now
+        };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        // Tạo profile tương ứng
+        if (role == "Candidate")
+        {
+            _db.CandidateProfiles.Add(new CandidateProfile
+            {
+                UserID = user.UserID,
+                FullName = fullName
+            });
+            await _db.SaveChangesAsync();
+        }
+
+        TempData["Success"] = $"Đã tạo tài khoản {email} thành công!";
+        return RedirectToAction("Users");
     }
 
     // POST /Admin/BanUser
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> BanUser(int userId)
+    public async Task<IActionResult> BanUser(int userId, string? returnUrl)
     {
         var user = await _db.Users.FindAsync(userId);
         if (user != null)
         {
             user.Status = user.Status == "Active" ? "Banned" : "Active";
+            user.UpdatedAt = DateTime.Now;
             await _db.SaveChangesAsync();
+            TempData["Success"] = user.Status == "Banned"
+                ? $"Đã khoá tài khoản {user.Email}."
+                : $"Đã mở khoá tài khoản {user.Email}.";
         }
+        if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
         return RedirectToAction("Users");
     }
+
+    // POST /Admin/DeleteUser
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(int userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+        if (user.Role == "Admin")
+        {
+            TempData["Error"] = "Không thể xóa tài khoản Admin.";
+            return RedirectToAction("Users");
+        }
+
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        TempData["Success"] = $"Đã xóa tài khoản {user.Email}.";
+        return RedirectToAction("Users");
+    }
+
+    // ====================== JOBS ======================
 
     // GET /Admin/Jobs
     public async Task<IActionResult> Jobs(string? status, int page = 1)
@@ -80,7 +190,7 @@ public class AdminController : Controller
         return View(results);
     }
 
-    // POST /Admin/ApproveJob
+    // POST /Admin/ApproveJob (giữ lại tương thích)
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveJob(int jobId, string action)
     {
@@ -103,24 +213,79 @@ public class AdminController : Controller
         return RedirectToAction("Jobs");
     }
 
-    // GET /Admin/Companies
+    // POST /Admin/SetJobStatus — chuyển trạng thái linh hoạt
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetJobStatus(int jobId, string status, string? filterStatus)
+    {
+        var validStatuses = new[] { "Open", "Pending", "Rejected", "Closed", "Draft" };
+        if (!validStatuses.Contains(status)) return BadRequest();
+
+        var job = await _db.JobPosts.Include(j => j.Employer).FirstOrDefaultAsync(j => j.JobID == jobId);
+        if (job == null) return NotFound();
+
+        job.Status = status;
+        job.UpdatedAt = DateTime.Now;
+
+        var notifyTitle = status switch
+        {
+            "Open" => $"Tin \"{job.Title}\" đã được duyệt và đang hiển thị!",
+            "Rejected" => $"Tin \"{job.Title}\" đã bị từ chối bởi Admin.",
+            "Closed" => $"Tin \"{job.Title}\" đã bị đóng bởi Admin.",
+            "Pending" => $"Tin \"{job.Title}\" được chuyển về trạng thái chờ duyệt.",
+            _ => null
+        };
+
+        if (notifyTitle != null && job.Employer != null)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                UserID = job.Employer.UserID,
+                Title = notifyTitle,
+                Type = "System",
+                RelatedID = job.JobID
+            });
+        }
+
+        await _db.SaveChangesAsync();
+
+        TempData["Success"] = status switch
+        {
+            "Open" => $"Đã duyệt tin \"{job.Title}\".",
+            "Rejected" => $"Đã từ chối tin \"{job.Title}\".",
+            "Closed" => $"Đã đóng tin \"{job.Title}\".",
+            "Pending" => $"Đã chuyển tin \"{job.Title}\" về chờ duyệt.",
+            _ => "Đã cập nhật trạng thái."
+        };
+
+        return RedirectToAction("Jobs", new { status = filterStatus });
+    }
+
+    // ====================== COMPANIES ======================
+
     public async Task<IActionResult> Companies(string? q, string? status, int page = 1)
     {
-        var query = _db.Employers
-            .Include(c => c.User)
-            .Include(c => c.JobPosts)
-            .AsQueryable();
+        var query = _db.Employers.Include(c => c.User).Include(c => c.JobPosts).AsQueryable();
         if (!string.IsNullOrEmpty(q))
             query = query.Where(c => c.CompanyName.Contains(q) || c.User.Email.Contains(q));
-        if (status == "Verified")
-            query = query.Where(c => c.IsVerified);
-        else if (status == "Unverified")
-            query = query.Where(c => !c.IsVerified);
+        if (status == "Verified") query = query.Where(c => c.IsVerified);
+        else if (status == "Unverified") query = query.Where(c => !c.IsVerified);
+        else if (status == "Locked") query = query.Where(c => c.IsLocked);
         int pageSize = 15;
         ViewBag.TotalPages = (int)Math.Ceiling(await query.CountAsync() / (double)pageSize);
         ViewBag.Page = page; ViewBag.Q = q; ViewBag.Status = status;
         return View(await query.OrderByDescending(c => c.EmployerID)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync());
+    }
+
+    // GET /Admin/CompanyDetail/5
+    public async Task<IActionResult> CompanyDetail(int id)
+    {
+        var emp = await _db.Employers
+            .Include(e => e.User)
+            .Include(e => e.JobPosts)
+            .FirstOrDefaultAsync(e => e.EmployerID == id);
+        if (emp == null) return NotFound();
+        return View(emp);
     }
 
     // POST /Admin/ApproveCompany
@@ -133,7 +298,7 @@ public class AdminController : Controller
         return RedirectToAction("Companies");
     }
 
-    // POST /Admin/SuspendCompany
+    // POST /Admin/SuspendCompany (hủy xác minh)
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> SuspendCompany(int id)
     {
@@ -143,7 +308,43 @@ public class AdminController : Controller
         return RedirectToAction("Companies");
     }
 
-    // GET /Admin/Blog
+    // POST /Admin/LockCompany (khóa/mở khóa công ty)
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> LockCompany(int id, string? returnUrl)
+    {
+        var c = await _db.Employers.FindAsync(id);
+        if (c != null)
+        {
+            c.IsLocked = !c.IsLocked;
+            await _db.SaveChangesAsync();
+            TempData["Success"] = c.IsLocked
+                ? $"Đã khoá công ty \"{c.CompanyName}\". Công ty sẽ không hiển thị trên trang công khai."
+                : $"Đã mở khoá công ty \"{c.CompanyName}\".";
+        }
+        if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+        return RedirectToAction("Companies");
+    }
+
+    // POST /Admin/DeleteCompany
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCompany(int id)
+    {
+        var c = await _db.Employers
+            .Include(e => e.JobPosts)
+            .FirstOrDefaultAsync(e => e.EmployerID == id);
+        if (c == null) return NotFound();
+
+        // Xóa các job posts trước để tránh lỗi FK
+        _db.JobPosts.RemoveRange(c.JobPosts);
+        _db.Employers.Remove(c);
+        await _db.SaveChangesAsync();
+
+        TempData["Success"] = $"Đã xóa công ty \"{c.CompanyName}\" và toàn bộ tin tuyển dụng liên quan.";
+        return RedirectToAction("Companies");
+    }
+
+    // ====================== BLOG ======================
+
     public async Task<IActionResult> Blog(string? q, string? status, int page = 1)
     {
         var query = _db.BlogPosts.Include(p => p.Author).AsQueryable();
@@ -159,7 +360,6 @@ public class AdminController : Controller
 
     public IActionResult BlogCreate() => View();
 
-    // GET /Admin/BlogEdit/5
     public async Task<IActionResult> BlogEdit(int id)
     {
         var post = await _db.BlogPosts.FindAsync(id);
@@ -167,27 +367,24 @@ public class AdminController : Controller
         return View(post);
     }
 
-    // POST /Admin/BlogEdit
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> BlogEdit(int PostID, string Title, string? Slug, string? Excerpt, string? CoverURL, string Content, string Status)
+    public async Task<IActionResult> BlogEdit(int PostID, string Title, string? Slug, string? Excerpt,
+        string? CoverURL, string Content, string Status)
     {
         var post = await _db.BlogPosts.FindAsync(PostID);
         if (post == null) return NotFound();
-
         post.Title = Title;
         post.Slug = string.IsNullOrEmpty(Slug) ? Title.ToLower().Replace(" ", "-") : Slug;
         post.Excerpt = Excerpt;
         post.Content = Content;
         post.IsPublished = Status == "Published";
         post.PublishedAt = post.IsPublished ? (post.PublishedAt ?? DateTime.Now) : null;
-
         if (!string.IsNullOrEmpty(CoverURL) && CoverURL.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
             try { post.CoverURL = await _jobSvc.SaveImageFromDataUriAsync(CoverURL, "uploads/blog/cover"); }
             catch { }
         }
         else post.CoverURL = CoverURL;
-
         await _db.SaveChangesAsync();
         TempData["Success"] = "Đã cập nhật bài viết.";
         return RedirectToAction("Blog");
@@ -205,7 +402,6 @@ public class AdminController : Controller
             try { coverPath = await _jobSvc.SaveImageFromDataUriAsync(CoverURL, "uploads/blog/cover"); }
             catch { coverPath = null; }
         }
-
         _db.BlogPosts.Add(new BlogPost
         {
             Title = Title,
@@ -240,15 +436,14 @@ public class AdminController : Controller
         return RedirectToAction("Blog");
     }
 
-    // GET /Admin/Reports
+    // ====================== REPORTS ======================
+
     public async Task<IActionResult> Reports()
     {
         ViewBag.TotalUsers = await _db.Users.CountAsync();
         ViewBag.TotalJobs = await _db.JobPosts.CountAsync();
         ViewBag.TotalApps = await _db.Applications.CountAsync();
         ViewBag.TotalCompanies = await _db.Employers.CountAsync(c => c.IsVerified);
-
-        // Đơn ứng tuyển 6 tháng gần nhất
         var sixMonths = DateTime.Now.AddMonths(-5);
         ViewBag.MonthlyApps = await _db.Applications
             .Where(a => a.AppliedAt >= sixMonths)
@@ -257,8 +452,6 @@ public class AdminController : Controller
             .OrderBy(g => g.Month)
             .Select(g => ValueTuple.Create(g.Month, g.Count))
             .ToListAsync();
-
-        // Top 5 ngành nghề
         ViewBag.TopCategories = await _db.JobPosts
             .Where(j => j.Category != null)
             .GroupBy(j => j.Category!.Name)
@@ -266,25 +459,18 @@ public class AdminController : Controller
             .OrderByDescending(g => g.Count).Take(5)
             .Select(g => ValueTuple.Create(g.Name, g.Count))
             .ToListAsync();
-
-        // Top 5 công ty
         ViewBag.TopCompanies = await _db.JobPosts
             .GroupBy(j => j.Employer.CompanyName)
             .Select(g => new { Name = g.Key, Count = g.Count() })
             .OrderByDescending(g => g.Count).Take(5)
             .Select(g => ValueTuple.Create(g.Name, g.Count))
             .ToListAsync();
-
-        // Trạng thái đơn
         ViewBag.AppStatus = await _db.Applications
             .GroupBy(a => a.Status)
             .Select(g => ValueTuple.Create(g.Key, g.Count()))
             .ToListAsync();
-
-        // 10 user mới nhất
         ViewBag.RecentUsers = await _db.Users
             .OrderByDescending(u => u.CreatedAt).Take(10).ToListAsync();
-
         return View();
     }
 }

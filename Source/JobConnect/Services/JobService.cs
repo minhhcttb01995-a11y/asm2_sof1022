@@ -9,7 +9,12 @@ public class JobService : IJobService
 {
     private readonly AppDbContext _db;
     private readonly IFileService _fileSvc;
-    public JobService(AppDbContext db, IFileService fileSvc) { _db = db; _fileSvc = fileSvc; }
+
+    public JobService(AppDbContext db, IFileService fileSvc)
+    {
+        _db = db;
+        _fileSvc = fileSvc;
+    }
 
     public async Task<List<JobPost>> SearchAsync(JobSearchViewModel f)
     {
@@ -33,7 +38,7 @@ public class JobService : IJobService
             q = q.Where(j => j.ExperienceLevel == f.ExperienceLevel);
 
         if (f.SalaryMin.HasValue)
-            q = q.Where(j => j.SalaryMax >= f.SalaryMin || j.SalaryNegotiable);
+            q = q.Where(j => j.SalaryMax >= f.SalaryMin || j.SalaryNegotiable == true);
 
         q = f.SortBy switch
         {
@@ -53,7 +58,7 @@ public class JobService : IJobService
         {
             _db.Applications.Remove(existing);
             await _db.SaveChangesAsync();
-            return false; // now withdrawn
+            return false;
         }
 
         _db.Applications.Add(new Application
@@ -61,20 +66,22 @@ public class JobService : IJobService
             JobID = jobId,
             ProfileID = profileId,
             CVID = cvId,
-            CoverLetter = coverLetter
+            CoverLetter = coverLetter,
+            AppliedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
 
         var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobID == jobId);
         _db.Notifications.Add(new Notification
         {
-            UserID = job.Employer.UserID,
+            UserID = job.Employer?.UserID ?? 0,
             Title = $"Có ứng viên mới cho tin \"{job.Title}\"",
             Type = "Application",
-            RelatedID = jobId
+            RelatedID = jobId,
+            CreatedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
-        return true; // now applied
+        return true;
     }
 
     public async Task<JobPost?> GetByIdAsync(int id)
@@ -85,7 +92,11 @@ public class JobService : IJobService
             .Include(j => j.Applications)
             .FirstOrDefaultAsync(j => j.JobID == id);
 
-        if (job != null) { job.ViewCount++; await _db.SaveChangesAsync(); }
+        if (job != null)
+        {
+            job.ViewCount++;
+            await _db.SaveChangesAsync();
+        }
         return job;
     }
 
@@ -101,18 +112,19 @@ public class JobService : IJobService
             JobID = jobId,
             ProfileID = profileId,
             CVID = cvId,
-            CoverLetter = coverLetter
+            CoverLetter = coverLetter,
+            AppliedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
 
-        // Thông báo cho nhà tuyển dụng
         var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobID == jobId);
         _db.Notifications.Add(new Notification
         {
-            UserID = job.Employer.UserID,
+            UserID = job.Employer?.UserID ?? 0,
             Title = $"Có ứng viên mới cho tin \"{job.Title}\"",
             Type = "Application",
-            RelatedID = jobId
+            RelatedID = jobId,
+            CreatedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
         return true;
@@ -155,6 +167,7 @@ public class JobService : IJobService
         await _db.SaveChangesAsync();
     }
 
+    // Delegate đến FileService
     public async Task<string> SaveImageFromDataUriAsync(string dataUri, string relativeFolder)
     {
         return await _fileSvc.SaveImageFromDataUriAsync(dataUri, relativeFolder);

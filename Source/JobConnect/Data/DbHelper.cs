@@ -48,7 +48,7 @@ public class AppDbContext : DbContext
 
         // ===== FIX CASCADE PATHS =====
         mb.Entity<Application>()
-          .HasOne(a => a.JobPost)
+          .HasOne(a => a.Job)
           .WithMany(j => j.Applications)
           .HasForeignKey(a => a.JobID)
           .OnDelete(DeleteBehavior.Restrict);
@@ -80,8 +80,8 @@ public class AppDbContext : DbContext
         // ===== CvFile Configuration (QUAN TRỌNG) =====
         mb.Entity<CvFile>(entity =>
         {
-            entity.HasKey(e => e.CvFileID);
-            entity.Property(e => e.CvFileID).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.CvID);
+            entity.Property(e => e.CvID).ValueGeneratedOnAdd();
 
             entity.HasOne(e => e.Profile)
                   .WithMany(p => p.CvFiles)

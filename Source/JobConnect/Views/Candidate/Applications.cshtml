@@ -90,9 +90,9 @@
                         <div class="flex-1">
                             <div class="flex items-start gap-3">
                                 <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center overflow-hidden">
-                                    @if (app.JobPost?.Employer != null && !string.IsNullOrEmpty(app.JobPost.Employer.LogoURL))
+                                    @if (app.Job?.Employer != null && !string.IsNullOrEmpty(app.Job.Employer.LogoURL))
                                     {
-                                        <img src="@app.JobPost.Employer.LogoURL" class="w-full h-full object-contain" />
+                                        <img src="@app.Job.Employer.LogoURL" class="w-full h-full object-contain" />
                                     }
                                     else
                                     {
@@ -101,17 +101,17 @@
                                 </div>
                                 <div>
                                     <a href="/Job/Detail/@app.JobID" class="text-white font-bold text-lg hover:text-blue-400 transition-colors">
-                                        @(app.JobPost?.Title ?? "Không có tiêu đề")
+                                        @(app.Job?.Title ?? "Không có tiêu đề")
                                     </a>
-                                    <p class="text-slate-400 text-sm">@(app.JobPost?.Employer?.CompanyName ?? "Đang cập nhật")</p>
+                                    <p class="text-slate-400 text-sm">@(app.Job?.Employer?.CompanyName ?? "Đang cập nhật")</p>
                                     <div class="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
                                         <span class="flex items-center gap-1">
                                             <span class="material-symbols-outlined text-sm">location_on</span>
-                                            @(app.JobPost?.Location ?? "Toàn quốc")
+                                            @(app.Job?.Location ?? "Toàn quốc")
                                         </span>
                                         <span class="flex items-center gap-1">
                                             <span class="material-symbols-outlined text-sm">payments</span>
-                                            @(app.JobPost?.SalaryMin?.ToString("N0") ?? "0") - @(app.JobPost?.SalaryMax?.ToString("N0") ?? "0")đ
+                                            @(app.Job?.SalaryMin?.ToString("N0") ?? "0") - @(app.Job?.SalaryMax?.ToString("N0") ?? "0")đ
                                         </span>
                                         <span class="flex items-center gap-1">
                                             <span class="material-symbols-outlined text-sm">schedule</span>

@@ -7,30 +7,40 @@
 }
 
 <style>
-    .job-row {
-        transition: all 0.2s;
+    .section-card {
+        background: rgba(255,255,255,0.03);
+        border-radius: 1rem;
+        border: 1px solid #1e293b;
+        padding: 1.5rem;
     }
 
-        .job-row:hover {
-            background: #f0f3ff;
-            border-color: #003d9b;
+        .section-card:hover {
+            border-color: #334155;
+            transition: border-color 0.2s;
         }
 
     .benefit-card {
-        background: #f0f3ff;
+        background: rgba(59,130,246,0.05);
+        border: 1px solid rgba(59,130,246,0.15);
         border-radius: 0.75rem;
         padding: 1.25rem;
     }
 
-    .section-card {
-        background: white;
-        border-radius: 1rem;
-        border: 1px solid #c3c6d6;
-        padding: 1.5rem;
+    .job-row {
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid #1e293b;
+        border-radius: 0.75rem;
     }
+
+        .job-row:hover {
+            background: rgba(59,130,246,0.05);
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-1px);
+        }
 </style>
 
-<!-- Cover + Header -->
+<!-- Cover Banner -->
 <div class="relative">
     @if (!string.IsNullOrEmpty(Model.CoverURL))
     {
@@ -38,45 +48,48 @@
     }
     else
     {
-        <div class="w-full h-36 bg-gradient-to-r from-primary to-blue-400"></div>
+        <div class="w-full h-36 bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-800 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px); background-size: 60px 60px;"></div>
+        </div>
     }
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 </div>
 
 <div class="max-w-6xl mx-auto px-6">
     <!-- Logo + name bar -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-4 mb-6">
         <div class="flex items-end gap-4">
-            <div class="w-20 h-20 rounded-2xl border-4 border-white bg-white shadow-md flex items-center justify-center overflow-hidden shrink-0">
+            <div class="w-20 h-20 rounded-2xl border-2 border-slate-700 bg-slate-900 shadow-xl flex items-center justify-center overflow-hidden shrink-0 -mt-8 relative z-10">
                 @if (!string.IsNullOrEmpty(Model.LogoURL))
                 {
                     <img src="@Model.LogoURL" class="w-full h-full object-contain" />
                 }
                 else
                 {
-                    <span class="material-symbols-outlined text-3xl text-secondary">business</span>
+                    <span class="material-symbols-outlined text-3xl text-slate-500">business</span>
                 }
             </div>
             <div class="pb-1">
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl md:text-2xl font-bold text-on-surface">@Model.CompanyName</h1>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="text-xl md:text-2xl font-bold text-white">@Model.CompanyName</h1>
                     @if (Model.IsVerified)
                     {
-                        <span class="flex items-center gap-1 bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                        <span class="flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold">
                             <span class="material-symbols-outlined text-sm">verified</span> Đã xác minh
                         </span>
                     }
                 </div>
-                <div class="flex flex-wrap gap-3 mt-1 text-sm text-secondary">
+                <div class="flex flex-wrap gap-3 mt-1 text-sm text-slate-400">
                     @if (!string.IsNullOrEmpty(Model.Address))
                     {
                         <span class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-base">location_on</span>@Model.Address
+                            <span class="material-symbols-outlined text-base text-slate-500">location_on</span>@Model.Address
                         </span>
                     }
                     @if (!string.IsNullOrEmpty(Model.Website))
                     {
-                        <a href="@Model.Website" target="_blank" class="flex items-center gap-1 hover:text-primary">
-                            <span class="material-symbols-outlined text-base">public</span>@Model.Website
+                        <a href="@Model.Website" target="_blank" class="flex items-center gap-1 hover:text-blue-400 transition-colors">
+                            <span class="material-symbols-outlined text-base text-slate-500">public</span>@Model.Website
                         </a>
                     }
                 </div>
@@ -84,7 +97,7 @@
         </div>
         <div class="pb-1">
             <a asp-controller="Job" asp-action="Index" asp-route-company="@Model.EmployerID"
-               class="inline-flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity">
+               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20">
                 <span class="material-symbols-outlined text-base">add</span>
                 Theo dõi công ty
             </a>
@@ -100,31 +113,31 @@
             @if (!string.IsNullOrEmpty(Model.Description))
             {
                 <div class="section-card">
-                    <h2 class="font-bold text-primary text-lg mb-3">Tổng quan về công ty</h2>
-                    <div class="text-sm text-secondary leading-relaxed">@Html.Raw(Model.Description)</div>
+                    <h2 class="font-bold text-blue-400 text-lg mb-3">Tổng quan về công ty</h2>
+                    <div class="text-sm text-slate-400 leading-relaxed">@Html.Raw(Model.Description)</div>
                 </div>
             }
 
             <!-- Why work here -->
             <div class="section-card">
-                <h2 class="font-bold text-primary text-lg mb-4">Tại sao nên làm việc tại @Model.CompanyName?</h2>
+                <h2 class="font-bold text-blue-400 text-lg mb-4">Tại sao nên làm việc tại @Model.CompanyName?</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     <div class="benefit-card">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="material-symbols-outlined text-primary text-xl">diversity_3</span>
-                            <span class="font-bold text-sm text-on-surface">Môi trường đa văn hóa</span>
+                            <span class="material-symbols-outlined text-blue-400 text-xl">diversity_3</span>
+                            <span class="font-bold text-sm text-white">Môi trường đa văn hóa</span>
                         </div>
-                        <p class="text-xs text-secondary">Hợp tác cùng đội ngũ đa dạng trong môi trường năng động và cởi mở.</p>
+                        <p class="text-xs text-slate-400">Hợp tác cùng đội ngũ đa dạng trong môi trường năng động và cởi mở.</p>
                     </div>
                     <div class="benefit-card">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="material-symbols-outlined text-primary text-xl">rocket_launch</span>
-                            <span class="font-bold text-sm text-on-surface">Cơ hội thăng tiến</span>
+                            <span class="material-symbols-outlined text-blue-400 text-xl">rocket_launch</span>
+                            <span class="font-bold text-sm text-white">Cơ hội thăng tiến</span>
                         </div>
-                        <p class="text-xs text-secondary">Lộ trình phát triển sự nghiệp rõ ràng với chương trình đào tạo chuyên sâu.</p>
+                        <p class="text-xs text-slate-400">Lộ trình phát triển sự nghiệp rõ ràng với chương trình đào tạo chuyên sâu.</p>
                     </div>
                 </div>
-                <div class="bg-primary rounded-xl p-4 flex items-start gap-3 text-white">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-4 flex items-start gap-3 text-white">
                     <span class="material-symbols-outlined text-2xl">redeem</span>
                     <div>
                         <div class="font-bold text-sm mb-1">Phúc lợi hấp dẫn</div>
@@ -136,12 +149,12 @@
             <!-- Job Openings -->
             <div class="section-card">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-primary text-lg">
+                    <h2 class="font-bold text-blue-400 text-lg flex items-center gap-2">
                         Vị trí đang tuyển dụng
-                        <span class="ml-2 bg-surface-container text-secondary text-xs px-2.5 py-0.5 rounded-full font-normal">@jobs.Count</span>
+                        <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2.5 py-0.5 rounded-full font-normal">@jobs.Count</span>
                     </h2>
                     <a asp-controller="Job" asp-action="Index"
-                       class="text-primary text-sm font-bold hover:underline flex items-center gap-1">
+                       class="text-blue-400 text-sm font-bold hover:underline flex items-center gap-1">
                         Xem tất cả <span class="material-symbols-outlined text-base">arrow_forward</span>
                     </a>
                 </div>
@@ -152,26 +165,26 @@
                         @foreach (var job in jobs)
                         {
                             <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
-                               class="job-row flex items-start gap-3 p-4 border border-outline-variant rounded-xl group block">
-                                <div class="w-10 h-10 rounded-lg border border-outline-variant bg-surface-container flex items-center justify-center shrink-0 overflow-hidden">
+                               class="job-row flex items-start gap-3 p-4 group block">
+                                <div class="w-10 h-10 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center shrink-0 overflow-hidden">
                                     @if (!string.IsNullOrEmpty(Model.LogoURL))
                                     {
                                         <img src="@Model.LogoURL" class="w-full h-full object-contain" />
                                     }
                                     else
                                     {
-                                        <span class="material-symbols-outlined text-secondary text-lg">business</span>
+                                        <span class="material-symbols-outlined text-slate-500 text-lg">business</span>
                                     }
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex justify-between items-start gap-2">
-                                        <p class="font-bold text-sm text-on-surface group-hover:text-primary transition-colors">@job.Title</p>
-                                        <span class="text-secondary hover:text-error shrink-0">
+                                        <p class="font-bold text-sm text-slate-200 group-hover:text-blue-400 transition-colors">@job.Title</p>
+                                        <span class="text-slate-500 hover:text-red-400 shrink-0 transition-colors">
                                             <span class="material-symbols-outlined text-base">favorite</span>
                                         </span>
                                     </div>
-                                    <p class="text-xs text-primary font-semibold">@Model.CompanyName</p>
-                                    <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-secondary">
+                                    <p class="text-xs text-blue-400 font-semibold">@Model.CompanyName</p>
+                                    <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-500">
                                         @if (!string.IsNullOrEmpty(job.Location))
                                         {
                                             <span class="flex items-center gap-1">
@@ -188,10 +201,10 @@
                                         </span>
                                     </div>
                                     <div class="flex flex-wrap gap-1.5 mt-2">
-                                        <span class="bg-surface-container px-2 py-0.5 rounded text-xs text-secondary font-medium">@job.JobType</span>
+                                        <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-xs text-slate-400 font-medium">@job.JobType</span>
                                         @if (!string.IsNullOrEmpty(job.ExperienceLevel))
                                         {
-                                            <span class="bg-surface-container px-2 py-0.5 rounded text-xs text-secondary font-medium">@job.ExperienceLevel</span>
+                                            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-xs text-slate-400 font-medium">@job.ExperienceLevel</span>
                                         }
                                     </div>
                                 </div>
@@ -201,7 +214,7 @@
                 }
                 else
                 {
-                    <div class="text-center py-10 text-secondary">
+                    <div class="text-center py-10 text-slate-500">
                         <span class="material-symbols-outlined text-4xl block mb-2">work_off</span>
                         <p class="text-sm">Công ty hiện chưa có vị trí tuyển dụng.</p>
                     </div>
@@ -214,7 +227,7 @@
 
             <!-- Company Info -->
             <div class="section-card">
-                <h3 class="font-bold text-on-surface mb-4">Thông tin công ty</h3>
+                <h3 class="font-bold text-white mb-4">Thông tin công ty</h3>
                 <div class="space-y-3">
                     @foreach (var (icon, label, value) in new[]{
                         ("group", "Quy mô công ty", string.IsNullOrEmpty(Model.CompanySize) ? null : Model.CompanySize + " nhân viên"),
@@ -228,18 +241,18 @@
                         @if (!string.IsNullOrEmpty(value))
                         {
                             <div class="flex items-start gap-3 text-sm">
-                                <div class="w-8 h-8 bg-surface-container rounded-lg flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-primary text-base">@icon</span>
+                                <div class="w-8 h-8 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-blue-400 text-base">@icon</span>
                                 </div>
                                 <div>
-                                    <div class="text-xs text-secondary">@label</div>
+                                    <div class="text-xs text-slate-500">@label</div>
                                     @if (icon == "public")
                                     {
-                                        <a href="@value" target="_blank" class="font-semibold text-primary hover:underline">@value</a>
+                                        <a href="@value" target="_blank" class="font-semibold text-blue-400 hover:underline">@value</a>
                                     }
                                     else
                                     {
-                                        <div class="font-semibold text-on-surface">@value</div>
+                                        <div class="font-semibold text-slate-200">@value</div>
                                     }
                                 </div>
                             </div>
@@ -249,26 +262,26 @@
             </div>
 
             <!-- CTA Card -->
-            <div class="bg-primary rounded-2xl p-5 text-white">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
                 <h3 class="font-bold text-base mb-2">Ứng tuyển ngay!</h3>
                 <p class="text-blue-200 text-xs mb-4">Hãy trở thành một phần của đội ngũ hàng đầu Việt Nam.</p>
                 <a asp-controller="Job" asp-action="Index"
-                   class="block w-full text-center py-2.5 bg-white text-primary rounded-xl text-sm font-bold hover:opacity-90 transition-opacity">
+                   class="block w-full text-center py-2.5 bg-white text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-50 transition-colors">
                     Nộp đơn ứng tuyển
                 </a>
             </div>
 
             <!-- Stats -->
             <div class="section-card">
-                <h3 class="font-bold text-on-surface mb-3">Thống kê</h3>
+                <h3 class="font-bold text-white mb-3">Thống kê</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-surface-container-low rounded-xl p-3 text-center">
-                        <div class="text-2xl font-bold text-primary">@jobs.Count</div>
-                        <div class="text-xs text-secondary mt-0.5">Việc đang tuyển</div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-blue-400">@jobs.Count</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Việc đang tuyển</div>
                     </div>
-                    <div class="bg-surface-container-low rounded-xl p-3 text-center">
-                        <div class="text-2xl font-bold text-primary">@jobs.Sum(j => j.Applications?.Count ?? 0)</div>
-                        <div class="text-xs text-secondary mt-0.5">Ứng viên</div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-blue-400">@jobs.Sum(j => j.Applications?.Count ?? 0)</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Ứng viên</div>
                     </div>
                 </div>
             </div>

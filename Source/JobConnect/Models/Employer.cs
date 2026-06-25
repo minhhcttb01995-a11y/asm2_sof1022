@@ -19,6 +19,7 @@ public class Employer
     [Column(TypeName = "nvarchar(max)")]
     public string? CoverURL { get; set; }
     public bool IsVerified { get; set; } = false;
+    public bool IsLocked { get; set; } = false;   // ← THÊM MỚI: Admin có thể khoá công ty
     [Column(TypeName = "nvarchar(max)")]
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;

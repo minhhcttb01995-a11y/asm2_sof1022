@@ -1,37 +1,65 @@
 using JobConnect.Data;
 using JobConnect.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database ──────────────────────────────────────────────
+// ── Configuration ──────────────────────────────────────────────
+var configuration = builder.Configuration;
+
+// ── Database ───────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(
+    configuration.GetConnectionString("DefaultConnection"),
+    sqlOptions => sqlOptions.EnableRetryOnFailure());
+});
 
-// ── Authentication (Cookie) ───────────────────────────────
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => {
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/AccessDenied";   // Nên có trang riêng
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
-        options.SlidingExpiration = true;
-    });
+// ── Authentication (Cookie + Google) ──────────────────────────
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+})
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.ClientId = configuration["Authentication:Google:ClientId"]!;
+    options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
+    options.CallbackPath = "/signin-google";
+});
 
-// ── Services ──────────────────────────────────────────────
+// ── Authorization ──────────────────────────────────────────────
+builder.Services.AddAuthorization();
+
+// ── Services ───────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
-// ── MVC ──────────────────────────────────────────────────
+// ── MVC ────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
+// ── Build App ──────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Middleware Pipeline ───────────────────────────────────
-if (!app.Environment.IsDevelopment())
+// ── Middleware Pipeline ────────────────────────────────────────
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -39,32 +67,49 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ── Routes ────────────────────────────────────────────────
+// ── Routes ─────────────────────────────────────────────────────
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+name: "default",
+pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ── Auto Migrate (safe) ───────────────────────────────────
+// ── Database Migration + Seed Data ─────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    try
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+try
     {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate();
+        var dbContext = services.GetRequiredService<AppDbContext>();
+
+        logger.LogInformation("Applying database migrations...");
+        await dbContext.Database.MigrateAsync();
+
+        if (app.Environment.IsDevelopment())
+        {
+            logger.LogInformation("Seeding initial data...");
+            await SeedData.Initialize(services);
+        }
     }
     catch (Exception ex)
     {
-        // Log the migration error and continue so the web server can start in development.
-        logger.LogError(ex, "Database migration failed during startup. Skipping migration to avoid crashing the web server.");
+        logger.LogError(ex,
+            "An error occurred while migrating or seeding the database.");
     }
+
 }
 
-// ── Debug route (xóa sau khi test xong) ───────────────────
-app.MapGet("/gen", () => BCrypt.Net.BCrypt.HashPassword("Admin@123"));
+// ── Debug Route ────────────────────────────────────────────────
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/gen",
+    () => BCrypt.Net.BCrypt.HashPassword("Admin@123"));
+}
 
 app.Run();

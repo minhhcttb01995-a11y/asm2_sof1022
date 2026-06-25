@@ -1,8 +1,10 @@
 using JobConnect.Data;
+using JobConnect.Models;
 using JobConnect.Services;
 using JobConnect.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +34,6 @@ public class AccountController : Controller
         return View();
     }
 
-    // POST /Account/Login
     // POST /Account/Login
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -64,13 +65,13 @@ public class AccountController : Controller
             }
 
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
-            new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role ?? "Candidate"),
-            new Claim("AvatarURL", user.AvatarURL ?? "/img/default-avatar.png")
-        };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role ?? "Candidate"),
+                new Claim("AvatarURL", user.AvatarURL ?? "/img/default-avatar.png")
+            };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
@@ -82,7 +83,6 @@ public class AccountController : Controller
                     ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddHours(8)
                 });
 
-            // Chuyển hướng dựa trên role
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
@@ -99,7 +99,6 @@ public class AccountController : Controller
             return View(model);
         }
     }
-    
 
     // GET /Account/Register
     [HttpGet]
@@ -118,26 +117,22 @@ public class AccountController : Controller
 
         try
         {
-            // Kiểm tra email đã tồn tại
             if (await _auth.EmailExistsAsync(model.Email))
             {
                 ModelState.AddModelError("Email", "Email này đã được sử dụng.");
                 return View(model);
             }
 
-            // Kiểm tra mật khẩu
             if (model.Password != model.ConfirmPassword)
             {
                 ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
                 return View(model);
             }
 
-            // Đăng ký
             var result = await _auth.RegisterCandidateAsync(model);
 
             if (result)
             {
-                // Auto-login after successful registration
                 var newUser = await _auth.LoginAsync(model.Email, model.Password);
                 if (newUser != null)
                 {
@@ -197,26 +192,22 @@ public class AccountController : Controller
 
         try
         {
-            // Kiểm tra email đã tồn tại
             if (await _auth.EmailExistsAsync(model.Email))
             {
                 ModelState.AddModelError("Email", "Email này đã được sử dụng.");
                 return View(model);
             }
 
-            // Kiểm tra mật khẩu
             if (model.Password != model.ConfirmPassword)
             {
                 ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
                 return View(model);
             }
 
-            // Đăng ký
             var result = await _auth.RegisterEmployerAsync(model);
 
             if (result)
             {
-                // Auto-login employer after registration
                 var newUser = await _auth.LoginAsync(model.Email, model.Password);
                 if (newUser != null)
                 {
@@ -378,8 +369,7 @@ public class AccountController : Controller
         user.Email = NewEmail;
         await _db.SaveChangesAsync();
 
-        // Cập nhật claim email
-        var identity = (ClaimsIdentity)User.Identity;
+        var identity = (ClaimsIdentity)User.Identity!;
         var emailClaim = identity.FindFirst(ClaimTypes.Email);
         if (emailClaim != null)
             identity.RemoveClaim(emailClaim);
@@ -427,6 +417,107 @@ public class AccountController : Controller
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         TempData["Success"] = "Tài khoản đã được xóa thành công.";
+        return RedirectToAction("Index", "Home");
+    }
+
+    // ================= GOOGLE LOGIN =================
+
+    // Đồng bộ tên Action xử lý từ View (View gọi ExternalLogin với provider="Google")
+    [HttpGet]
+    public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+    {
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = Url.Action(nameof(GoogleResponse), new { returnUrl })
+        };
+
+        return Challenge(properties, provider ?? GoogleDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GoogleResponse(string? returnUrl = null)
+    {
+        // 1. Xác thực và lấy thông tin từ External Login (Google Scheme)
+        var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+        if (!result.Succeeded || result.Principal == null)
+        {
+            TempData["Error"] = "Không lấy được thông tin xác thực từ Google.";
+            return RedirectToAction("Login");
+        }
+
+        // 2. Đọc chính xác các Claim từ Google Principal trả về
+        var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+        var name = result.Principal.FindFirstValue(ClaimTypes.Name);
+
+        if (string.IsNullOrEmpty(email))
+        {
+            TempData["Error"] = "Tài khoản Google của bạn không cung cấp Email công khai.";
+            return RedirectToAction("Login");
+        }
+
+        // 3. Kiểm tra User trong DB hệ thống
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
+
+        if (user == null)
+        {
+            // Tạo tài khoản Candidate mới nếu chưa tồn tại
+            user = new User
+            {
+                Email = email,
+                FullName = name ?? email,
+                Role = "Candidate",
+                Status = "Active",
+                AvatarURL = "/img/default-avatar.png",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
+                CreatedAt = DateTime.Now
+            };
+
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+
+            // Khởi tạo Profile đi kèm
+            var profile = new CandidateProfile
+            {
+                UserID = user.UserID
+            };
+
+            _db.CandidateProfiles.Add(profile);
+            await _db.SaveChangesAsync();
+        }
+
+        // Kiểm tra nếu tài khoản bị khóa
+        if (user.Status == "Banned")
+        {
+            TempData["Error"] = "Tài khoản liên kết với Google này đã bị khóa.";
+            return RedirectToAction("Login");
+        }
+
+        // 4. Thiết lập Session Cookie chính thức cho ứng dụng (Cookie Scheme)
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+            new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role ?? "Candidate"),
+            new Claim("AvatarURL", user.AvatarURL ?? "/img/default-avatar.png")
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
+        TempData["Success"] = "Đăng nhập bằng Google thành công.";
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
         return RedirectToAction("Index", "Home");
     }
 }

@@ -6,24 +6,28 @@ namespace JobConnect.Models;
 public class CvFile
 {
     [Key]
-    [Column("CVID")]
-    public int CvFileID { get; set; }  // map to existing DB column CVID if present
+    public int CvID { get; set; }                    // ← Quan trọng: khớp với CVID trong Application
 
-    // Compatibility alias used in views/controllers expecting 'Id'
-    [NotMapped]
-    public int Id { get => CvFileID; set => CvFileID = value; }
+    [Required]
+    public int ProfileID { get; set; }               // ← Khớp với ProfileID trong Application
 
-    public int ProfileID { get; set; }
-
+    [Required]
+    [MaxLength(200)]
     public string FileName { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(500)]
     public string FilePath { get; set; } = string.Empty;
-    public int? FileSize { get; set; }
+
+    public long? FileSize { get; set; }
 
     public bool IsDefault { get; set; } = false;
 
-    public DateTime UploadedAt { get; set; } = DateTime.Now;
+    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
-    // Navigation property
-    [ForeignKey("ProfileID")]
+    // Navigation
+    [ForeignKey(nameof(ProfileID))]
     public virtual CandidateProfile? Profile { get; set; }
+
+    public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
 }

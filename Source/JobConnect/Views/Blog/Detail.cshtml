@@ -6,76 +6,23 @@
 }
 
 <style>
-    .prose h2 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-top: 2rem;
-        margin-bottom: 0.75rem;
-        color: #1a1c2e;
-    }
+    .prose h2 { font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; color: #f1f5f9; }
+    .prose h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #e2e8f0; }
+    .prose p { margin-bottom: 1rem; color: #94a3b8; line-height: 1.75; }
+    .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #94a3b8; }
+    .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1rem; color: #94a3b8; }
+    .prose li { margin-bottom: 0.4rem; }
+    .prose strong { color: #f1f5f9; font-weight: 600; }
+    .prose a { color: #60a5fa; text-decoration: underline; }
+    .prose blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; font-style: italic; color: #94a3b8; margin: 1.5rem 0; background: rgba(59,130,246,0.05); padding: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
+    .prose code { background: #1e293b; color: #60a5fa; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8rem; font-family: monospace; }
+    .prose img { border-radius: 0.75rem; margin: 1.5rem 0; max-width: 100%; }
 
-    .prose h3 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        color: #1a1c2e;
-    }
-
-    .prose p {
-        margin-bottom: 1rem;
-        color: #5c5f75;
-        line-height: 1.75;
-    }
-
-    .prose ul {
-        list-style: disc;
-        padding-left: 1.5rem;
-        margin-bottom: 1rem;
-        color: #5c5f75;
-    }
-
-    .prose ol {
-        list-style: decimal;
-        padding-left: 1.5rem;
-        margin-bottom: 1rem;
-        color: #5c5f75;
-    }
-
-    .prose li {
-        margin-bottom: 0.4rem;
-    }
-
-    .prose strong {
-        color: #1a1c2e;
-        font-weight: 600;
-    }
-
-    .prose a {
-        color: #003d9b;
-        text-decoration: underline;
-    }
-
-    .prose blockquote {
-        border-left: 4px solid #003d9b;
-        padding-left: 1rem;
-        font-style: italic;
-        color: #5c5f75;
-        margin: 1.5rem 0;
-    }
-
-    .prose code {
-        background: #f0f3ff;
-        padding: 0.15rem 0.4rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-family: monospace;
-    }
-
-    .prose img {
-        border-radius: 0.75rem;
-        margin: 1.5rem 0;
-        max-width: 100%;
+    .section-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid #1e293b;
+        border-radius: 1rem;
+        padding: 1.25rem;
     }
 </style>
 
@@ -86,51 +33,51 @@
         <article class="lg:col-span-8">
 
             <!-- Breadcrumb -->
-            <nav class="flex items-center gap-1.5 text-xs text-secondary mb-6">
-                <a asp-controller="Home" asp-action="Index" class="hover:text-primary">Trang chủ</a>
+            <nav class="flex items-center gap-1.5 text-xs text-slate-500 mb-6">
+                <a asp-controller="Home" asp-action="Index" class="hover:text-blue-400 transition-colors">Trang chủ</a>
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
-                <a asp-action="Index" class="hover:text-primary">Blog</a>
+                <a asp-action="Index" class="hover:text-blue-400 transition-colors">Blog</a>
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
-                <span class="text-on-surface line-clamp-1">@Model.Title</span>
+                <span class="text-slate-300 line-clamp-1">@Model.Title</span>
             </nav>
 
             <!-- Cover -->
             @if (!string.IsNullOrEmpty(Model.CoverURL))
             {
                 <img src="@Model.CoverURL" alt="@Model.Title"
-                     class="w-full h-64 md:h-80 object-cover rounded-2xl mb-8" />
+                     class="w-full h-64 md:h-80 object-cover rounded-2xl mb-8 border border-slate-800" />
             }
 
             <!-- Header -->
             <header class="mb-8">
-                <div class="inline-flex items-center gap-1.5 bg-primary-container text-primary px-3 py-1 rounded-full text-xs font-bold mb-4">
+                <div class="inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full text-xs font-bold mb-4">
                     <span class="material-symbols-outlined text-sm">article</span>
                     Blog nghề nghiệp
                 </div>
 
-                <h1 class="text-3xl md:text-4xl font-bold text-on-surface leading-tight mb-4">@Model.Title</h1>
+                <h1 class="text-3xl md:text-4xl font-bold text-white leading-tight mb-4">@Model.Title</h1>
 
                 <!-- Author + meta -->
-                <div class="flex flex-wrap items-center gap-4 text-sm text-secondary pb-4 border-b border-outline-variant">
+                <div class="flex flex-wrap items-center gap-4 text-sm text-slate-400 pb-4 border-b border-slate-800">
                     <div class="flex items-center gap-2">
-                        <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+                        <div class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-700">
                             @if (!string.IsNullOrEmpty(Model.Author?.AvatarURL))
                             {
                                 <img src="@Model.Author.AvatarURL" class="w-9 h-9 rounded-full object-cover" />
                             }
                             else
                             {
-                                <span class="material-symbols-outlined text-sm">person</span>
+                                <span class="material-symbols-outlined text-sm text-slate-500">person</span>
                             }
                         </div>
-                        <span class="font-semibold text-on-surface">@Model.Author?.FullName</span>
+                        <span class="font-semibold text-slate-200">@Model.Author?.FullName</span>
                     </div>
                     <span class="flex items-center gap-1">
-                        <span class="material-symbols-outlined text-base">calendar_today</span>
+                        <span class="material-symbols-outlined text-base text-slate-500">calendar_today</span>
                         @Model.PublishedAt?.ToString("dd 'tháng' MM, yyyy")
                     </span>
                     <span class="flex items-center gap-1">
-                        <span class="material-symbols-outlined text-base">schedule</span>
+                        <span class="material-symbols-outlined text-base text-slate-500">schedule</span>
                         8 phút đọc
                     </span>
                 </div>
@@ -138,7 +85,7 @@
                 <!-- Excerpt -->
                 @if (!string.IsNullOrEmpty(Model.Excerpt))
                 {
-                    <p class="mt-5 text-secondary text-lg leading-relaxed border-l-4 border-primary pl-4 italic">
+                    <p class="mt-5 text-slate-400 text-lg leading-relaxed border-l-4 border-blue-500 pl-4 italic bg-blue-500/5 py-3 rounded-r-lg">
                         @Model.Excerpt
                     </p>
                 }
@@ -150,22 +97,20 @@
             </div>
 
             <!-- Share + Back -->
-            <div class="mt-10 pt-6 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="mt-10 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
-                    <span class="text-sm text-secondary font-medium">Chia sẻ:</span>
-                    @foreach (var (icon, label, color) in new[]{
-                        ("facebook", "Facebook", "bg-blue-600"),
-                        ("link", "Copy link", "bg-surface-container"),
-                    })
-                    {
-                        <button class="@color text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-                            <span class="material-symbols-outlined text-sm">@icon</span>
-                            @label
-                        </button>
-                    }
+                    <span class="text-sm text-slate-400 font-medium">Chia sẻ:</span>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 hover:bg-blue-700 transition-colors">
+                        <span class="material-symbols-outlined text-sm">facebook</span>
+                        Facebook
+                    </button>
+                    <button class="bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 hover:bg-slate-700 transition-colors">
+                        <span class="material-symbols-outlined text-sm">link</span>
+                        Copy link
+                    </button>
                 </div>
                 <a asp-action="Index"
-                   class="inline-flex items-center gap-2 px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-semibold text-secondary hover:bg-surface-container transition-colors">
+                   class="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-700 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:border-slate-600 transition-colors">
                     <span class="material-symbols-outlined text-sm">arrow_back</span>
                     Quay lại Blog
                 </a>
@@ -176,22 +121,22 @@
         <aside class="lg:col-span-4 space-y-5">
 
             <!-- Author card -->
-            <div class="bg-white rounded-2xl border border-outline-variant p-5">
-                <h3 class="font-bold text-on-surface mb-4">Tác giả</h3>
+            <div class="section-card">
+                <h3 class="font-bold text-white mb-4">Tác giả</h3>
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-700 shrink-0">
                         @if (!string.IsNullOrEmpty(Model.Author?.AvatarURL))
                         {
                             <img src="@Model.Author.AvatarURL" class="w-full h-full object-cover" />
                         }
                         else
                         {
-                            <span class="material-symbols-outlined text-secondary">person</span>
+                            <span class="material-symbols-outlined text-slate-500">person</span>
                         }
                     </div>
                     <div>
-                        <div class="font-bold text-on-surface text-sm">@Model.Author?.FullName</div>
-                        <div class="text-xs text-secondary mt-0.5">Chuyên gia nghề nghiệp</div>
+                        <div class="font-bold text-slate-200 text-sm">@Model.Author?.FullName</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Chuyên gia nghề nghiệp</div>
                     </div>
                 </div>
             </div>
@@ -199,14 +144,14 @@
             <!-- Related posts -->
             @if (ViewBag.RelatedPosts is List<BlogPost> related && related.Any())
             {
-                <div class="bg-white rounded-2xl border border-outline-variant p-5">
-                    <h3 class="font-bold text-on-surface mb-4">Bài viết liên quan</h3>
+                <div class="section-card">
+                    <h3 class="font-bold text-white mb-4">Bài viết liên quan</h3>
                     <div class="space-y-4">
                         @foreach (var rp in related.Take(4))
                         {
                             <a asp-action="Detail" asp-route-slug="@rp.Slug"
-                               class="flex gap-3 group hover:bg-surface-container-low rounded-lg p-2 -mx-2 transition-colors">
-                                <div class="w-16 h-14 rounded-lg bg-surface-container overflow-hidden shrink-0">
+                               class="flex gap-3 group hover:bg-slate-800/60 rounded-lg p-2 -mx-2 transition-colors">
+                                <div class="w-16 h-14 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden shrink-0">
                                     @if (!string.IsNullOrEmpty(rp.CoverURL))
                                     {
                                         <img src="@rp.CoverURL" class="w-full h-full object-cover" />
@@ -214,13 +159,13 @@
                                     else
                                     {
                                         <div class="w-full h-full flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-secondary text-lg">article</span>
+                                            <span class="material-symbols-outlined text-slate-600 text-lg">article</span>
                                         </div>
                                     }
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors line-clamp-2">@rp.Title</p>
-                                    <p class="text-xs text-secondary mt-1">@rp.PublishedAt?.ToString("dd/MM/yyyy")</p>
+                                    <p class="text-sm font-semibold text-slate-300 group-hover:text-blue-400 transition-colors line-clamp-2">@rp.Title</p>
+                                    <p class="text-xs text-slate-500 mt-1">@rp.PublishedAt?.ToString("dd/MM/yyyy")</p>
                                 </div>
                             </a>
                         }
@@ -229,12 +174,12 @@
             }
 
             <!-- Newsletter -->
-            <div class="bg-primary rounded-2xl p-5 text-white">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
                 <h3 class="font-bold text-base mb-2">Nhận bản tin hàng tuần</h3>
                 <p class="text-blue-200 text-xs mb-4">Cập nhật xu hướng nghề nghiệp và cơ hội việc làm mới nhất.</p>
                 <input type="email" placeholder="Email của bạn"
-                       class="w-full px-3 py-2 rounded-lg text-sm text-on-surface outline-none mb-2 border-none" />
-                <button class="w-full py-2 bg-white text-primary rounded-lg text-sm font-bold hover:opacity-90 transition-opacity">
+                       class="w-full px-3 py-2 rounded-lg text-sm text-slate-900 outline-none mb-2 bg-white placeholder-slate-400" />
+                <button class="w-full py-2 bg-white text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors">
                     Đăng ký ngay
                 </button>
             </div>
