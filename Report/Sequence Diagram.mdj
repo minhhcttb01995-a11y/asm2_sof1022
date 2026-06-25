@@ -62,9 +62,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 184.72998046875,
+													"left": 182.55908203125,
 													"top": 5,
-													"width": 47.68994140625,
+													"width": 44.408203125,
 													"height": 13,
 													"text": "Đăng ký"
 												},
@@ -78,7 +78,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -1306,7 +1306,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 208.72998046875,
+													"left": 207.99365234375,
 													"top": 293,
 													"height": 13
 												},
@@ -1320,7 +1320,7 @@
 													"parentStyle": true,
 													"left": 189,
 													"top": 293,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -2320,7 +2320,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGed+31J+5551E="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2401,9 +2402,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 168.72998046875,
+													"left": 166.55908203125,
 													"top": 5,
-													"width": 63.60986328125,
+													"width": 56.67822265625,
 													"height": 13,
 													"text": "Đăng nhập"
 												},
@@ -2417,7 +2418,7 @@
 													"parentStyle": true,
 													"left": 149,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -3996,7 +3997,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 224.72998046875,
+													"left": 223.99365234375,
 													"top": 277,
 													"height": 13
 												},
@@ -4010,7 +4011,7 @@
 													"parentStyle": true,
 													"left": 205,
 													"top": 277,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -4397,7 +4398,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeBy2VfAQhr8="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -4470,9 +4472,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 208.72998046875,
+													"left": 206.55908203125,
 													"top": 5,
-													"width": 89.47021484375,
+													"width": 78.00634765625,
 													"height": 13,
 													"text": "Cập nhật hồ sơ"
 												},
@@ -4486,7 +4488,7 @@
 													"parentStyle": true,
 													"left": 189,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -6292,7 +6294,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 256.72998046875,
+													"left": 255.99365234375,
 													"top": 285,
 													"height": 13
 												},
@@ -6306,7 +6308,7 @@
 													"parentStyle": true,
 													"left": 237,
 													"top": 285,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -6769,7 +6771,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeDG/o/FCpjY="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6842,9 +6845,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 248.72998046875,
+													"left": 246.55908203125,
 													"top": 5,
-													"width": 62.8671875,
+													"width": 59.5791015625,
 													"height": 13,
 													"text": "Upload CV"
 												},
@@ -6858,7 +6861,7 @@
 													"parentStyle": true,
 													"left": 229,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -7735,7 +7738,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 296.72998046875,
+													"left": 295.99365234375,
 													"top": 293,
 													"height": 13
 												},
@@ -7749,7 +7752,7 @@
 													"parentStyle": true,
 													"left": 277,
 													"top": 293,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -9145,7 +9148,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeDmY2fMNryo="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -9218,9 +9222,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 240.72998046875,
+													"left": 238.55908203125,
 													"top": 5,
-													"width": 104.72998046875,
+													"width": 98.5537109375,
 													"height": 13,
 													"text": "Tìm kiếm việc làm"
 												},
@@ -9234,7 +9238,7 @@
 													"parentStyle": true,
 													"left": 221,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -10813,7 +10817,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 296.72998046875,
+													"left": 295.99365234375,
 													"top": 269,
 													"height": 13
 												},
@@ -10827,7 +10831,7 @@
 													"parentStyle": true,
 													"left": 277,
 													"top": 269,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -11230,7 +11234,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeD4XrPTV5vU="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -11303,9 +11308,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 136.72998046875,
+													"left": 134.55908203125,
 													"top": 5,
-													"width": 119.20263671875,
+													"width": 111.90283203125,
 													"height": 13,
 													"text": "Xem chi tiết việc làm"
 												},
@@ -11319,7 +11324,7 @@
 													"parentStyle": true,
 													"left": 117,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -12892,7 +12897,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 192.72998046875,
+													"left": 191.99365234375,
 													"top": 293,
 													"height": 13
 												},
@@ -12906,7 +12911,7 @@
 													"parentStyle": true,
 													"left": 173,
 													"top": 293,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -13295,7 +13300,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeEOtjvYTiHI="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -13368,9 +13374,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 128.72998046875,
+													"left": 126.55908203125,
 													"top": 5,
-													"width": 119.50732421875,
+													"width": 108.64013671875,
 													"height": 13,
 													"text": "Ứng tuyển công việc"
 												},
@@ -13384,7 +13390,7 @@
 													"parentStyle": true,
 													"left": 109,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -14960,7 +14966,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 168.72998046875,
+													"left": 167.99365234375,
 													"top": 261,
 													"height": 13
 												},
@@ -14974,7 +14980,7 @@
 													"parentStyle": true,
 													"left": 149,
 													"top": 261,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -15435,7 +15441,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeEr4OvchSns="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -15508,9 +15515,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 112.72998046875,
+													"left": 110.55908203125,
 													"top": 5,
-													"width": 130.81884765625,
+													"width": 120.39599609375,
 													"height": 13,
 													"text": "Lưu việc làm yêu thích"
 												},
@@ -15524,7 +15531,7 @@
 													"parentStyle": true,
 													"left": 93,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -17336,7 +17343,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 176.72998046875,
+													"left": 175.99365234375,
 													"top": 245,
 													"height": 13
 												},
@@ -17350,7 +17357,7 @@
 													"parentStyle": true,
 													"left": 157,
 													"top": 245,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -17796,7 +17803,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeE9TY/hFbAk="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -17869,9 +17877,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 88.72998046875,
+													"left": 86.55908203125,
 													"top": 5,
-													"width": 141.6669921875,
+													"width": 128.53369140625,
 													"height": 13,
 													"text": "Nhà tuyển dụng đăng tin"
 												},
@@ -17885,7 +17893,7 @@
 													"parentStyle": true,
 													"left": 69,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -19691,7 +19699,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 128.72998046875,
+													"left": 127.99365234375,
 													"top": 301,
 													"height": 13
 												},
@@ -19705,7 +19713,7 @@
 													"parentStyle": true,
 													"left": 109,
 													"top": 301,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -20151,7 +20159,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeFb0Wflatmo="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -20224,9 +20233,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 152.72998046875,
+													"left": 150.55908203125,
 													"top": 5,
-													"width": 189.95361328125,
+													"width": 173.5068359375,
 													"height": 13,
 													"text": "Quản tri viên quản lý người dùng"
 												},
@@ -20240,7 +20249,7 @@
 													"parentStyle": true,
 													"left": 133,
 													"top": 5,
-													"width": 13.72998046875,
+													"width": 11.55908203125,
 													"height": 13,
 													"text": "sd"
 												}
@@ -22631,7 +22640,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 192.72998046875,
+													"left": 191.99365234375,
 													"top": 453,
 													"height": 13
 												},
@@ -22645,7 +22654,7 @@
 													"parentStyle": true,
 													"left": 173,
 													"top": 453,
-													"width": 13.72998046875,
+													"width": 12.99365234375,
 													"height": 13,
 													"text": "alt"
 												},
@@ -23192,7 +23201,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGeeFrCGvqbGhA="
 							},
-							"name": "Role1"
+							"name": "Role1",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -75679,9 +75689,9 @@
 													},
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 182.55908203125,
+													"left": 184.72998046875,
 													"top": 5,
-													"width": 116.9619140625,
+													"width": 130.81884765625,
 													"height": 13,
 													"text": "Xem báo cáo hệ thống"
 												},
@@ -75695,7 +75705,7 @@
 													"parentStyle": true,
 													"left": 165,
 													"top": 5,
-													"width": 11.55908203125,
+													"width": 13.72998046875,
 													"height": 13,
 													"text": "sd"
 												}
@@ -76569,7 +76579,7 @@
 													"visible": false,
 													"font": "Arial;13;0",
 													"parentStyle": true,
-													"left": 223.99365234375,
+													"left": 224.72998046875,
 													"top": 269,
 													"height": 13
 												},
@@ -76583,7 +76593,7 @@
 													"parentStyle": true,
 													"left": 205,
 													"top": 269,
-													"width": 12.99365234375,
+													"width": 13.72998046875,
 													"height": 13,
 													"text": "alt"
 												},
