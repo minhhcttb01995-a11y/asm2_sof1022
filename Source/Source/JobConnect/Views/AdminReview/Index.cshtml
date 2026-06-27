@@ -1,0 +1,114 @@
+﻿@model List<JobConnect.Models.CompanyReview>
+@{
+    ViewData["Title"] = "Quản lý đánh giá";
+    Layout = "_Layout"; // Hoặc _AdminLayout tùy dự án của bạn
+    int currentPage = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-400">rate_review</span>
+                Quản lý Đánh giá hệ thống
+            </h1>
+            <p class="text-sm text-slate-400">Xem và kiểm duyệt các đánh giá từ ứng viên và nhà tuyển dụng.</p>
+        </div>
+
+        <!-- Thanh tìm kiếm -->
+        <form method="get" class="flex gap-2 w-full md:w-auto">
+            <input type="text" name="keyword" value="@ViewBag.Keyword" placeholder="Tìm tiêu đề, nội dung..."
+                   class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 w-full md:w-64" />
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors">
+                Tìm
+            </button>
+        </form>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="bg-green-500/10 border border-green-500/20 text-green-400 p-3 rounded-xl text-sm mb-4">
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- Bảng danh sách -->
+    <div class="bg-slate-950/40 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-semibold uppercase">
+                        <th class="p-4">Người đánh giá</th>
+                        <th class="p-4">Điểm</th>
+                        <th class="p-4">Nội dung đánh giá</th>
+                        <th class="p-4">Ngày tạo</th>
+                        <th class="p-4 text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-slate-300 divide-y divide-slate-800/60">
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr class="hover:bg-slate-900/30 transition-colors">
+                                <td class="p-4">
+                                    <div class="font-bold text-white">@(item.IsAnonymous ? "Ẩn danh" : item.AuthorName)</div>
+                                    <div class="text-xs text-slate-500">ID: @item.ReviewerID</div>
+                                </td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center gap-1 bg-amber-400/10 text-amber-400 px-2 py-0.5 rounded font-mono font-bold text-xs">
+                                        @item.Rating <span class="material-symbols-outlined text-[10px]">star</span>
+                                    </span>
+                                </td>
+                                <td class="p-4 max-w-md">
+                                    <div class="font-semibold text-slate-200">@item.Title</div>
+                                    <p class="text-xs text-slate-400 mt-0.5 line-clamp-2">@item.Content</p>
+                                    @if (!string.IsNullOrEmpty(item.EmployerReply))
+                                    {
+                                        <div class="mt-1.5 text-[11px] text-blue-400 bg-blue-500/5 p-1 rounded border-l border-blue-500">
+                                            <strong>Phản hồi:</strong> @item.EmployerReply
+                                        </div>
+                                    }
+                                </td>
+                                <td class="p-4 text-xs font-mono text-slate-400">
+                                    @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="p-4 text-center">
+                                    <form asp-action="Delete" asp-route-id="@item.CompanyReviewID" method="post"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đánh giá này không?');" class="inline">
+                                        <button type="submit" class="text-red-400 hover:text-red-500 font-bold text-xs bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1.5 rounded-lg transition-all">
+                                            Xóa bớt
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-slate-500 italic">
+                                Không tìm thấy đánh giá nào phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    @if (totalPages > 1)
+    {
+        <div class="flex justify-center gap-1 mt-6">
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <a asp-action="Index" asp-route-page="@i" asp-route-keyword="@ViewBag.Keyword"
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all @(i == currentPage ? "bg-blue-600 text-white" : "bg-slate-900 text-slate-400 hover:bg-slate-800")">
+                    @i
+                </a>
+            }
+        </div>
+    }
+</div>

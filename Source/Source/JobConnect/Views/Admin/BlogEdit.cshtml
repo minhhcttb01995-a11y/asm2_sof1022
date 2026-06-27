@@ -1,0 +1,190 @@
+@model JobConnect.Models.BlogPost
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Sửa bài viết";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+<style>
+    .ql-toolbar.ql-snow {
+        border-radius: 12px 12px 0 0;
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .ql-container.ql-snow {
+        border-radius: 0 0 12px 12px;
+        border-color: #e2e8f0;
+        font-size: 15px;
+    }
+
+    .ql-editor {
+        min-height: 360px;
+        line-height: 1.75;
+    }
+
+        .ql-editor.ql-blank::before {
+            color: #94a3b8;
+            font-style: normal;
+        }
+</style>
+
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="Blog" class="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant hover:bg-surface-container text-secondary transition-colors">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-on-surface">Sửa bài viết</h1>
+            <p class="text-xs text-secondary line-clamp-1">@Model.Title</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">check_circle</span> @TempData["Success"]
+        </div>
+    }
+
+    <form asp-action="BlogEdit" method="post" id="editForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="PostID" value="@Model.PostID" />
+        <input type="hidden" name="Content" id="contentHidden" />
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- Cột chính -->
+            <div class="lg:col-span-2 space-y-5">
+                <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                    <label class="block text-sm font-semibold text-on-surface mb-2">Tiêu đề <span class="text-red-500">*</span></label>
+                    <input type="text" name="Title" value="@Model.Title" required
+                           class="w-full px-4 py-3 border border-outline-variant rounded-xl text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                           placeholder="Tiêu đề bài viết..." />
+                </div>
+
+                <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                    <label class="block text-sm font-semibold text-on-surface mb-3">Nội dung <span class="text-red-500">*</span></label>
+                    <div id="quillEditor" class="rounded-xl overflow-hidden border border-outline-variant"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                    <label class="block text-sm font-semibold text-on-surface mb-2">Tóm tắt</label>
+                    <textarea name="Excerpt" rows="3"
+                              class="w-full px-4 py-3 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all resize-none"
+                              placeholder="Mô tả ngắn...">@Model.Excerpt</textarea>
+                </div>
+            </div>
+
+            <!-- Cột phụ -->
+            <div class="space-y-5">
+                <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                    <h3 class="font-semibold text-on-surface mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">publish</span>
+                        Xuất bản
+                    </h3>
+                    <div class="space-y-2 mb-5">
+                        <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-blue-50">
+                            <input type="radio" name="Status" value="Draft" class="accent-primary"
+                            @(!Model.IsPublished ? "checked" : "") />
+                            <div>
+                                <p class="text-sm font-medium text-on-surface">Bản nháp</p>
+                                <p class="text-xs text-secondary">Lưu, chưa hiển thị</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:border-green-500 has-[:checked]:border-green-500 has-[:checked]:bg-green-50">
+                            <input type="radio" name="Status" value="Published" class="accent-green-600"
+                            @(Model.IsPublished ? "checked" : "") />
+                            <div>
+                                <p class="text-sm font-medium text-on-surface">Đã đăng</p>
+                                <p class="text-xs text-secondary">Hiển thị công khai</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="flex gap-2">
+                        <a asp-action="Blog" class="flex-1 py-2.5 border border-outline-variant rounded-xl text-sm text-secondary hover:bg-surface-container text-center transition-colors">
+                            Hủy
+                        </a>
+                        <button type="submit"
+                                class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                    <label class="block text-sm font-semibold text-on-surface mb-2">Slug (URL)</label>
+                    <div class="flex items-center gap-2 px-3 py-2.5 border border-outline-variant rounded-xl bg-surface-container-low">
+                        <span class="text-xs text-secondary flex-shrink-0">/blog/</span>
+                        <input type="text" name="Slug" value="@Model.Slug"
+                               class="flex-1 bg-transparent text-sm outline-none text-on-surface min-w-0" />
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                    <label class="block text-sm font-semibold text-on-surface mb-2">Ảnh bìa</label>
+                    <div id="coverPreview" class="@(string.IsNullOrEmpty(Model.CoverURL) ? "hidden" : "") h-36 rounded-xl overflow-hidden border border-outline-variant mb-3">
+                        <img id="coverImg" src="@Model.CoverURL" class="w-full h-full object-cover" />
+                    </div>
+                    <div id="coverPlaceholder" class="@(!string.IsNullOrEmpty(Model.CoverURL) ? "hidden" : "") h-36 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center mb-3">
+                        <span class="material-symbols-outlined text-2xl text-secondary mb-1">add_photo_alternate</span>
+                        <p class="text-xs text-secondary">Nhập URL ảnh bên dưới</p>
+                    </div>
+                    <input type="url" name="CoverURL" id="coverUrlInput" value="@Model.CoverURL"
+                           class="w-full px-3 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary transition-all"
+                           placeholder="https://example.com/image.jpg" />
+                </div>
+
+                @if (Model.PublishedAt.HasValue)
+                {
+                    <div class="bg-surface-container-low rounded-2xl p-4 text-sm text-secondary">
+                        <p class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            Đăng lúc: @Model.PublishedAt.Value.ToString("HH:mm dd/MM/yyyy")
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    const quill = new Quill('#quillEditor', {
+    theme: 'snow',
+    modules: {
+    toolbar: [
+    [{ header: [2, 3, 4, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: [] }, { background: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ indent: '-1' }, { indent: '+1' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    ['clean']
+    ]
+    }
+    });
+
+    // Load nội dung hiện tại vào editor
+    const existingContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Content ?? ""));
+    quill.clipboard.dangerouslyPasteHTML(existingContent);
+
+    document.getElementById('editForm').addEventListener('submit', function (e) {
+    document.getElementById('contentHidden').value = quill.root.innerHTML;
+    });
+
+    // Cover preview
+    document.getElementById('coverUrlInput').addEventListener('input', function () {
+    const url = this.value.trim();
+    if (url) {
+    document.getElementById('coverImg').src = url;
+    document.getElementById('coverPreview').classList.remove('hidden');
+    document.getElementById('coverPlaceholder').classList.add('hidden');
+    } else {
+    document.getElementById('coverPreview').classList.add('hidden');
+    document.getElementById('coverPlaceholder').classList.remove('hidden');
+    }
+    });
+</script>

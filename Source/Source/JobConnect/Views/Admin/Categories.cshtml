@@ -1,0 +1,167 @@
+@using JobConnect.Models
+@{
+    ViewData["Title"] = "Quản lý Danh mục";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Quản lý Danh mục</h1>
+            <p class="text-secondary text-sm">Quản lý danh mục ngành nghề, địa điểm, cấp độ, loại công việc</p>
+        </div>
+        <a asp-action="CategoryCreate" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">add</span>
+            Thêm danh mục
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl p-4 border border-outline-variant mb-6">
+        <form asp-action="Categories" method="get" class="flex flex-wrap gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="keyword" value="@ViewBag.KeywordFilter" placeholder="Tìm kiếm danh mục..."
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div class="min-w-[150px]">
+                <select name="type" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    @if (ViewBag.TypeFilter == "Industry")
+                    {
+                        <option value="Industry" selected>Ngành nghề</option>
+                    }
+                    else
+                    {
+                        <option value="Industry">Ngành nghề</option>
+                    }
+                    @if (ViewBag.TypeFilter == "Location")
+                    {
+                        <option value="Location" selected>Địa điểm</option>
+                    }
+                    else
+                    {
+                        <option value="Location">Địa điểm</option>
+                    }
+                    @if (ViewBag.TypeFilter == "Level")
+                    {
+                        <option value="Level" selected>Cấp độ</option>
+                    }
+                    else
+                    {
+                        <option value="Level">Cấp độ</option>
+                    }
+                    @if (ViewBag.TypeFilter == "JobType")
+                    {
+                        <option value="JobType" selected>Loại công việc</option>
+                    }
+                    else
+                    {
+                        <option value="JobType">Loại công việc</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+                Lọc
+            </button>
+            <a asp-action="Categories" class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Đặt lại
+            </a>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-surface-container">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Tên</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Slug</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Loại</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Ngày tạo</th>
+                    <th class="px-6 py-3 text-right text-xs font-semibold text-secondary uppercase">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @if (ViewBag.Categories != null && ((List<Category>)ViewBag.Categories).Any())
+                {
+                    @foreach (var category in (List<Category>)ViewBag.Categories)
+                    {
+                        <tr class="hover:bg-surface-container transition-colors">
+                            <td class="px-6 py-4 text-sm font-medium text-on-surface">@category.Name</td>
+                            <td class="px-6 py-4 text-sm text-secondary">@category.Slug</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">@category.Type</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-secondary">@category.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a asp-action="CategoryEdit" asp-route-id="@category.CategoryID"
+                                       class="p-2 rounded-lg hover:bg-surface-container text-secondary hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-sm">edit</span>
+                                    </a>
+                                    <form asp-action="CategoryDelete" method="post" class="inline"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@category.CategoryID" />
+                                        <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-secondary hover:text-red-600 transition-colors">
+                                            <span class="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-secondary">
+                            <span class="material-symbols-outlined text-4xl mb-2">folder_open</span>
+                            <p>Không có danh mục nào</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="flex items-center justify-between mt-6">
+            <p class="text-sm text-secondary">
+                Hiển thị @((ViewBag.Page - 1) * ViewBag.PageSize + 1) - @Math.Min(ViewBag.Page * ViewBag.PageSize, ViewBag.TotalItems) của @ViewBag.TotalItems danh mục
+            </p>
+            <div class="flex gap-2">
+                @if (ViewBag.Page > 1)
+                {
+                    <a asp-action="Categories" asp-route-page="@(ViewBag.Page - 1)" asp-route-keyword="@ViewBag.KeywordFilter" asp-route-type="@ViewBag.TypeFilter"
+                       class="px-3 py-2 border border-outline-variant rounded-lg text-sm text-secondary hover:bg-surface-container">
+                        Trước
+                    </a>
+                }
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    if (i == ViewBag.Page)
+                    {
+                        <span class="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium">@i</span>
+                    }
+                    else
+                    {
+                        <a asp-action="Categories" asp-route-page="@i" asp-route-keyword="@ViewBag.KeywordFilter" asp-route-type="@ViewBag.TypeFilter"
+                           class="px-3 py-2 border border-outline-variant rounded-lg text-sm text-secondary hover:bg-surface-container">
+                            @i
+                        </a>
+                    }
+                }
+                @if (ViewBag.Page < ViewBag.TotalPages)
+                {
+                    <a asp-action="Categories" asp-route-page="@(ViewBag.Page + 1)" asp-route-keyword="@ViewBag.KeywordFilter" asp-route-type="@ViewBag.TypeFilter"
+                       class="px-3 py-2 border border-outline-variant rounded-lg text-sm text-secondary hover:bg-surface-container">
+                        Sau
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>

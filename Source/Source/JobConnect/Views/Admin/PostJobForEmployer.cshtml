@@ -1,0 +1,180 @@
+﻿@using JobConnect.Models
+@{
+    ViewData["Title"] = "Đăng tin hộ nhà tuyển dụng";
+    Layout = "_LayoutAdmin";
+    var employer = ViewBag.Employer as Employer;
+    var categories = ViewBag.Categories as List<Category> ?? new();
+}
+
+<div class="max-w-4xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="CompanyDetail" asp-route-id="@employer?.EmployerID"
+           class="text-secondary hover:text-primary flex items-center gap-1 text-sm">
+            <span class="material-symbols-outlined text-base">arrow_back</span> Quay lại
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-on-surface">Đăng tin tuyển dụng hỗ trợ</h1>
+            <p class="text-sm text-secondary mt-0.5">
+                Đang đăng thay cho:
+                <span class="font-semibold text-primary">@employer?.CompanyName</span>
+                <span class="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">@employer?.User?.Email</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Notice -->
+    <div class="mb-5 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 flex items-start gap-2">
+        <span class="material-symbols-outlined text-base mt-0.5">info</span>
+        <div>
+            Bạn đang đăng tin <strong>thay mặt nhà tuyển dụng</strong>. Tin đăng sẽ được gắn với công ty
+            <strong>@employer?.CompanyName</strong> và NTD sẽ nhận thông báo sau khi đăng.
+            Tin Admin đăng sẽ được duyệt <strong>tự động (trạng thái Đang mở)</strong> trừ khi chọn lưu nháp.
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>@TempData["Error"]
+        </div>
+    }
+
+    <form asp-action="PostJobForEmployer" method="post" class="space-y-5">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="employerId" value="@employer?.EmployerID" />
+
+        <!-- Tiêu đề + danh mục -->
+        <div class="bg-white rounded-2xl border border-outline-variant p-6 space-y-4">
+            <h3 class="font-semibold text-on-surface flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base">edit_note</span>
+                Thông tin cơ bản
+            </h3>
+            <div>
+                <label class="block text-sm font-medium mb-1.5">Tiêu đề công việc <span class="text-red-500">*</span></label>
+                <input name="title" required type="text" placeholder="VD: Frontend Developer - React.js"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Danh mục</label>
+                    <select name="categoryId" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                        <option value="">-- Chọn danh mục --</option>
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.CategoryID">@cat.Name</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Hình thức <span class="text-red-500">*</span></label>
+                    <select name="jobType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                        <option value="FullTime">Full-time</option>
+                        <option value="PartTime">Part-time</option>
+                        <option value="Contract">Hợp đồng</option>
+                        <option value="Intern">Thực tập</option>
+                        <option value="Remote">Remote</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Cấp bậc</label>
+                    <select name="experienceLevel" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                        <option value="">-- Chọn cấp bậc --</option>
+                        <option value="Fresher">Fresher</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Middle">Middle</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Địa điểm</label>
+                    <input name="location" type="text" placeholder="VD: Hà Nội, TP.HCM..."
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Hạn nộp hồ sơ</label>
+                    <input name="deadline" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Mức lương -->
+        <div class="bg-white rounded-2xl border border-outline-variant p-6 space-y-4">
+            <h3 class="font-semibold text-on-surface flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base">payments</span>
+                Mức lương
+            </h3>
+            <div class="flex items-center gap-2 mb-3">
+                <input type="checkbox" name="salaryNegotiable" id="salaryNeg" value="true" class="w-4 h-4 accent-primary" />
+                <label for="salaryNeg" class="text-sm font-medium cursor-pointer">Lương thương lượng</label>
+            </div>
+            <div class="grid grid-cols-2 gap-4" id="salaryInputs">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Lương tối thiểu (VND)</label>
+                    <input name="salaryMin" type="number" min="0" step="500000" placeholder="5000000"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Lương tối đa (VND)</label>
+                    <input name="salaryMax" type="number" min="0" step="500000" placeholder="15000000"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Mô tả -->
+        <div class="bg-white rounded-2xl border border-outline-variant p-6 space-y-4">
+            <h3 class="font-semibold text-on-surface flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base">description</span>
+                Nội dung tin
+            </h3>
+            <div>
+                <label class="block text-sm font-medium mb-1.5">Mô tả công việc</label>
+                <textarea name="description" rows="5"
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"
+                          placeholder="Mô tả chi tiết công việc, trách nhiệm..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1.5">Yêu cầu</label>
+                <textarea name="requirements" rows="4"
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"
+                          placeholder="Kỹ năng, bằng cấp, kinh nghiệm yêu cầu..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1.5">Quyền lợi</label>
+                <textarea name="benefits" rows="4"
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"
+                          placeholder="Bảo hiểm, thưởng, phúc lợi..."></textarea>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3">
+            <a asp-action="CompanyDetail" asp-route-id="@employer?.EmployerID"
+               class="flex-1 text-center px-4 py-3 border border-outline-variant rounded-xl text-sm font-semibold text-secondary hover:bg-surface-container transition-colors">
+                Hủy
+            </a>
+            <button type="submit" name="isDraft" value="true"
+                    class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-base">draft</span>
+                Lưu nháp
+            </button>
+            <button type="submit" name="isDraft" value="false"
+                    class="flex-1 px-4 py-3 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-base">publish</span>
+                Đăng tin ngay
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('salaryNeg').addEventListener('change', function () {
+        document.getElementById('salaryInputs').style.opacity = this.checked ? '0.4' : '1';
+        document.getElementById('salaryInputs').querySelectorAll('input').forEach(i => i.disabled = this.checked);
+    });
+</script>

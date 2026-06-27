@@ -1,0 +1,76 @@
+@using JobConnect.Models
+@{
+    ViewData["Title"] = "Danh mục Kỹ năng";
+    Layout = "_LayoutAdmin";
+    var categories = Enum.GetValues(typeof(SkillCategory)).Cast<SkillCategory>();
+}
+
+<div class="max-w-4xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-6">
+        <a asp-action="Skills" class="text-secondary hover:text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined">arrow_back</span> Quay lại
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Danh mục Kỹ năng</h1>
+            <p class="text-secondary text-sm">Các danh mục kỹ năng có sẵn trong hệ thống (Enum)</p>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+        <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-blue-600 text-xl">info</span>
+            <div>
+                <p class="text-sm text-blue-800 font-medium">Danh mục kỹ năng là Enum (hardcoded)</p>
+                <p class="text-xs text-blue-700 mt-1">Để thêm/sửa/xóa danh mục kỹ năng, bạn cần cập nhật file Models/Skill.cs và rebuild ứng dụng. Các danh mục này không thể thay đổi trực tiếp từ giao diện admin.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="bg-white rounded-2xl p-6 border border-outline-variant">
+        <h2 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">category</span>
+            Danh sách danh mục (@categories.Count())
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach (var category in categories)
+            {
+                <div class="bg-surface-container rounded-xl p-4 border border-outline-variant hover:border-primary transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary">psychology</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-on-surface">@category</h3>
+                            <p class="text-xs text-secondary">@category.ToString()</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Code Reference -->
+    <div class="bg-slate-900 rounded-2xl p-6 border border-outline-variant mt-6">
+        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-400">code</span>
+            Tham khảo mã nguồn
+        </h3>
+        <p class="text-sm text-slate-300 mb-3">File: Models/Skill.cs</p>
+        <pre class="bg-slate-800 rounded-lg p-4 text-xs text-green-400 overflow-x-auto">
+public enum SkillCategory
+{
+    Programming,
+    Design,
+    Marketing,
+    SoftSkills,
+    Language,
+    DevOps,
+    DataScience,
+    Management
+}</pre>
+    </div>
+</div>

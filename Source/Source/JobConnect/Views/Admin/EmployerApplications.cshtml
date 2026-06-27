@@ -1,0 +1,212 @@
+﻿@using JobConnect.Models
+@model List<Application>
+@{
+    ViewData["Title"] = "Đơn ứng tuyển & Hỗ trợ CV";
+    Layout = "_LayoutAdmin";
+    var employer = ViewBag.Employer as Employer;
+    var filterStatus = ViewBag.FilterStatus as string;
+}
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="CompanyDetail" asp-route-id="@employer?.EmployerID"
+           class="text-secondary hover:text-primary flex items-center gap-1 text-sm">
+            <span class="material-symbols-outlined text-base">arrow_back</span> Quay lại
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-on-surface">Đơn ứng tuyển & Hỗ trợ CV</h1>
+            <p class="text-sm text-secondary mt-0.5">
+                Công ty: <span class="font-semibold text-primary">@employer?.CompanyName</span>
+                — Tổng <span class="font-bold text-on-surface">@Model.Count</span> đơn
+            </p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">check_circle</span>@TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>@TempData["Error"]
+        </div>
+    }
+
+    <!-- Filter tabs -->
+    <div class="flex gap-2 mb-5 flex-wrap">
+        @{
+            var tabs = new[] {
+                ("Tất cả", ""), ("Chờ duyệt","Pending"), ("Phỏng vấn","Interview"),
+                ("Chấp nhận","Accepted"), ("Từ chối","Rejected")
+            };
+        }
+        @foreach (var (label, val) in tabs)
+        {
+            var isActive = filterStatus == val || (val == "" && string.IsNullOrEmpty(filterStatus));
+            var cls = isActive ? "bg-primary text-white border-primary" : "bg-white text-secondary border-outline-variant hover:bg-surface-container";
+            var cnt = val == "" ? Model.Count : Model.Count(a => a.Status == val);
+            <a asp-action="EmployerApplications" asp-route-id="@employer?.EmployerID" asp-route-status="@val"
+               class="px-4 py-2 rounded-xl text-sm font-medium border transition-colors @cls">
+                @label <span class="ml-1 text-xs opacity-75">(@cnt)</span>
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant p-12 text-center">
+            <span class="material-symbols-outlined text-5xl text-secondary block mb-3">folder_open</span>
+            <p class="text-secondary text-sm">Không có đơn ứng tuyển nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-surface-container-low border-b border-outline-variant">
+                    <tr>
+                        <th class="text-left px-5 py-3 font-semibold">Ứng viên</th>
+                        <th class="text-left px-5 py-3 font-semibold">Vị trí ứng tuyển</th>
+                        <th class="text-left px-4 py-3 font-semibold">CV</th>
+                        <th class="text-left px-4 py-3 font-semibold">Trạng thái</th>
+                        <th class="text-left px-4 py-3 font-semibold">Ngày nộp</th>
+                        <th class="px-4 py-3 text-center font-semibold">Hỗ trợ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant">
+                    @foreach (var app in Model)
+                    {
+                        var stCls = app.Status switch
+                        {
+                            "Accepted" => "bg-green-100 text-green-700",
+                            "Rejected" => "bg-red-100 text-red-700",
+                            "Interview" => "bg-blue-100 text-blue-700",
+                            "Pending" => "bg-yellow-100 text-yellow-700",
+                            _ => "bg-gray-100 text-gray-600"
+                        };
+                        var stLabel = app.Status switch
+                        {
+                            "Accepted" => "Chấp nhận",
+                            "Rejected" => "Từ chối",
+                            "Interview" => "Phỏng vấn",
+                            "Pending" => "Chờ duyệt",
+                            _ => app.Status
+                        };
+                        var hasCvIssue = app.CVID == null && app.Status == "Pending";
+
+                        <tr class="hover:bg-surface-container-low transition-colors @(hasCvIssue ? "bg-red-50/30" : "")">
+                            <!-- Ứng viên -->
+                            <td class="px-5 py-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center shrink-0 overflow-hidden">
+                                        @if (!string.IsNullOrEmpty(app.CandidateProfile?.User?.AvatarURL))
+                                        {
+                                            <img src="@app.CandidateProfile.User.AvatarURL" class="w-9 h-9 object-cover rounded-full" />
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined text-sm text-secondary">person</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-on-surface">@(app.CandidateProfile?.User?.FullName ?? "—")</p>
+                                        <p class="text-xs text-secondary">@(app.CandidateProfile?.User?.Email ?? "—")</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Vị trí -->
+                            <td class="px-5 py-3">
+                                <p class="font-medium text-sm">@(app.Job?.Title ?? "—")</p>
+                                <p class="text-xs text-secondary">@(app.Job?.JobType)</p>
+                            </td>
+                            <!-- CV -->
+                            <td class="px-4 py-3">
+                                @if (app.CvFile != null)
+                                {
+                                    <a href="@app.CvFile.FilePath" target="_blank"
+                                       class="flex items-center gap-1 text-primary text-xs hover:underline">
+                                        <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                        Xem CV
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="flex items-center gap-1 text-red-600 text-xs font-medium">
+                                        <span class="material-symbols-outlined text-sm">warning</span>
+                                        Thiếu CV
+                                    </span>
+                                }
+                            </td>
+                            <!-- Trạng thái -->
+                            <td class="px-4 py-3">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium @stCls">@stLabel</span>
+                                @if (hasCvIssue)
+                                {
+                                    <span class="block mt-1 text-xs text-red-500 font-medium">⚠ Lỗi CV</span>
+                                }
+                            </td>
+                            <!-- Ngày -->
+                            <td class="px-4 py-3 text-xs text-secondary">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <!-- Hỗ trợ -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                    <a asp-controller="Admin" asp-action="UserDetail"
+                                       asp-route-id="@app.CandidateProfile?.UserID"
+                                       class="px-2.5 py-1.5 bg-surface-container text-secondary hover:text-primary rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">person</span> Hồ sơ
+                                    </a>
+                                    @if (app.CVID == null || app.Status == "Pending")
+                                    {
+                                        <form asp-action="FixCvApplication" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="applicationId" value="@app.AppID" />
+                                            <input type="hidden" name="employerId" value="@employer?.EmployerID" />
+                                            <button type="submit" name="action" value="reset"
+                                                    onclick="return confirm('Reset CV và thông báo ứng viên nộp lại?')"
+                                                    class="px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-sm">refresh</span> Reset CV
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (app.Status == "Pending")
+                                    {
+                                        <form asp-action="FixCvApplication" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="applicationId" value="@app.AppID" />
+                                            <input type="hidden" name="employerId" value="@employer?.EmployerID" />
+                                            <button type="submit" name="action" value="approve"
+                                                    class="px-2.5 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-sm">check</span> Duyệt
+                                            </button>
+                                        </form>
+                                    }
+                                    <form asp-action="FixCvApplication" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="applicationId" value="@app.AppID" />
+                                        <input type="hidden" name="employerId" value="@employer?.EmployerID" />
+                                        <button type="submit" name="action" value="delete"
+                                                onclick="return confirm('Xóa đơn ứng tuyển này?')"
+                                                class="px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3 flex items-center gap-4 text-xs text-secondary">
+            <span class="flex items-center gap-1">
+                <span class="w-3 h-3 rounded bg-red-50 border border-red-200 inline-block"></span>
+                Hàng đỏ nhạt = đơn chưa có CV
+            </span>
+            <span>• Reset CV → gửi thông báo ứng viên nộp lại</span>
+            <span>• Hồ sơ → xem toàn bộ thông tin ứng viên</span>
+        </div>
+    }
+</div>

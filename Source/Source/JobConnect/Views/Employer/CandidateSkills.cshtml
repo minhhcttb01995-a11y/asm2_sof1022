@@ -1,0 +1,143 @@
+@using JobConnect.Models
+@model CandidateProfile
+@{
+    ViewData["Title"] = "Kỹ năng ứng viên";
+    Layout = "_LayoutEmployer";
+}
+
+<style>
+    body {
+        background-color: #000000 !important;
+    }
+
+    .glass-card {
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .skill-beginner {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .skill-elementary {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    .skill-intermediate {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .skill-advanced {
+        background: rgba(139, 92, 246, 0.2);
+        color: #a78bfa;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .skill-expert {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ade80;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-6">
+        <a href="javascript:history.back()" class="text-secondary hover:text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined">arrow_back</span> Quay lại
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-white">Kỹ năng của ứng viên</h1>
+            <p class="text-slate-400 text-sm">Xem kỹ năng và trình độ của @Model.User?.FullName</p>
+        </div>
+    </div>
+
+    <!-- Candidate Info -->
+    <div class="glass-card p-6 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold">
+                @(Model.User?.FullName?.Length > 0 ? Model.User.FullName[0].ToString().ToUpper() : "U")
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-white">@Model.User?.FullName</h2>
+                <p class="text-slate-400 text-sm">@(Model.JobTitle ?? Model.Summary ?? "Chưa cập nhật chức danh")</p>
+                <p class="text-slate-500 text-xs mt-1">Email: @Model.User?.Email | Phone: @Model.User?.PhoneNumber</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="glass-card p-6">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-400">workspace_premium</span>
+            Danh sách kỹ năng (@Model.CandidateSkills?.Count ?? 0)
+        </h2>
+
+        @if (Model.CandidateSkills != null && Model.CandidateSkills.Any())
+        {
+            <div class="space-y-4">
+                @foreach (var candidateSkill in Model.CandidateSkills.OrderBy(cs => cs.ProficiencyLevel).ThenByDescending(cs => cs.YearsOfExperience))
+                {
+                    var proficiencyClass = candidateSkill.ProficiencyLevel.ToString().ToLower();
+                    <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-white font-semibold text-lg">@candidateSkill.Skill.Name</span>
+                                <span class="skill-tag skill-@proficiencyClass text-xs">
+                                    @candidateSkill.ProficiencyLevel
+                                </span>
+                            </div>
+                            <span class="text-slate-400 text-sm">@candidateSkill.Skill.Category</span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(candidateSkill.Skill.Description))
+                        {
+                            <p class="text-slate-400 text-sm mb-3">@candidateSkill.Skill.Description</p>
+                        }
+
+                        <div class="flex items-center gap-6 text-sm text-slate-300">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-base text-blue-400">schedule</span>
+                                <span>@candidateSkill.YearsOfExperience năm kinh nghiệm</span>
+                            </div>
+                            @if (candidateSkill.LastUsedDate.HasValue)
+                            {
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-base text-blue-400">event</span>
+                                    <span>Sử dụng lần cuối: @candidateSkill.LastUsedDate.Value.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <span class="material-symbols-outlined text-4xl text-slate-500 mb-2">psychology</span>
+                <p class="text-slate-400">Ứng viên chưa thêm kỹ năng nào</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,136 @@
+﻿@using System.Security.Claims
+@{
+    var adminName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Admin";
+    var currentPath = Context.Request.Path.Value ?? "";
+    bool IsActive(string path) => currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – Admin JobConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+        theme: { extend: { colors: {
+        primary: '#003d9b',
+        'surface-container': '#f1f5fb',
+        'on-surface': '#1e293b',
+        secondary: '#64748b',
+        'outline-variant': '#e2e8f0',
+        }}}
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body {
+        font-family: 'Be Vietnam Pro', sans-serif;
+        background: #f1f5fb;
+        }</style>
+    </head>
+    <body class="text-on-surface">
+
+        <!-- Topbar -->
+        <header class="fixed top-0 left-0 right-0 z-40 h-14 bg-primary text-white flex items-center px-4 gap-3 shadow-md">
+            <button id="sidebarToggle" class="p-2 rounded-lg hover:bg-white/10 lg:hidden">
+                <span class="material-symbols-outlined text-xl">menu</span>
+            </button>
+            <div class="flex items-center gap-2 font-bold text-lg">
+                <span class="material-symbols-outlined">admin_panel_settings</span>
+                JobConnect <span class="text-blue-200 text-sm font-normal ml-1">Admin Panel</span>
+            </div>
+            <div class="flex-1"></div>
+            <a asp-controller="Home" asp-action="Index" target="_blank"
+               class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition-colors">
+                <span class="material-symbols-outlined text-sm">open_in_new</span>
+                Xem site
+            </a>
+            <div class="relative ml-2">
+                <button id="userMenuBtn"
+                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 text-sm">
+                    <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
+                        @(adminName.Length > 0 ? adminName[0].ToString().ToUpper() : "A")
+                    </div>
+                    <span class="hidden sm:block">@adminName</span>
+                    <span class="material-symbols-outlined text-sm opacity-70">expand_more</span>
+                </button>
+                <div id="userMenuDropdown"
+                     class="hidden absolute right-0 top-full mt-1 w-48 bg-white text-on-surface rounded-xl shadow-lg border border-outline-variant py-1 z-50">
+                    <a asp-controller="Account" asp-action="Settings"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-surface-container">
+                        <span class="material-symbols-outlined text-sm">settings</span> Cài đặt
+                    </a>
+                    <hr class="my-1 border-outline-variant" />
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left">
+                            <span class="material-symbols-outlined text-sm">logout</span> Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex pt-14 min-h-screen">
+            <aside id="sidebar"
+                   class="fixed left-0 top-14 bottom-0 w-56 bg-white border-r border-outline-variant flex flex-col
+                -translate-x-full lg:translate-x-0 transition-transform z-30">
+                <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto">
+                    @{
+                        var navItems = new[] {
+                        (Icon:"dashboard",  Label:"Dashboard",      Path:"/Admin/Dashboard"),
+                        (Icon:"people",     Label:"Người dùng",     Path:"/Admin/Users"),
+                        (Icon:"work",       Label:"Tin tuyển dụng", Path:"/Admin/Jobs"),
+                        (Icon:"apartment",  Label:"Công ty",        Path:"/Admin/Companies"),
+                        (Icon:"psychology", Label:"Kỹ năng",        Path:"/Admin/Skills"),
+                        (Icon:"folder",     Label:"Danh mục",       Path:"/Admin/Categories"),
+                        (Icon:"article",    Label:"Blog",           Path:"/Admin/Blog"),
+                        (Icon:"bar_chart",  Label:"Báo cáo",        Path:"/Admin/Reports"),
+                    };
+                    }
+                    @foreach (var item in navItems)
+                    {
+                        <a href="@item.Path"
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
+                            @(IsActive(item.Path) ? "bg-blue-50 text-primary font-semibold" : "text-secondary hover:bg-surface-container hover:text-on-surface")">
+                            <span class="material-symbols-outlined text-[1.1rem]">@item.Icon</span>
+                            @item.Label
+                        </a>
+                    }
+                </nav>
+                <div class="p-3 border-t border-outline-variant text-xs text-secondary text-center">
+                    JobConnect Admin v1.0
+                </div>
+            </aside>
+
+            <main class="flex-1 lg:ml-56 p-6">
+                @if (TempData["Success"] is string ok)
+                {
+                    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">check_circle</span> @ok
+                    </div>
+                }
+                @if (TempData["Error"] is string err)
+                {
+                    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">error</span> @err
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+
+        @await RenderSectionAsync("Scripts", required: false)
+
+        <script src="~/js/site.js"></script>
+        <script>
+            document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+            document.getElementById('sidebar')?.classList.toggle('-translate-x-full');
+            });
+        </script>
+    </body>
+</html>

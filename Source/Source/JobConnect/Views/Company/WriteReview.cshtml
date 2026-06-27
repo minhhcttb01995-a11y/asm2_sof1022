@@ -1,0 +1,90 @@
+﻿@model JobConnect.Models.CompanyReview
+@{
+    ViewData["Title"] = "Viết đánh giá cho " + ViewBag.CompanyName;
+    Layout = "_Layout";
+}
+
+<div class="max-w-2xl mx-auto px-4 py-10">
+    <!-- Nút quay lại -->
+    <a asp-action="Detail" asp-route-id="@ViewBag.EmployerID" class="text-slate-400 hover:text-white text-sm flex items-center gap-1 mb-4 transition-colors">
+        <span class="material-symbols-outlined text-base">arrow_back</span> Quay lại trang công ty
+    </a>
+
+    <div class="bg-slate-950/40 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+        <div class="mb-6">
+            <h1 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-400">rate_review</span>
+                Viết đánh giá công ty
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">Chia sẻ trải nghiệm chân thực của bạn về <span class="text-blue-400 font-semibold">@ViewBag.CompanyName</span> để giúp đỡ các ứng viên khác.</p>
+        </div>
+
+        <form asp-action="WriteReview" method="post" class="space-y-5">
+            <!-- Hidden input để giữ lại EmployerID -->
+            <input type="hidden" asp-for="EmployerID" value="@ViewBag.EmployerID" />
+
+            <!-- Chọn số sao (Rating) -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Mức độ hài lòng của bạn? <span class="text-red-400">*</span></label>
+                <div class="flex items-center gap-2">
+                    <select asp-for="Rating" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 w-32 font-mono font-bold">
+                        <option value="5">5 ⭐ (Xuất sắc)</option>
+                        <option value="4">4 ⭐ (Tốt)</option>
+                        <option value="3">3 ⭐ (Bình thường)</option>
+                        <option value="2">2 ⭐ (Yếu)</option>
+                        <option value="1">1 ⭐ (Tệ)</option>
+                    </select>
+                </div>
+                <span asp-validation-for="Rating" class="text-xs text-red-400 mt-1 block"></span>
+            </div>
+
+            <!-- Tên người hiển thị -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Tên của bạn <span class="text-red-400">*</span></label>
+                <input type="text" asp-for="AuthorName" placeholder="Ví dụ: Nguyễn Văn A, Tuấn Dev..." required
+                       class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 w-full" />
+                <span asp-validation-for="AuthorName" class="text-xs text-red-400 mt-1 block"></span>
+            </div>
+
+            <!-- Tiêu đề đánh giá -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Tiêu đề đánh giá <span class="text-red-400">*</span></label>
+                <input type="text" asp-for="Title" placeholder="Tóm tắt ngắn gọn (Ví dụ: Môi trường thân thiện, sếp tâm lý...)" required
+                       class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 w-full" />
+                <span asp-validation-for="Title" class="text-xs text-red-400 mt-1 block"></span>
+            </div>
+
+            <!-- Nội dung đánh giá chi tiết -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Nội dung chi tiết <span class="text-red-400">*</span></label>
+                <textarea asp-for="Content" rows="5" placeholder="Hãy kể chi tiết về chế độ đãi ngộ, văn hóa công ty, đồng nghiệp..." required
+                          class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 w-full resize-none"></textarea>
+                <span asp-validation-for="Content" class="text-xs text-red-400 mt-1 block"></span>
+            </div>
+
+            <!-- Lựa chọn ẩn danh -->
+            <div class="flex items-center gap-2 pt-2">
+                <input type="checkbox" asp-for="IsAnonymous" id="IsAnonymous" 
+                       class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500 focus:ring-offset-slate-950" />
+                <label for="IsAnonymous" class="text-sm text-slate-400 select-none cursor-pointer">
+                    Đăng ẩn danh (Hệ thống sẽ che tên của bạn đối với mọi người)
+                </label>
+            </div>
+
+            <!-- Nút gửi -->
+            <div class="pt-4 border-t border-slate-800/60 flex justify-end gap-3">
+                <a asp-action="Detail" asp-route-id="@ViewBag.EmployerID" 
+                   class="px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-slate-400 hover:bg-slate-800 transition-colors">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/20">
+                    Gửi đánh giá ngay
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

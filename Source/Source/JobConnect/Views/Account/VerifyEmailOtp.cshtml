@@ -1,0 +1,158 @@
+﻿@{
+    ViewData["Title"] = "Xác thực Email";
+    Layout = "_Layout";
+    var email = ViewBag.Email as string ?? "";
+    var purpose = ViewBag.Purpose as string ?? "register";
+    var isLogin = purpose == "login";
+    var otpError = ViewBag.OtpError as string;
+}
+
+<div class="min-h-screen flex items-center justify-center px-4 py-12"
+     style="background: radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.15) 0%, transparent 60%), #000;">
+    <div class="w-full max-w-md">
+
+        <!-- Icon -->
+        <div class="flex justify-center mb-6">
+            <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-blue-400" style="font-size:2.5rem;">
+                    @(isLogin ? "lock_open" : "mark_email_unread")
+                </span>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-white mb-2">
+                @(isLogin ? "Xác thực phiên đăng nhập" : "Xác thực Email của bạn")
+            </h1>
+            <p class="text-slate-400 text-sm">
+                @(isLogin
+                    ? "Vì bạn chưa đăng nhập hơn 24 giờ, hãy xác thực để tiếp tục."
+                    : "Chúng tôi đã gửi mã OTP gồm 6 chữ số đến")
+            </p>
+            <p class="text-blue-400 font-bold mt-1">@email</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="mb-5 px-4 py-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">check_circle</span>@TempData["Success"]
+            </div>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <div class="mb-5 px-4 py-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-xl text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">info</span>@TempData["Info"]
+            </div>
+        }
+
+        <!-- Card -->
+        <div class="bg-white/3 border border-slate-800 rounded-2xl p-8 backdrop-blur-sm">
+
+            @if (!string.IsNullOrEmpty(otpError))
+            {
+                <div class="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base">error</span>@otpError
+                </div>
+            }
+
+            <form asp-action="VerifyEmailOtp" method="post" id="otpForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="email" value="@email" />
+                <input type="hidden" name="purpose" value="@purpose" />
+
+                <label class="block text-sm font-semibold text-slate-300 mb-4 text-center">
+                    Nhập mã xác thực OTP
+                </label>
+
+                <!-- 6 ô OTP -->
+                <div class="flex justify-center gap-2.5 mb-6" id="otpBoxes">
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                               class="otp-digit w-11 h-13 text-center text-xl font-bold text-white bg-slate-900 border-2 border-slate-700 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                               style="width:44px;height:52px;" autocomplete="off" />
+                    }
+                </div>
+                <input type="hidden" name="otp" id="otpValue" />
+
+                <button type="submit"
+                        class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">verified</span>
+                    Xác nhận mã OTP
+                </button>
+            </form>
+
+            <!-- Gửi lại -->
+            <div class="mt-6 pt-5 border-t border-slate-800 text-center">
+                <p class="text-slate-500 text-sm mb-3">Không nhận được mã?</p>
+                <div class="flex items-center justify-center gap-3">
+                    <form asp-action="ResendEmailOtp" method="post" class="inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="email" value="@email" />
+                        <input type="hidden" name="purpose" value="@purpose" />
+                        <button type="submit" id="resendBtn"
+                                class="text-blue-400 font-bold text-sm hover:underline flex items-center gap-1 disabled:opacity-40"
+                                disabled>
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+                            Gửi lại mã
+                        </button>
+                    </form>
+                    <span id="countdown" class="text-slate-600 text-xs"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a asp-action="@(isLogin ? "Login" : "Register")"
+               class="text-slate-500 hover:text-slate-300 text-sm transition-colors">
+                ← @(isLogin ? "Quay lại đăng nhập" : "Quay lại đăng ký")
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const digits   = document.querySelectorAll('.otp-digit');
+    const otpVal   = document.getElementById('otpValue');
+    const resendBtn = document.getElementById('resendBtn');
+
+    digits.forEach((input, idx) => {
+        input.addEventListener('input', e => {
+            e.target.value = e.target.value.replace(/\D/g,'');
+            if (e.target.value && idx < 5) digits[idx+1].focus();
+            updateOtp();
+        });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                digits[idx-1].focus(); digits[idx-1].value = '';
+                updateOtp();
+            }
+        });
+        input.addEventListener('paste', e => {
+            e.preventDefault();
+            const p = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+            p.split('').forEach((c,i) => { if(digits[i]) digits[i].value = c; });
+            digits[Math.min(p.length,5)].focus();
+            updateOtp();
+        });
+    });
+
+    function updateOtp() {
+        otpVal.value = Array.from(digits).map(d=>d.value).join('');
+        digits.forEach(d => {
+            d.style.borderColor = d.value ? '#3b82f6' : '';
+        });
+    }
+
+    digits[0].focus();
+
+    // Countdown 60s
+    let secs = 60;
+    const countdown = document.getElementById('countdown');
+    const timer = setInterval(() => {
+        secs--;
+        countdown.textContent = secs > 0 ? `(${secs}s)` : '';
+        if (secs <= 0) { clearInterval(timer); resendBtn.disabled = false; }
+    }, 1000);
+</script>

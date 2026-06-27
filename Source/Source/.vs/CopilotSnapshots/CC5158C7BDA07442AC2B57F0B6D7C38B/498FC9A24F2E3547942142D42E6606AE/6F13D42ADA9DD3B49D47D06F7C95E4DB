@@ -1,0 +1,14 @@
+﻿namespace JobConnect.ViewModels;
+
+public class JobSearchViewModel
+{
+    public string? Keyword { get; set; }
+    public string? Location { get; set; }
+    public string[]? JobType { get; set; }  // Array for multiple job types
+    public string? ExperienceLevel { get; set; }
+    public int[]? Category { get; set; }  // Array for multiple categories
+    public string[]? Salary { get; set; }  // Array for multiple salary ranges
+    public string? SortBy { get; set; } = "newest";
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 12;
+}

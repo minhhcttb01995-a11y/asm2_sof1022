@@ -1,0 +1,248 @@
+﻿@using JobConnect.Models
+@model Employer
+@{
+    ViewData["Title"] = "Chi tiết công ty";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-5xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-6">
+        <a asp-action="Companies" class="text-secondary hover:text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined">arrow_back</span> Quay lại
+        </a>
+        <h1 class="text-2xl font-bold text-on-surface">Chi tiết công ty</h1>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Cột trái -->
+        <div class="lg:col-span-1 space-y-4">
+            <!-- Logo & tên -->
+            <div class="bg-white rounded-2xl border border-outline-variant p-6 text-center">
+                @if (!string.IsNullOrEmpty(Model.CoverURL))
+                {
+                    <div class="h-24 rounded-xl overflow-hidden mb-4 -mx-6 -mt-6">
+                        <img src="@Model.CoverURL" class="w-full h-full object-cover" />
+                    </div>
+                }
+                <div class="w-16 h-16 rounded-xl bg-surface-container mx-auto mb-3 overflow-hidden flex items-center justify-center border border-outline-variant">
+                    @if (!string.IsNullOrEmpty(Model.LogoURL))
+                    {
+                        <img src="@Model.LogoURL" class="w-16 h-16 object-contain" />
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-4xl text-secondary">apartment</span>
+                    }
+                </div>
+                <h2 class="text-lg font-bold text-on-surface">@Model.CompanyName</h2>
+                <p class="text-sm text-secondary mb-3">@(Model.Industry ?? "—")</p>
+                <div class="flex justify-center gap-2 flex-wrap">
+                    @if (Model.IsVerified)
+                    {
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Đã xác minh</span>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Chưa xác minh</span>
+                    }
+                    @if (Model.IsLocked)
+                    {
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">lock</span>Đã khoá
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-surface-container text-secondary">Hoạt động</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Thao tác -->
+            <div class="bg-white rounded-2xl border border-outline-variant p-5 space-y-3">
+                <h3 class="font-semibold text-on-surface text-sm">Thao tác</h3>
+
+                @if (!Model.IsVerified)
+                {
+                    <form asp-action="ApproveCompany" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.EmployerID" />
+                        <button type="submit"
+                                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors">
+                            <span class="material-symbols-outlined text-base">verified</span>
+                            Xác minh công ty
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="SuspendCompany" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.EmployerID" />
+                        <button type="submit"
+                                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 transition-colors">
+                            <span class="material-symbols-outlined text-base">unpublished</span>
+                            Hủy xác minh
+                        </button>
+                    </form>
+                }
+
+                <form asp-action="LockCompany" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.EmployerID" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("CompanyDetail", new { id = Model.EmployerID })" />
+                    <button type="submit"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors
+                        @(Model.IsLocked
+                                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                                    : "bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200")">
+                        <span class="material-symbols-outlined text-base">@(Model.IsLocked ? "lock_open" : "lock")</span>
+                        @(Model.IsLocked ? "Mở khoá công ty" : "Khoá công ty")
+                    </button>
+                </form>
+
+                <form asp-action="DeleteCompany" method="post"
+                      onsubmit="return confirm('Xóa công ty \u0022@Model.CompanyName\u0022? Toàn bộ tin tuyển dụng sẽ bị xóa theo!')">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.EmployerID" />
+                    <button type="submit"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                        Xóa công ty
+                    </button>
+                </form>
+
+                <div class="pt-3 border-t border-outline-variant space-y-3">
+                    <p class="text-xs text-secondary font-semibold uppercase tracking-wide">🛠 Hỗ trợ trực tiếp</p>
+
+                    <!-- Đăng tin hộ NTD -->
+                    <a asp-action="PostJobForEmployer" asp-route-id="@Model.EmployerID"
+                       class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors">
+                        <span class="material-symbols-outlined text-base">post_add</span>
+                        Đăng tin hộ NTD
+                    </a>
+
+                    <!-- Xem đơn ứng tuyển / hỗ trợ CV -->
+                    <a asp-action="EmployerApplications" asp-route-id="@Model.EmployerID"
+                       class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors">
+                        <span class="material-symbols-outlined text-base">folder_shared</span>
+                        Xem đơn & hỗ trợ CV
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải -->
+        <div class="lg:col-span-2 space-y-5">
+            <!-- Thông tin chi tiết -->
+            <div class="bg-white rounded-2xl border border-outline-variant p-6">
+                <h3 class="font-semibold text-on-surface mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">info</span>
+                    Thông tin công ty
+                </h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Tên công ty</p>
+                        <p class="font-medium">@Model.CompanyName</p>
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Email NTD</p>
+                        <p class="font-medium">@(Model.User?.Email ?? "—")</p>
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Ngành nghề</p>
+                        <p class="font-medium">@(Model.Industry ?? "—")</p>
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Quy mô</p>
+                        <p class="font-medium">@(Model.CompanySize ?? "—")</p>
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Mã số thuế</p>
+                        <p class="font-medium">@(Model.TaxCode ?? "—")</p>
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Ngày đăng ký</p>
+                        <p class="font-medium">@Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Website</p>
+                        @if (!string.IsNullOrEmpty(Model.Website))
+                        {
+                            <a href="@Model.Website" target="_blank" class="text-primary text-sm hover:underline">@Model.Website</a>
+                        }
+                        else
+                        {
+
+                            <p class="font-medium">—</p>
+                        }
+                    </div>
+                    <div>
+                        <p class="text-secondary text-xs mb-1">Địa chỉ</p>
+                        <p class="font-medium">@(Model.Address ?? "—")</p>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mt-4 pt-4 border-t border-outline-variant">
+                        <p class="text-secondary text-xs mb-1">Giới thiệu</p>
+                        <p class="text-sm">@Model.Description</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Tin tuyển dụng -->
+            <div class="bg-white rounded-2xl border border-outline-variant p-6">
+                <h3 class="font-semibold text-on-surface mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">work</span>
+                    Tin tuyển dụng (@Model.JobPosts.Count tin)
+                </h3>
+                @if (!Model.JobPosts.Any())
+                {
+                    <p class="text-secondary text-sm text-center py-4">Chưa có tin tuyển dụng nào.</p>
+                }
+                else
+                {
+                    <div class="space-y-2">
+                        @foreach (var job in Model.JobPosts.OrderByDescending(j => j.CreatedAt).Take(20))
+                        {
+                            var jobCls = job.Status switch
+                            {
+                                "Open" => "bg-green-100 text-green-700",
+                                "Rejected" => "bg-red-100 text-red-700",
+                                "Pending" => "bg-yellow-100 text-yellow-700",
+                                "Closed" => "bg-gray-100 text-gray-500",
+                                _ => "bg-gray-100 text-gray-500"
+                            };
+                            var jobLabel = job.Status switch
+                            {
+                                "Open" => "Đang mở",
+                                "Pending" => "Chờ duyệt",
+                                "Rejected" => "Từ chối",
+                                "Closed" => "Đã đóng",
+                                _ => job.Status
+                            };
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
+                                <div>
+                                    <p class="text-sm font-medium">@job.Title</p>
+                                    <p class="text-xs text-secondary">@job.Location • @job.CreatedAt.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium @jobCls">@jobLabel</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
