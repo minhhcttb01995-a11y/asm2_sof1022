@@ -1,0 +1,298 @@
+﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a {
+  color: #0077cc;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem; /* ============================================================
+   JobConnect – Admin Panel Layout CSS
+   ============================================================ */
+    /* ── Reset / Base ─────────────────────────────────────────── */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+    /* ── CSS Design Tokens ────────────────────────────────────── */
+    :root {
+        --sidebar-width: 240px;
+        --sidebar-bg: #0f172a;
+        --sidebar-border: #1e293b;
+        --sidebar-text: #94a3b8;
+        --sidebar-text-hover: #f1f5f9;
+        --sidebar-active-bg: rgba(59,130,246,.15);
+        --sidebar-active-text: #60a5fa;
+        --sidebar-active-border: #3b82f6;
+        --header-height: 64px;
+        --header-bg: #0f172a;
+        --header-border: #1e293b;
+        --primary: #3b82f6;
+        --on-surface: #1e293b;
+        --secondary: #64748b;
+        --surface-container: #f8fafc;
+        --surface-container-low: #f8fafc;
+        --outline-variant: #e2e8f0;
+    }
+    /* ── Dashboard Shell ──────────────────────────────────────── */
+    .jc-dashboard {
+        display: flex;
+        min-height: 100vh;
+    }
+    /* ── Sidebar ──────────────────────────────────────────────── */
+    .jc-sidebar {
+        width: var(--sidebar-width);
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 100;
+        overflow-y: auto;
+        transition: transform .25s ease;
+    }
+
+    .jc-sidebar-brand {
+        padding: 20px 16px 16px;
+        border-bottom: 1px solid var(--sidebar-border);
+    }
+
+        .jc-sidebar-brand h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .jc-sidebar-brand p {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin: 0;
+        }
+    /* ── Nav ──────────────────────────────────────────────────── */
+    .jc-sidebar-nav {
+        flex: 1;
+        padding: 12px 10px;
+        overflow-y: auto;
+    }
+
+        .jc-sidebar-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+    .jc-sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--sidebar-text);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background .15s, color .15s;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+        width: 100%;
+        background: none;
+        border-top: none;
+        border-right: none;
+        border-bottom: none;
+    }
+
+        .jc-sidebar-link:hover {
+            background: rgba(255,255,255,.06);
+            color: var(--sidebar-text-hover);
+        }
+
+        .jc-sidebar-link.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            border-left-color: var(--sidebar-active-border);
+        }
+
+        .jc-sidebar-link .material-symbols-outlined {
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+    /* ── Sidebar Footer ───────────────────────────────────────── */
+    .jc-sidebar-footer {
+        padding: 12px 10px;
+        border-top: 1px solid var(--sidebar-border);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .jc-sidebar-footer .jc-sidebar-link {
+            font-size: 0.8rem;
+        }
+    /* ── Main Content ─────────────────────────────────────────── */
+    .jc-dashboard-main {
+        margin-left: var(--sidebar-width);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-width: 0;
+    }
+    /* ── Top Header ───────────────────────────────────────────── */
+    .jc-dashboard-header {
+        height: var(--header-height);
+        background: var(--header-bg);
+        border-bottom: 1px solid var(--header-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+        .jc-dashboard-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .jc-dashboard-header p {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0;
+        }
+    /* ── Page Body Padding ────────────────────────────────────── */
+    .jc-dashboard-main > *:not(.jc-dashboard-header) {
+        padding: 24px;
+    }
+    /* Fix: space-y-6 div doesn't get padding from above rule */
+    .jc-dashboard-main > div.space-y-6 {
+        padding: 24px;
+    }
+    /* ── Button Icon ──────────────────────────────────────────── */
+    .jc-btn-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+        .jc-btn-icon:hover {
+            background: #273449;
+            color: #fff;
+        }
+    /* ── Tailwind token overrides ─────────────────────────────── */
+    .text-on-surface {
+        color: var(--on-surface) !important;
+    }
+
+    .text-secondary {
+        color: var(--secondary) !important;
+    }
+
+    .text-primary {
+        color: var(--primary) !important;
+    }
+
+    .bg-surface-container {
+        background: var(--surface-container);
+    }
+
+    .bg-surface-container-low {
+        background: var(--surface-container-low);
+    }
+
+    .border-outline-variant {
+        border-color: var(--outline-variant);
+    }
+
+    .divide-outline-variant > * + * {
+        border-color: var(--outline-variant);
+    }
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 1023px) {
+        .jc-sidebar {
+            transform: translateX(-100%);
+        }
+
+            .jc-sidebar.open {
+                transform: translateX(0);
+            }
+
+        .jc-dashboard-main {
+            margin-left: 0;
+        }
+    }
+    /* ── Scrollbar (sidebar) ──────────────────────────────────── */
+    .jc-sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .jc-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .jc-sidebar::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+    }
+
+    line-height: inherit;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}

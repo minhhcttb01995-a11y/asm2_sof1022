@@ -1,0 +1,164 @@
+@model JobConnect.Models.JobPost
+@{
+    ViewData["Title"] = "Chi tiết tin tuyển dụng";
+    Layout = "_StaffLayout";
+}
+
+<!-- Job Info Card -->
+<div class="glass-card rounded-xl p-6 mb-6">
+    <div class="flex items-start justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-bold mb-2">@Model.Title</h2>
+            <div class="flex items-center gap-3 text-sm text-gray-400">
+                <span class="material-icons text-sm">business</span>
+                <span>@Model.Employer?.CompanyName</span>
+                <span>•</span>
+                <span>@Model.Category?.Name</span>
+                <span>•</span>
+                <span>@Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+            </div>
+        </div>
+        <span class="px-4 py-2 badge-pending rounded-full text-sm font-medium">@Model.Status</span>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white/5 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-1">Loại công việc</p>
+            <p class="font-medium">@Model.JobType</p>
+        </div>
+        <div class="bg-white/5 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-1">Kinh nghiệm</p>
+            <p class="font-medium">@Model.ExperienceLevel</p>
+        </div>
+        <div class="bg-white/5 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-1">Địa điểm</p>
+            <p class="font-medium">@Model.Location</p>
+        </div>
+        <div class="bg-white/5 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-1">Lương</p>
+            <p class="font-medium">
+                @if (Model.SalaryNegotiable)
+                {
+                    <span>Thỏa thuận</span>
+                }
+                else
+                {
+                    <span>@(Model.SalaryMin?.ToString("N0") ?? "0") - @(Model.SalaryMax?.ToString("N0") ?? "0") VNĐ</span>
+                }
+            </p>
+        </div>
+    </div>
+    
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-3">Mô tả công việc</h3>
+        <p class="text-gray-300 whitespace-pre-line">@Model.Description</p>
+    </div>
+    
+    @if (!string.IsNullOrEmpty(Model.Requirements))
+    {
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-3">Yêu cầu</h3>
+            <p class="text-gray-300 whitespace-pre-line">@Model.Requirements</p>
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(Model.Benefits))
+    {
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-3">Phúc lợi</h3>
+            <p class="text-gray-300 whitespace-pre-line">@Model.Benefits</p>
+        </div>
+    }
+    
+    @if (Model.Deadline.HasValue)
+    {
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-3">Hạn nộp</h3>
+            <p class="text-gray-300">@Model.Deadline.Value.ToString("dd/MM/yyyy")</p>
+        </div>
+    }
+</div>
+
+<!-- Employer Info -->
+<div class="glass-card rounded-xl p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">Thông tin nhà tuyển dụng</h3>
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-blue-400">business</span>
+        </div>
+        <div>
+            <p class="font-medium">@Model.Employer?.CompanyName</p>
+            <p class="text-sm text-gray-400">@Model.Employer?.Industry</p>
+            <p class="text-sm text-gray-400">@Model.Employer?.User?.Email</p>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="flex gap-4">
+    <a href="@Url.Action("PendingJobs", "StaffDashboard", new { industry = ViewBag.Industry })" 
+       class="px-6 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
+        Quay lại
+    </a>
+    <form asp-action="ApproveJob" method="post" class="inline">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="jobId" value="@Model.JobID" />
+        <button type="submit" 
+                class="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-sm font-medium transition-colors">
+            Duyệt tin
+        </button>
+    </form>
+    <button x-data="{ open: false }" 
+            x-on:click="open = true"
+            class="px-6 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium transition-colors">
+        Từ chối
+    </button>
+    <form asp-action="HideJob" method="post" class="inline">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="jobId" value="@Model.JobID" />
+        <button type="submit" 
+                class="px-6 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">
+            Ẩn tin
+        </button>
+    </form>
+</div>
+
+<!-- Reject Modal (Alpine.js) -->
+<div x-data="{ showModal: false, reason: '' }" 
+     x-show="showModal" 
+     x-transition.opacity
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+     style="display: none;">
+    <div class="glass-card rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Từ chối tin tuyển dụng</h3>
+        <p class="text-sm text-gray-400 mb-4">Vui lòng nhập lý do từ chối:</p>
+        <textarea x-model="reason" 
+                  placeholder="Lý do từ chối..."
+                  class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"
+                  rows="3"></textarea>
+        <div class="flex gap-3 mt-4">
+            <button x-on:click="showModal = false" 
+                    class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
+                Huỷ
+            </button>
+            <form asp-action="RejectJob" method="post" class="flex-1">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="jobId" value="@Model.JobID" />
+                <input type="hidden" name="reason" x-bind:value="reason" />
+                <button type="submit" 
+                        class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium transition-colors">
+                    Từ chối
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Trigger reject modal
+document.querySelector('button[x-data]').addEventListener('click', function(e) {
+    if (e.target.textContent.includes('Từ chối')) {
+        document.querySelector('[x-data]').__x.$data.showModal = true;
+    }
+});
+</script>

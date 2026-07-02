@@ -1,0 +1,192 @@
+@model JobConnect.Models.User
+@{
+    ViewData["Title"] = "Chi tiết người dùng";
+    Layout = "_StaffLayout";
+}
+
+<!-- User Info Card -->
+<div class="glass-card rounded-xl p-6 mb-6">
+    <div class="flex items-start gap-6">
+        <img src="@Model.AvatarURL ?? "/img/default-avatar.png"" 
+             alt="Avatar" class="w-24 h-24 rounded-xl object-cover" />
+        <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+                <h2 class="text-2xl font-bold">@Model.FullName</h2>
+                <span class="px-3 py-1 rounded-full text-xs font-medium @(Model.Role == "Admin" ? "bg-purple-500/20 text-purple-400" : Model.Role == "Employer" ? "bg-blue-500/20 text-blue-400" : Model.Role == "Staff" ? "bg-orange-500/20 text-orange-400" : "bg-gray-500/20 text-gray-400")">
+                    @Model.Role
+                </span>
+            </div>
+            <p class="text-gray-400 mb-4">@Model.Email</p>
+            <div class="flex gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-gray-500 text-sm">phone</span>
+                    <span class="text-gray-300">@Model.PhoneNumber ?? "Chưa cập nhật"</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-gray-500 text-sm">calendar_today</span>
+                    <span class="text-gray-300">Ngày tạo: @Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-gray-500 text-sm">verified</span>
+                    <span class="text-gray-300">Trạng thái: @(Model.Status == "Active" ? "Hoạt động" : Model.Status == "Banned" ? "Đã khóa" : "Chờ duyệt")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Candidate Profile -->
+@if (Model.CandidateProfile != null)
+{
+    <div class="glass-card rounded-xl p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+            <span class="material-icons">person</span>
+            Hồ sơ Ứng viên
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Tóm tắt</p>
+                <p class="text-gray-200">@Model.CandidateProfile.Summary ?? "Chưa cập nhật"</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Kinh nghiệm</p>
+                <p class="text-gray-200">@Model.CandidateProfile.ExperienceYears năm</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Mức lương mong muốn</p>
+                <p class="text-gray-200">@(Model.CandidateProfile.DesiredSalary?.ToString("N0") ?? "Chưa cập nhật") VNĐ</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Trạng thái tìm việc</p>
+                <p class="text-gray-200">@(Model.CandidateProfile.IsOpenToWork ? "Đang tìm việc" : "Không tìm việc")</p>
+            </div>
+        </div>
+        
+        <!-- CV Files -->
+        @if (Model.CandidateProfile.CvFiles.Any())
+        {
+            <div class="mt-6">
+                <p class="text-sm text-gray-400 mb-3">CV Files</p>
+                <div class="space-y-2">
+                    @foreach (var cv in Model.CandidateProfile.CvFiles)
+                    {
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-blue-400">description</span>
+                                <span class="text-sm">@cv.FileName</span>
+                            </div>
+                            <a href="@cv.FilePath" target="_blank" class="text-blue-400 text-sm hover:underline">Tải xuống</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        
+        <!-- Applications -->
+        @if (Model.CandidateProfile.Applications.Any())
+        {
+            <div class="mt-6">
+                <p class="text-sm text-gray-400 mb-3">Đơn ứng tuyển (@Model.CandidateProfile.Applications.Count)</p>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    @foreach (var app in Model.CandidateProfile.Applications)
+                    {
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium">@app.Job?.Title ?? "N/A"</p>
+                                <p class="text-xs text-gray-400">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                            <span class="px-2 py-1 rounded text-xs @(app.Status == "Accepted" ? "badge-open" : app.Status == "Rejected" ? "badge-rejected" : app.Status == "Interview" ? "badge-inprogress" : "badge-pending")">
+                                @app.Status
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Employer Profile -->
+@if (Model.Employer != null)
+{
+    <div class="glass-card rounded-xl p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+            <span class="material-icons">business</span>
+            Hồ sơ Nhà tuyển dụng
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Tên công ty</p>
+                <p class="text-gray-200">@Model.Employer.CompanyName</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Ngành nghề</p>
+                <p class="text-gray-200">@Model.Employer.Industry ?? "Chưa cập nhật"</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Quy mô</p>
+                <p class="text-gray-200">@Model.Employer.CompanySize ?? "Chưa cập nhật"</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Website</p>
+                <p class="text-gray-200">@Model.Employer.Website ?? "Chưa cập nhật"</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Địa chỉ</p>
+                <p class="text-gray-200">@Model.Employer.Address ?? "Chưa cập nhật"</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-400 mb-1">Xác minh</p>
+                <span class="px-3 py-1 rounded-full text-xs font-medium @(Model.Employer.IsVerified ? "badge-open" : "badge-pending")">
+                    @(Model.Employer.IsVerified ? "Đã xác minh" : "Chưa xác minh")
+                </span>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <p class="text-sm text-gray-400 mb-1">Mô tả</p>
+            <p class="text-gray-200">@Model.Employer.Description ?? "Chưa cập nhật"</p>
+        </div>
+        
+        <!-- Job Posts -->
+        @if (Model.Employer.JobPosts.Any())
+        {
+            <div class="mt-6">
+                <p class="text-sm text-gray-400 mb-3">Tin tuyển dụng (@Model.Employer.JobPosts.Count)</p>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    @foreach (var job in Model.Employer.JobPosts)
+                    {
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium">@job.Title</p>
+                                <p class="text-xs text-gray-400">@job.CreatedAt.ToString("dd/MM/yyyy")</p>
+                            </div>
+                            <span class="px-2 py-1 rounded text-xs @(job.Status == "Open" ? "badge-open" : job.Status == "Rejected" ? "badge-rejected" : job.Status == "Closed" ? "badge-closed" : "badge-pending")">
+                                @job.Status
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Actions -->
+<div class="flex gap-4">
+    <a href="@(Model.Role == "Candidate" ? Url.Action("Candidates") : Url.Action("Employers"))" 
+       class="px-6 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
+        Quay lại
+    </a>
+    @if (Model.Role != "Admin")
+    {
+        <form asp-action="ToggleUserStatus" method="post" class="inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="userId" value="@Model.UserID" />
+            <button type="submit" 
+                    class="px-6 py-2 @(Model.Status == "Active" ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600") rounded-lg text-sm font-medium transition-colors">
+                @(Model.Status == "Active" ? "Khóa tài khoản" : "Mở khóa tài khoản")
+            </button>
+        </form>
+    }
+</div>

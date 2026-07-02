@@ -1,0 +1,327 @@
+@using JobConnect.ViewModels.Staff
+@model StaffDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_StaffLayout";
+
+    // Map action code → nhãn tiếng Việt + icon
+    string ActionLabel(string action) => action switch
+    {
+        "APPROVE_JOB" => "Duyệt tin tuyển dụng",
+        "REJECT_JOB" => "Từ chối tin tuyển dụng",
+        "APPROVE_COMPANY" => "Duyệt công ty",
+        "REJECT_COMPANY" => "Từ chối công ty",
+        "RESOLVE_REPORT" => "Xử lý báo cáo",
+        "PROCESS_REPORT" => "Tiếp nhận báo cáo",
+        "CLOSE_TICKET" => "Đóng ticket hỗ trợ",
+        "UPDATE_PROFILE" => "Cập nhật hồ sơ",
+        "UPDATE_AVATAR" => "Cập nhật ảnh đại diện",
+        "SEND_NOTIFY" => "Gửi thông báo",
+        "DELETE_JOB" => "Xóa tin tuyển dụng",
+        "LOCK_USER" => "Khóa tài khoản",
+        "UNLOCK_USER" => "Mở khóa tài khoản",
+        _ => action
+    };
+
+    string ActionIcon(string action) => action switch
+    {
+        "APPROVE_JOB" => "check_circle",
+        "REJECT_JOB" => "cancel",
+        "APPROVE_COMPANY" => "verified",
+        "REJECT_COMPANY" => "block",
+        "RESOLVE_REPORT" => "flag",
+        "PROCESS_REPORT" => "report",
+        "CLOSE_TICKET" => "support_agent",
+        "UPDATE_PROFILE" => "manage_accounts",
+        "UPDATE_AVATAR" => "account_circle",
+        "SEND_NOTIFY" => "notifications",
+        "DELETE_JOB" => "delete",
+        "LOCK_USER" => "lock",
+        "UNLOCK_USER" => "lock_open",
+        _ => "history"
+    };
+
+    string ActionColor(string action) => action switch
+    {
+        "APPROVE_JOB" or "APPROVE_COMPANY" => "text-green-400 bg-green-500/20",
+        "REJECT_JOB" or "REJECT_COMPANY" => "text-red-400 bg-red-500/20",
+        "RESOLVE_REPORT" or "PROCESS_REPORT" => "text-yellow-400 bg-yellow-500/20",
+        "LOCK_USER" => "text-red-400 bg-red-500/20",
+        "UNLOCK_USER" => "text-green-400 bg-green-500/20",
+        _ => "text-blue-400 bg-blue-500/20"
+    };
+}
+
+<!-- ===== STAT CARDS ===== -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+
+    <div class="jc-stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="jc-stat-icon bg-blue-500/20">
+                <span class="material-icons text-blue-400 text-lg">business</span>
+            </div>
+            <span class="text-xs text-slate-400 leading-tight">Tổng công ty</span>
+        </div>
+        <p class="text-2xl font-bold text-white">@Model.TotalCompanies</p>
+    </div>
+
+    <div class="jc-stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="jc-stat-icon bg-green-500/20">
+                <span class="material-icons text-green-400 text-lg">work</span>
+            </div>
+            <span class="text-xs text-slate-400 leading-tight">Tin đang mở</span>
+        </div>
+        <p class="text-2xl font-bold text-white">@Model.TotalOpenJobPosts</p>
+    </div>
+
+    <div class="jc-stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="jc-stat-icon bg-purple-500/20">
+                <span class="material-icons text-purple-400 text-lg">people</span>
+            </div>
+            <span class="text-xs text-slate-400 leading-tight">Tổng ứng viên</span>
+        </div>
+        <p class="text-2xl font-bold text-white">@Model.TotalCandidates</p>
+    </div>
+
+    <div class="jc-stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="jc-stat-icon bg-yellow-500/20">
+                <span class="material-icons text-yellow-400 text-lg">schedule</span>
+            </div>
+            <span class="text-xs text-slate-400 leading-tight">Tin chờ duyệt</span>
+        </div>
+        <p class="text-2xl font-bold text-white">@Model.PendingJobPostsCount</p>
+        @if (Model.PendingJobPostsCount > 0)
+        {
+            <p class="text-xs text-yellow-400 mt-1">Cần xử lý</p>
+        }
+    </div>
+
+    <div class="jc-stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="jc-stat-icon bg-orange-500/20">
+                <span class="material-icons text-orange-400 text-lg">domain_verification</span>
+            </div>
+            <span class="text-xs text-slate-400 leading-tight">Công ty chờ duyệt</span>
+        </div>
+        <p class="text-2xl font-bold text-white">@Model.PendingCompaniesCount</p>
+        @if (Model.PendingCompaniesCount > 0)
+        {
+            <p class="text-xs text-orange-400 mt-1">Cần xử lý</p>
+        }
+    </div>
+
+    <div class="jc-stat-card">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="jc-stat-icon bg-red-500/20">
+                <span class="material-icons text-red-400 text-lg">flag</span>
+            </div>
+            <span class="text-xs text-slate-400 leading-tight">Báo cáo chờ xử lý</span>
+        </div>
+        <p class="text-2xl font-bold text-white">@Model.PendingReports</p>
+        @if (Model.PendingReports > 0)
+        {
+            <p class="text-xs text-red-400 mt-1">Cần xử lý</p>
+        }
+    </div>
+
+</div>
+
+<!-- ===== CHART + RECENT ACTIVITIES ===== -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+    <!-- Doughnut Chart -->
+    <div class="jc-card jc-card-padded-lg">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="material-icons text-blue-400 text-base">pie_chart</span>
+            <h3 class="text-base font-semibold text-white">Phân bố tin tuyển dụng theo ngành nghề</h3>
+        </div>
+        <div class="relative h-56 w-full">
+            <canvas id="jobChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="jc-card jc-card-padded-lg flex flex-col">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="material-icons text-purple-400 text-base">history</span>
+            <h3 class="text-base font-semibold text-white">Hoạt động gần đây</h3>
+        </div>
+
+        @if (Model.RecentActivities.Any())
+        {
+            <div class="space-y-2 max-h-56 overflow-y-auto jc-scroll flex-1">
+                @foreach (var activity in Model.RecentActivities)
+                {
+                    var colorCls = ActionColor(activity.Action);
+                    var icon = ActionIcon(activity.Action);
+                    var label = ActionLabel(activity.Action);
+                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/8 transition-colors">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 @colorCls">
+                            <span class="material-icons text-sm">@icon</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-white truncate">@activity.StaffName</p>
+                            <p class="text-xs text-slate-400 truncate">@label</p>
+                        </div>
+                        <p class="text-xs text-slate-500 flex-shrink-0 whitespace-nowrap">
+                            @activity.CreatedAt.ToString("dd/MM HH:mm")
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="flex-1 flex flex-col items-center justify-center py-6">
+                <span class="material-icons text-slate-600 text-4xl mb-2">history_toggle_off</span>
+                <p class="text-sm text-slate-500">Chưa có hoạt động nào</p>
+            </div>
+        }
+    </div>
+
+</div>
+
+<!-- ===== PENDING JOB POSTS + PENDING COMPANIES ===== -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Tin tuyển dụng chờ duyệt -->
+    <div class="jc-card jc-card-padded-lg">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="material-icons text-yellow-400 text-base">work_history</span>
+                <h3 class="text-base font-semibold text-white">Tin tuyển dụng chờ duyệt</h3>
+            </div>
+            @if (Model.PendingJobPostsCount > 0)
+            {
+                <span class="jc-badge jc-badge-warning">@Model.PendingJobPostsCount</span>
+            }
+        </div>
+
+        @if (Model.PendingJobPosts.Any())
+        {
+            <div class="space-y-2">
+                @foreach (var job in Model.PendingJobPosts)
+                {
+                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/8 transition-colors">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium text-sm text-white truncate">@job.Title</p>
+                            <p class="text-xs text-slate-400 truncate">@job.CompanyName</p>
+                        </div>
+                        <div class="ml-3 flex items-center gap-2">
+                            <span class="text-xs text-slate-500">@job.CreatedAt.ToString("dd/MM")</span>
+                            <a href="@Url.Action("JobDetail", "StaffDashboard", new { id = job.Id })"
+                               class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 rounded-lg text-xs font-medium text-white transition-colors">
+                                Xem
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center py-8">
+                <span class="material-icons text-slate-600 text-4xl mb-2">check_circle</span>
+                <p class="text-sm text-slate-500">Không có tin nào chờ duyệt</p>
+            </div>
+        }
+    </div>
+
+    <!-- Công ty chờ duyệt -->
+    <div class="jc-card jc-card-padded-lg">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="material-icons text-orange-400 text-base">business_center</span>
+                <h3 class="text-base font-semibold text-white">Công ty chờ duyệt</h3>
+            </div>
+            @if (Model.PendingCompaniesCount > 0)
+            {
+                <span class="jc-badge jc-badge-warning">@Model.PendingCompaniesCount</span>
+            }
+        </div>
+
+        @if (Model.PendingCompanies.Any())
+        {
+            <div class="space-y-2">
+                @foreach (var company in Model.PendingCompanies)
+                {
+                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/8 transition-colors">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium text-sm text-white truncate">@company.CompanyName</p>
+                            <p class="text-xs text-slate-400 truncate">@company.Email</p>
+                        </div>
+                        <div class="ml-3 flex items-center gap-1.5">
+                            <form asp-action="ApproveCompany" method="post" class="inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="employerId" value="@company.Id" />
+                                <button type="submit"
+                                        class="px-2.5 py-1.5 bg-green-500/20 hover:bg-green-500/40 text-green-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                    <span class="material-icons text-sm">check</span>
+                                </button>
+                            </form>
+                            <form asp-action="RejectCompany" method="post" class="inline"
+                                  onsubmit="return confirm('Từ chối công ty @company.CompanyName?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="employerId" value="@company.Id" />
+                                <button type="submit"
+                                        class="px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                    <span class="material-icons text-sm">close</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center py-8">
+                <span class="material-icons text-slate-600 text-4xl mb-2">verified</span>
+                <p class="text-sm text-slate-500">Không có công ty nào chờ duyệt</p>
+            </div>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('jobChart').getContext('2d');
+        const rawData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.JobDistribution));
+
+        const labels     = rawData.length > 0 ? rawData.map(x => x.Industry)    : ['Chưa có dữ liệu'];
+        const dataValues = rawData.length > 0 ? rawData.map(x => x.Count)        : [1];
+        const palette    = ['#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444','#6b7280','#ec4899','#14b8a6'];
+        const colors     = labels.map((_,i) => palette[i % palette.length]);
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{ data: dataValues, backgroundColor: rawData.length > 0 ? colors : ['#374151'], borderWidth: 0 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#94a3b8', padding: 14, font: { size: 11 }, boxWidth: 12 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                                const pct   = total > 0 ? Math.round(ctx.parsed/total*100) : 0;
+                                return ` ${ctx.label}: ${ctx.parsed} tin (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

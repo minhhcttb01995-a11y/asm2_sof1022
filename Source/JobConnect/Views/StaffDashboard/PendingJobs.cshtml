@@ -1,0 +1,189 @@
+@model List<JobConnect.Models.JobPost>
+@{
+    ViewData["Title"] = "Duyệt Tin tuyển dụng";
+    Layout = "_StaffLayout";
+}
+
+<!-- Filter -->
+<form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4">
+    <select name="industry" class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="">Tất cả ngành nghề</option>
+        @if (ViewBag.Industries != null)
+        {
+            @foreach (var industry in ViewBag.Industries)
+            {
+                <option value="@industry" selected="@(ViewBag.Industry == industry ? "selected" : null)">@industry</option>
+            }
+        }
+    </select>
+    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+        Lọc
+    </button>
+</form>
+
+<!-- Jobs Table -->
+<div class="glass-card rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-white/5 border-b border-white/10">
+            <tr>
+                <th class="text-left px-6 py-4 font-semibold">ID</th>
+                <th class="text-left px-6 py-4 font-semibold">Tiêu đề</th>
+                <th class="text-left px-6 py-4 font-semibold">Công ty</th>
+                <th class="text-left px-6 py-4 font-semibold">Ngành nghề</th>
+                <th class="text-left px-6 py-4 font-semibold">Lương</th>
+                <th class="text-left px-6 py-4 font-semibold">Ngày đăng</th>
+                <th class="text-center px-6 py-4 font-semibold">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-white/10">
+            @if (Model.Any())
+            {
+                @foreach (var job in Model)
+                {
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-xs text-gray-400">@job.JobID</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="font-medium truncate max-w-xs">@job.Title</p>
+                        </td>
+                        <td class="px-6 py-4 text-gray-300">@job.Employer?.CompanyName ?? "-"</td>
+                        <td class="px-6 py-4 text-gray-300">@job.Category?.Name ?? "-"</td>
+                        <td class="px-6 py-4 text-gray-300">
+                            @if (job.SalaryNegotiable)
+                            {
+                                <span>Thỏa thuận</span>
+                            }
+                            else
+                            {
+                                <span>@(job.SalaryMin?.ToString("N0") ?? "0") - @(job.SalaryMax?.ToString("N0") ?? "0") VNĐ</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4 text-gray-400">@job.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="@Url.Action("JobDetail", "StaffDashboard", new { id = job.JobID })"
+                                   class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                                   title="Xem chi tiết">
+                                    <span class="material-icons text-sm">visibility</span>
+                                </a>
+                                <form asp-action="ApproveJob" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="jobId" value="@job.JobID" />
+                                    <button type="submit" 
+                                            class="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
+                                            title="Duyệt tin">
+                                        <span class="material-icons text-sm">check</span>
+                                    </button>
+                                </form>
+                                <button x-data="{ open: false }" 
+                                        x-on:click="open = true"
+                                        class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                        title="Từ chối tin">
+                                    <span class="material-icons text-sm">close</span>
+                                </button>
+                                <form asp-action="HideJob" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="jobId" value="@job.JobID" />
+                                    <button type="submit" 
+                                            class="p-2 bg-gray-500/20 text-gray-400 rounded-lg hover:bg-gray-500/30 transition-colors"
+                                            title="Ẩn tin">
+                                        <span class="material-icons text-sm">visibility_off</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                        Không có tin nào chờ duyệt
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center justify-center gap-2 mt-6">
+        @if (ViewBag.Page > 1)
+        {
+            <a href="@Url.Action("PendingJobs", new { industry = ViewBag.Industry, page = ViewBag.Page - 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_left</span>
+            </a>
+        }
+        
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
+            {
+                <a href="@Url.Action("PendingJobs", new { industry = ViewBag.Industry, page = i })"
+                   class="px-4 py-2 @(i == ViewBag.Page ? "bg-blue-500" : "bg-white/5 border border-white/10 hover:bg-white/10") rounded-lg transition-colors">
+                    @i
+                </a>
+            }
+            else if (i == ViewBag.Page - 2 || i == ViewBag.Page + 2)
+            {
+                <span class="px-2">...</span>
+            }
+        }
+        
+        @if (ViewBag.Page < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action("PendingJobs", new { industry = ViewBag.Industry, page = ViewBag.Page + 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_right</span>
+            </a>
+        }
+    </div>
+}
+
+<!-- Reject Modal (Alpine.js) -->
+<div x-data="{ showModal: false, jobId: null, reason: '' }" 
+     x-show="showModal" 
+     x-transition.opacity
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+     style="display: none;">
+    <div class="glass-card rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Từ chối tin tuyển dụng</h3>
+        <p class="text-sm text-gray-400 mb-4">Vui lòng nhập lý do từ chối:</p>
+        <textarea x-model="reason" 
+                  placeholder="Lý do từ chối..."
+                  class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"
+                  rows="3"></textarea>
+        <div class="flex gap-3 mt-4">
+            <button x-on:click="showModal = false" 
+                    class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
+                Huỷ
+            </button>
+            <form asp-action="RejectJob" method="post" class="flex-1">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="jobId" x-bind:value="jobId" />
+                <input type="hidden" name="reason" x-bind:value="reason" />
+                <button type="submit" 
+                        class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium transition-colors">
+                    Từ chối
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Trigger reject modal
+document.querySelectorAll('button[title="Từ chối tin"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        const row = e.target.closest('tr');
+        const jobId = row.querySelector('input[name="jobId"]').value;
+        document.querySelector('[x-data]').__x.$data.jobId = jobId;
+        document.querySelector('[x-data]').__x.$data.showModal = true;
+    });
+});
+</script>

@@ -1,0 +1,148 @@
+﻿@model JobConnect.Models.JobPost
+@{
+    ViewData["Title"] = "Đăng tin tuyển dụng";
+    Layout = "_LayoutEmployer";
+}
+
+<div class="max-w-3xl space-y-6 pb-10">
+
+    
+    <div class="flex items-center gap-3">
+        <a asp-action="Dashboard"
+           class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined text-xl">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-white">Đăng tin tuyển dụng</h1>
+            <p class="text-sm text-slate-400">Tạo tin tuyển dụng mới để thu hút ứng viên</p>
+        </div>
+    </div>
+
+    <form asp-action="PostJob" method="post" class="space-y-5">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="bg-red-900/30 border border-red-500/40 text-red-300 text-sm rounded-xl px-4 py-3"></div>
+
+        
+        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Thông tin cơ bản</p>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-medium text-slate-300">
+                    Tiêu đề công việc <span class="text-red-400">*</span>
+                </label>
+                <input asp-for="Title" placeholder="VD: Senior Backend Developer"
+                       class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+                <span asp-validation-for="Title" class="text-red-400 text-xs mt-1 block"></span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Loại công việc</label>
+                    <select asp-for="JobType"
+                            class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <option value="FullTime">Full-time</option>
+                        <option value="PartTime">Part-time</option>
+                        <option value="Contract">Hợp đồng</option>
+                        <option value="Intern">Thực tập</option>
+                        <option value="Remote">Remote</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Cấp bậc kinh nghiệm</label>
+                    <select asp-for="ExperienceLevel"
+                            class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <option value="">Không yêu cầu</option>
+                        <option value="Fresher">Fresher</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Middle">Middle</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Địa điểm làm việc</label>
+                    <input asp-for="Location" placeholder="VD: Hà Nội, TP. HCM"
+                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Ngành nghề</label>
+                    <select asp-for="CategoryID"
+                            class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <option value="">Chọn ngành nghề</option>
+                        @foreach (var cat in (ViewBag.Categories as List<JobConnect.Models.Category> ?? new()))
+                        {
+                            <option value="@cat.CategoryID">@cat.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Lương & Thời hạn</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Lương tối thiểu (VND)</label>
+                    <input asp-for="SalaryMin" type="number" placeholder="VD: 15000000"
+                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Lương tối đa (VND)</label>
+                    <input asp-for="SalaryMax" type="number" placeholder="VD: 30000000"
+                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-slate-300">Ngày hết hạn</label>
+                    <input asp-for="Deadline" type="date"
+                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Nội dung chi tiết</p>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-medium text-slate-300">
+                    Mô tả công việc <span class="text-red-400">*</span>
+                </label>
+                <textarea asp-for="Description" rows="6"
+                          placeholder="Mô tả chi tiết về vị trí công việc..."
+                          class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
+                <span asp-validation-for="Description" class="text-red-400 text-xs mt-1 block"></span>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-medium text-slate-300">Yêu cầu ứng viên</label>
+                <textarea asp-for="Requirements" rows="4"
+                          placeholder="Kỹ năng, kinh nghiệm yêu cầu..."
+                          class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-medium text-slate-300">Quyền lợi</label>
+                <textarea asp-for="Benefits" rows="3"
+                          placeholder="Các quyền lợi hấp dẫn dành cho ứng viên..."
+                          class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit"
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">send</span>
+                Gửi tin để duyệt
+            </button>
+            <a asp-action="Dashboard"
+               class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium rounded-xl transition-colors">
+                Hủy
+            </a>
+        </div>
+
+    </form>
+</div>

@@ -1,0 +1,148 @@
+@model List<JobConnect.Models.Report>
+@using JobConnect.Models
+@{
+    ViewData["Title"] = "Quản lý Báo cáo";
+    Layout = "_StaffLayout";
+
+    string TypeLabel(ReportType t) => t switch
+    {
+        ReportType.JobPost => "Tin tuyển dụng",
+        ReportType.Company => "Công ty",
+        ReportType.Spam => "Spam",
+        ReportType.Fraud => "Lừa đảo",
+        ReportType.InappropriateContent => "Nội dung không phù hợp",
+        _ => "Khác"
+    };
+
+    (string cls, string label) StatusInfo(ReportStatus s) => s switch
+    {
+        ReportStatus.Pending => ("badge-pending", "Chờ xử lý"),
+        ReportStatus.InProgress => ("badge-inprogress", "Đang xử lý"),
+        ReportStatus.Resolved => ("badge-resolved", "Đã giải quyết"),
+        _ => ("badge-rejected", "Đã từ chối")
+    };
+}
+
+<!-- Search & Filter -->
+<form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4 flex-wrap">
+    <select name="status" class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Pending" selected="@(ViewBag.Status == "Pending" ? "selected" : null)">Chờ xử lý</option>
+        <option value="InProgress" selected="@(ViewBag.Status == "InProgress" ? "selected" : null)">Đang xử lý</option>
+        <option value="Resolved" selected="@(ViewBag.Status == "Resolved" ? "selected" : null)">Đã giải quyết</option>
+        <option value="Rejected" selected="@(ViewBag.Status == "Rejected" ? "selected" : null)">Đã từ chối</option>
+    </select>
+    <select name="type" class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="">Tất cả loại</option>
+        <option value="JobPost" selected="@(ViewBag.Type == "JobPost" ? "selected" : null)">Tin tuyển dụng</option>
+        <option value="Company" selected="@(ViewBag.Type == "Company" ? "selected" : null)">Công ty</option>
+        <option value="Spam" selected="@(ViewBag.Type == "Spam" ? "selected" : null)">Spam</option>
+        <option value="Fraud" selected="@(ViewBag.Type == "Fraud" ? "selected" : null)">Lừa đảo</option>
+        <option value="InappropriateContent" selected="@(ViewBag.Type == "InappropriateContent" ? "selected" : null)">Nội dung không phù hợp</option>
+        <option value="Other" selected="@(ViewBag.Type == "Other" ? "selected" : null)">Khác</option>
+    </select>
+    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+        Lọc
+    </button>
+</form>
+
+<!-- Reports Table -->
+<div class="glass-card rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-white/5 border-b border-white/10">
+            <tr>
+                <th class="text-left px-6 py-4 font-semibold">ID</th>
+                <th class="text-left px-6 py-4 font-semibold">Loại</th>
+                <th class="text-left px-6 py-4 font-semibold">Đối tượng bị báo cáo</th>
+                <th class="text-left px-6 py-4 font-semibold">Người báo cáo</th>
+                <th class="text-left px-6 py-4 font-semibold">Lý do</th>
+                <th class="text-left px-6 py-4 font-semibold">Trạng thái</th>
+                <th class="text-left px-6 py-4 font-semibold">Ngày tạo</th>
+                <th class="text-center px-6 py-4 font-semibold">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-white/10">
+            @if (Model.Any())
+            {
+                @foreach (var report in Model)
+                {
+                    var (statusClass, statusLabel) = StatusInfo(report.Status);
+                    var targetName = report.ReportedEntityName
+                        ?? report.JobPost?.Title
+                        ?? report.Company?.CompanyName
+                        ?? "-";
+
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-xs text-gray-400">#@report.Id</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-300">@TypeLabel(report.ReportType)</td>
+                        <td class="px-6 py-4">
+                            <p class="font-medium">@targetName</p>
+                        </td>
+                        <td class="px-6 py-4 text-gray-300">@(report.Reporter?.FullName ?? "-")</td>
+                        <td class="px-6 py-4 text-gray-300">
+                            <span class="line-clamp-1" title="@report.Reason">@report.Reason</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium @statusClass">@statusLabel</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400">@report.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="@Url.Action("ReportDetail", "StaffDashboard", new { id = report.Id })"
+                               class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors inline-flex"
+                               title="Xem chi tiết">
+                                <span class="material-icons text-sm">visibility</span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-400">
+                        Không có báo cáo nào
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center justify-center gap-2 mt-6">
+        @if (ViewBag.Page > 1)
+        {
+            <a href="@Url.Action("Reports", new { status = ViewBag.Status, type = ViewBag.Type, page = ViewBag.Page - 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_left</span>
+            </a>
+        }
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
+            {
+                <a href="@Url.Action("Reports", new { status = ViewBag.Status, type = ViewBag.Type, page = i })"
+                   class="px-4 py-2 @(i == ViewBag.Page ? "bg-blue-500" : "bg-white/5 border border-white/10 hover:bg-white/10") rounded-lg transition-colors">
+                    @i
+                </a>
+            }
+            else if (i == ViewBag.Page - 2 || i == ViewBag.Page + 2)
+            {
+                <span class="px-2">...</span>
+            }
+        }
+
+        @if (ViewBag.Page < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action("Reports", new { status = ViewBag.Status, type = ViewBag.Type, page = ViewBag.Page + 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_right</span>
+            </a>
+        }
+    </div>
+}

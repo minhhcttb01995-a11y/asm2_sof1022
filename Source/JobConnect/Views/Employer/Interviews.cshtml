@@ -1,0 +1,70 @@
+@model List<JobConnect.Models.Interview>
+@{
+    ViewData["Title"] = "Lịch phỏng vấn";
+    Layout = "_LayoutEmployer";
+}
+
+<div class="space-y-6">
+    <div class="jc-page-header">
+        <div>
+            <h1 class="jc-page-title">Lịch phỏng vấn</h1>
+            <p class="jc-page-subtitle">Danh sách các lịch hẹn phỏng vấn với ứng viên</p>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="jc-empty">
+            <span class="material-symbols-outlined">event_busy</span>
+            Chưa có lịch phỏng vấn nào được lên lịch.
+            <div class="mt-4">
+                <a asp-action="Dashboard" class="jc-btn jc-btn-primary">Xem danh sách tin tuyển dụng</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="jc-table-wrap">
+            <table class="jc-table">
+                <thead>
+                    <tr>
+                        <th>Ứng viên</th>
+                        <th>Vị trí</th>
+                        <th>Thời gian</th>
+                        <th>Địa điểm</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 font-bold">
+                                        @((item.Application?.CandidateProfile?.FullName?[0].ToString().ToUpper() ?? "U"))
+                                    </div>
+                                    <span class="font-medium text-white">@item.Application?.CandidateProfile?.FullName</span>
+                                </div>
+                            </td>
+                            <td class="text-slate-400">@item.Application?.Job?.Title</td>
+                            <td class="text-slate-400">@item.InterviewDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-slate-400">@item.Location</td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <a asp-action="EditInterview" asp-route-id="@item.InterviewID"
+                                       class="text-blue-400 text-xs hover:text-blue-300">Sửa</a>
+                                    <form asp-action="DeleteInterview" asp-route-id="@item.InterviewID" method="post"
+                                          onsubmit="return confirm('Bạn có chắc muốn hủy lịch phỏng vấn này?')" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="text-red-400 text-xs hover:text-red-300">Hủy</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

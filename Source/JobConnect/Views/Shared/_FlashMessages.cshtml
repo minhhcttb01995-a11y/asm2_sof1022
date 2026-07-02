@@ -1,0 +1,35 @@
+@{
+    var success = TempData["Success"] as string;
+    var error = TempData["Error"] as string;
+    var warning = TempData["Warning"] as string;
+    var info = TempData["Info"] as string;
+}
+
+@if (!string.IsNullOrEmpty(success))
+{
+    <div class="flash-msg fixed top-20 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-green-600 text-white text-sm font-medium">
+        <span class="material-symbols-outlined text-base">check_circle</span>
+        @success
+    </div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="flash-msg fixed top-20 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-red-600 text-white text-sm font-medium">
+        <span class="material-symbols-outlined text-base">error</span>
+        @error
+    </div>
+}
+@if (!string.IsNullOrEmpty(warning))
+{
+    <div class="flash-msg fixed top-20 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-yellow-500 text-white text-sm font-medium">
+        <span class="material-symbols-outlined text-base">warning</span>
+        @warning
+    </div>
+}
+@if (!string.IsNullOrEmpty(info))
+{
+    <div class="flash-msg fixed top-20 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-blue-600 text-white text-sm font-medium">
+        <span class="material-symbols-outlined text-base">info</span>
+        @info
+    </div>
+}

@@ -1,0 +1,148 @@
+@model List<JobConnect.Models.Skill>
+@{
+    ViewData["Title"] = "Quản lý Kỹ năng";
+    Layout = "_StaffLayout";
+}
+
+<!-- Filter -->
+<form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4 items-center">
+    <a href="@Url.Action("Categories", "StaffDashboard")" 
+       class="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg text-sm font-medium transition-colors">
+        ← Quay lại Danh mục
+    </a>
+    <select name="category" class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="">Tất cả danh mục</option>
+        <option value="Programming" selected="@(ViewBag.Category == "Programming" ? "selected" : null)">Kỹ thuật</option>
+        <option value="SoftSkills" selected="@(ViewBag.Category == "SoftSkills" ? "selected" : null)">Kỹ năng mềm</option>
+        <option value="Language" selected="@(ViewBag.Category == "Language" ? "selected" : null)">Ngôn ngữ</option>
+        <option value="Management" selected="@(ViewBag.Category == "Management" ? "selected" : null)">Quản lý</option>
+    </select>
+    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+        Lọc
+    </button>
+</form>
+
+<!-- Create Skill Form -->
+<div class="glass-card rounded-xl p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">Tạo kỹ năng mới</h3>
+    <form asp-action="CreateSkill" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @Html.AntiForgeryToken()
+        <input name="name" type="text" placeholder="Tên kỹ năng" required
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+        <select name="category" class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+            <option value="Programming">Kỹ thuật</option>
+            <option value="SoftSkills">Kỹ năng mềm</option>
+            <option value="Language">Ngôn ngữ</option>
+            <option value="Management">Quản lý</option>
+        </select>
+        <input name="description" type="text" placeholder="Mô tả (tùy chọn)"
+               class="md:col-span-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+        <button type="submit" class="md:col-span-2 px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-sm font-medium transition-colors">
+            Tạo kỹ năng
+        </button>
+    </form>
+</div>
+
+<!-- Skills Table -->
+<div class="glass-card rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-white/5 border-b border-white/10">
+            <tr>
+                <th class="text-left px-6 py-4 font-semibold">ID</th>
+                <th class="text-left px-6 py-4 font-semibold">Tên</th>
+                <th class="text-left px-6 py-4 font-semibold">Danh mục</th>
+                <th class="text-left px-6 py-4 font-semibold">Mô tả</th>
+                <th class="text-left px-6 py-4 font-semibold">Trạng thái</th>
+                <th class="text-center px-6 py-4 font-semibold">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-white/10">
+            @if (Model.Any())
+            {
+                @foreach (var skill in Model)
+                {
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-xs text-gray-400">@skill.SkillID</span>
+                        </td>
+                        <td class="px-6 py-4 font-medium">@skill.Name</td>
+                        <td class="px-6 py-4 text-gray-300">@skill.Category</td>
+                        <td class="px-6 py-4 text-gray-300 truncate max-w-xs">@skill.Description ?? "-"</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium @(skill.IsActive ? "badge-open" : "badge-closed")">
+                                @(skill.IsActive ? "Hoạt động" : "Đã ẩn")
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <form asp-action="ToggleSkill" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="skillId" value="@skill.SkillID" />
+                                    <button type="submit" 
+                                            class="p-2 @(skill.IsActive ? "bg-gray-500/20 text-gray-400 hover:bg-gray-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30") rounded-lg transition-colors"
+                                            title="@(skill.IsActive ? "Ẩn kỹ năng" : "Hiện kỹ năng")">
+                                        <span class="material-icons text-sm">@(skill.IsActive ? "visibility_off" : "visibility")</span>
+                                    </button>
+                                </form>
+                                <form asp-action="DeleteSkill" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="skillId" value="@skill.SkillID" />
+                                    <button type="submit" 
+                                            class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                            title="Xóa">
+                                        <span class="material-icons text-sm">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-400">
+                        Không tìm thấy kỹ năng nào
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center justify-center gap-2 mt-6">
+        @if (ViewBag.Page > 1)
+        {
+            <a href="@Url.Action("Skills", new { category = ViewBag.Category, page = ViewBag.Page - 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_left</span>
+            </a>
+        }
+        
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
+            {
+                <a href="@Url.Action("Skills", new { category = ViewBag.Category, page = i })"
+                   class="px-4 py-2 @(i == ViewBag.Page ? "bg-blue-500" : "bg-white/5 border border-white/10 hover:bg-white/10") rounded-lg transition-colors">
+                    @i
+                </a>
+            }
+            else if (i == ViewBag.Page - 2 || i == ViewBag.Page + 2)
+            {
+                <span class="px-2">...</span>
+            }
+        }
+        
+        @if (ViewBag.Page < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action("Skills", new { category = ViewBag.Category, page = ViewBag.Page + 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_right</span>
+            </a>
+        }
+    </div>
+}

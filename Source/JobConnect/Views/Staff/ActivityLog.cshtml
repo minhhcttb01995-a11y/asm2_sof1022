@@ -1,0 +1,111 @@
+@using JobConnect.Models
+@model JobConnect.Models.Staff
+@{
+    ViewData["Title"] = "Lịch sử hoạt động";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-4xl mx-auto px-6 py-8">
+    <div class="flex items-center gap-4 mb-6">
+        <a asp-action="Index" class="text-secondary hover:text-primary">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h1 class="text-2xl font-bold text-on-surface">Lịch sử hoạt động</h1>
+    </div>
+
+    <div class="bg-white rounded-xl border border-outline-variant p-6 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center flex-shrink-0 overflow-hidden">
+                @if (!string.IsNullOrEmpty(ViewBag.Staff?.Avatar))
+                {
+                    <img src="@ViewBag.Staff.Avatar" class="w-12 h-12 rounded-full object-cover" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined text-2xl text-secondary">person</span>
+                }
+            </div>
+            <div>
+                <p class="font-medium text-on-surface">@ViewBag.Staff?.FullName</p>
+                <p class="text-sm text-secondary">Mã NV: @ViewBag.Staff?.EmployeeCode</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant">
+            <h2 class="text-lg font-bold text-on-surface">Danh sách hoạt động</h2>
+            <p class="text-sm text-secondary">Tổng số: @ViewBag.TotalCount hoạt động</p>
+        </div>
+
+        @if (ViewBag.Activities != null && ((List<ActivityLog>)ViewBag.Activities).Any())
+        {
+            <div class="divide-y divide-outline-variant">
+                @foreach (var activity in (List<ActivityLog>)ViewBag.Activities)
+                {
+                    <div class="px-6 py-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p class="font-medium text-on-surface">@activity.Action</p>
+                                @if (!string.IsNullOrEmpty(activity.Description))
+                                {
+                                    <p class="text-sm text-secondary mt-1">@activity.Description</p>
+                                }
+                                <div class="flex items-center gap-4 mt-2 text-xs text-secondary">
+                                    <span class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">schedule</span>
+                                        @activity.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(activity.IpAddress))
+                                    {
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">ip</span>
+                                            @activity.IpAddress
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="px-6 py-4 border-t border-outline-variant">
+                    <div class="flex justify-center gap-2">
+                        @if (ViewBag.CurrentPage > 1)
+                        {
+                            <a asp-action="ActivityLog" asp-route-id="@Model.Id" asp-route-page="@(ViewBag.CurrentPage - 1)"
+                               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border border-outline-variant text-secondary hover:bg-surface-container">
+                                <span class="material-symbols-outlined text-sm">chevron_left</span>
+                            </a>
+                        }
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <a asp-action="ActivityLog" asp-route-id="@Model.Id" asp-route-page="@i"
+                               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                                @i
+                            </a>
+                        }
+                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                        {
+                            <a asp-action="ActivityLog" asp-route-id="@Model.Id" asp-route-page="@(ViewBag.CurrentPage + 1)"
+                               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border border-outline-variant text-secondary hover:bg-surface-container">
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="px-6 py-12 text-center">
+                <span class="material-symbols-outlined text-4xl text-secondary mb-2">history</span>
+                <p class="text-sm text-secondary">Chưa có hoạt động nào</p>
+            </div>
+        }
+    </div>
+</div>

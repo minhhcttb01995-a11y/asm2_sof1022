@@ -1,0 +1,300 @@
+@using JobConnect.Models
+@using JobConnect.ViewModels.Staff
+@model StaffDetailsViewModel
+@{
+    ViewData["Title"] = "Chi tiết nhân viên";
+    Layout = "_LayoutAdmin";
+
+    var (statusBg, statusText, statusDot, statusLabel) = Model.Status switch
+    {
+        StaffStatus.Active => ("bg-emerald-50 border-emerald-200", "text-emerald-700", "bg-emerald-500", "Hoạt động"),
+        StaffStatus.Locked => ("bg-amber-50 border-amber-200", "text-amber-700", "bg-amber-400", "Đã khóa"),
+        StaffStatus.Deleted => ("bg-red-50 border-red-200", "text-red-600", "bg-red-400", "Đã xóa"),
+        _ => ("bg-slate-50 border-slate-200", "text-slate-500", "bg-slate-400", "Không rõ")
+    };
+}
+
+<div class="max-w-5xl mx-auto px-6 py-8">
+
+    @* ── Breadcrumb / Back ── *@
+    <div class="flex items-center gap-3 mb-8">
+        <a asp-action="Index"
+           class="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant text-secondary hover:bg-surface-container transition-all">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+        </a>
+        <div>
+            <div class="flex items-center gap-2 text-xs text-secondary mb-0.5">
+                <a asp-action="Index" class="hover:text-primary transition-colors">Nhân viên</a>
+                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                <span>Chi tiết</span>
+            </div>
+            <h1 class="text-xl font-bold text-on-surface leading-tight">Chi tiết nhân viên</h1>
+        </div>
+    </div>
+
+    @* ── Alerts ── *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        @* ══════════════════════════════════
+           CỘT TRÁI — Thông tin chính
+           ══════════════════════════════════ *@
+        <div class="lg:col-span-2 space-y-5">
+
+            @* Card hồ sơ *@
+            <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
+
+                @* Banner gradient *@
+                <div class="h-24 bg-gradient-to-r from-primary/80 via-primary to-indigo-600 relative">
+                    <div class="absolute inset-0 opacity-10"
+                         style="background-image:radial-gradient(circle at 20% 50%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:30px 30px"></div>
+                </div>
+
+                <div class="px-6 pb-6">
+                    @* Avatar overlap *@
+                    <div class="flex items-end gap-4 -mt-10 mb-5">
+                        <div class="w-20 h-20 rounded-2xl bg-white flex items-center justify-center overflow-hidden ring-4 ring-white shadow-md flex-shrink-0">
+                            @if (!string.IsNullOrEmpty(Model.Avatar))
+                            {
+                                <img src="@Model.Avatar" class="w-20 h-20 object-cover" alt="@Model.FullName" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-4xl text-secondary">person</span>
+                            }
+                        </div>
+                        <div class="pb-1 flex-1 min-w-0">
+                            <h2 class="text-xl font-bold text-on-surface truncate">@Model.FullName</h2>
+                            <p class="text-sm text-secondary truncate">@Model.Email</p>
+                        </div>
+                        @* Badge trạng thái *@
+                        <div class="pb-1 flex-shrink-0">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border @statusBg @statusText">
+                                <span class="w-1.5 h-1.5 rounded-full @statusDot"></span>
+                                @statusLabel
+                            </span>
+                        </div>
+                    </div>
+
+                    @* Grid thông tin *@
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+                        <div>
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Mã nhân viên</p>
+                            <span class="font-mono text-sm font-semibold bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/50 select-all inline-block">
+                                @Model.EmployeeCode
+                            </span>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Số điện thoại</p>
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-secondary opacity-60">phone</span>
+                                <span class="text-sm font-medium text-on-surface">@(Model.Phone ?? "Chưa cập nhật")</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Chức vụ</p>
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-secondary opacity-60">badge</span>
+                                <span class="text-sm font-medium text-on-surface">@Model.Position</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Phòng ban</p>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold">
+                                <span class="material-symbols-outlined text-xs">corporate_fare</span>
+                                @Model.Department
+                            </span>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Ngày tạo</p>
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-secondary opacity-60">calendar_today</span>
+                                <span class="text-sm font-medium text-on-surface">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Cập nhật lần cuối</p>
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-secondary opacity-60">update</span>
+                                <span class="text-sm font-medium text-on-surface">@(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</span>
+                            </div>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-1.5">Đăng nhập lần cuối</p>
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-secondary opacity-60">login</span>
+                                @if (Model.LastLoginAt.HasValue)
+                                {
+                                    <span class="text-sm font-medium text-on-surface">@Model.LastLoginAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-sm text-secondary italic">Chưa đăng nhập</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Card hành động *@
+            <div class="bg-white rounded-2xl border border-outline-variant p-5 shadow-sm">
+                <p class="text-xs font-semibold text-secondary uppercase tracking-wide mb-4">Thao tác quản lý</p>
+                <div class="flex flex-wrap gap-2.5">
+
+                    @* Chỉnh sửa *@
+                    <a asp-action="Edit" asp-route-id="@Model.Id"
+                       class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                        Chỉnh sửa
+                    </a>
+
+                    @* Khóa / Mở khóa *@
+                    @if (Model.Status == StaffStatus.Active)
+                    {
+                        <form asp-action="Lock" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit"
+                                    onclick="return confirm('Khóa tài khoản nhân viên này?')"
+                                    class="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-semibold hover:bg-amber-100 transition-all">
+                                <span class="material-symbols-outlined text-base">lock</span>
+                                Khóa tài khoản
+                            </button>
+                        </form>
+                    }
+                    else if (Model.Status == StaffStatus.Locked)
+                    {
+                        <form asp-action="Unlock" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit"
+                                    class="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-semibold hover:bg-emerald-100 transition-all">
+                                <span class="material-symbols-outlined text-base">lock_open</span>
+                                Mở khóa
+                            </button>
+                        </form>
+                    }
+
+                    @* Reset mật khẩu *@
+                    <a asp-action="ResetPassword" asp-route-id="@Model.Id"
+                       class="flex items-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-sm font-semibold hover:bg-purple-100 transition-all">
+                        <span class="material-symbols-outlined text-base">key</span>
+                        Reset mật khẩu
+                    </a>
+
+                    @* Lịch sử hoạt động *@
+                    <a asp-action="ActivityLog" asp-route-id="@Model.Id"
+                       class="flex items-center gap-2 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container transition-all">
+                        <span class="material-symbols-outlined text-base">history</span>
+                        Lịch sử hoạt động
+                    </a>
+
+                    @* Xóa (soft delete) *@
+                    @if (Model.Status != StaffStatus.Deleted)
+                    {
+                        <form asp-action="Delete" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit"
+                                    onclick="return confirm('Xóa nhân viên \" @Model.FullName\"?\nTài khoản sẽ bị ẩn khỏi danh sách và không thể đăng nhập.')"
+                                    class="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all">
+                                <span class="material-symbols-outlined text-base">delete</span>
+                                Xóa
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Restore" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit"
+                                    onclick="return confirm('Khôi phục tài khoản nhân viên này?')"
+                                    class="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-semibold hover:bg-emerald-600 transition-all shadow-sm">
+                                <span class="material-symbols-outlined text-base">restore</span>
+                                Khôi phục
+                            </button>
+                        </form>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        @* ══════════════════════════════════
+           CỘT PHẢI — Hoạt động gần đây
+           ══════════════════════════════════ *@
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden shadow-sm h-fit">
+
+            @* Header *@
+            <div class="px-5 py-4 border-b border-outline-variant flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm text-primary">timeline</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-on-surface">Hoạt động gần đây</h3>
+                </div>
+                @if (Model.RecentActivities.Any())
+                {
+                    <span class="text-xs text-secondary bg-surface-container px-2 py-0.5 rounded-full">
+                        @Model.RecentActivities.Count
+                    </span>
+                }
+            </div>
+
+            @* Body *@
+            <div class="p-4">
+                @if (Model.RecentActivities.Any())
+                {
+                    <div class="space-y-3">
+                        @foreach (var activity in Model.RecentActivities.Take(8))
+                        {
+                            <div class="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-primary/40">
+                                <p class="text-xs font-semibold text-on-surface leading-snug">@activity.Action</p>
+                                @if (!string.IsNullOrEmpty(activity.Description))
+                                {
+                                    <p class="text-xs text-secondary mt-0.5 leading-relaxed">@activity.Description</p>
+                                }
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs text-secondary/60">@activity.CreatedAt.ToString("dd/MM HH:mm")</span>
+                                    @if (!string.IsNullOrEmpty(activity.IpAddress))
+                                    {
+                                        <span class="text-xs text-secondary/40">• @activity.IpAddress</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <a asp-action="ActivityLog" asp-route-id="@Model.Id"
+                       class="flex items-center justify-center gap-1.5 mt-4 pt-4 border-t border-outline-variant text-xs text-primary font-semibold hover:underline">
+                        <span class="material-symbols-outlined text-xs">open_in_new</span>
+                        Xem toàn bộ lịch sử
+                    </a>
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center py-10 text-secondary">
+                        <span class="material-symbols-outlined text-4xl opacity-20 mb-3">history</span>
+                        <p class="text-xs font-medium">Chưa có hoạt động nào</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

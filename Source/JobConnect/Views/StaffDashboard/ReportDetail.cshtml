@@ -1,0 +1,447 @@
+@model JobConnect.Models.Report
+@using JobConnect.Models
+@{
+    ViewData["Title"] = "Chi tiết Báo cáo";
+    Layout = "_StaffLayout";
+
+    var (statusBg, statusText, statusLabel) = Model.Status switch
+    {
+        ReportStatus.Pending => ("bg-amber-500/15", "text-amber-400", "Chờ xử lý"),
+        ReportStatus.InProgress => ("bg-blue-500/15", "text-blue-400", "Đang xử lý"),
+        ReportStatus.Resolved => ("bg-emerald-500/15", "text-emerald-400", "Đã giải quyết"),
+        _ => ("bg-rose-500/15", "text-rose-400", "Đã từ chối")
+    };
+
+    bool canProcess = Model.Status == ReportStatus.Pending || Model.Status == ReportStatus.InProgress;
+    bool hasJobTarget = Model.JobPost != null;
+    bool hasCompanyTarget = Model.Company != null;
+}
+
+<!-- Breadcrumb -->
+<div class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+    <a href="@Url.Action("Reports", "StaffDashboard")" class="hover:text-slate-300 transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined text-base">flag</span>
+        Báo cáo
+    </a>
+    <span class="material-symbols-outlined text-base text-slate-700">chevron_right</span>
+    <span class="text-slate-300">Báo cáo #@Model.Id</span>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+    <!-- LEFT: Thông tin báo cáo -->
+    <div class="xl:col-span-2 space-y-5">
+
+        <!-- Report header card -->
+        <div class="sd-card p-5">
+            <div class="flex items-start justify-between mb-5">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <h2 class="text-lg font-bold text-white">Báo cáo #@Model.Id</h2>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium @statusBg @statusText">
+                            @if (Model.Status == ReportStatus.Pending)
+                            {
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            }
+                            @statusLabel
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-500">
+                        <span class="material-symbols-outlined text-xs align-middle">schedule</span>
+                        Tạo lúc @Model.CreatedAt.ToString("HH:mm – dd/MM/yyyy")
+                    </p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-rose-400">flag</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Người báo cáo -->
+                <div class="bg-white/5 rounded-xl p-4">
+                    <p class="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Người báo cáo</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-sm text-blue-400">person</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-200">@(Model.Reporter?.FullName ?? "—")</p>
+                            <p class="text-xs text-slate-500">@Model.ReporterType</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loại báo cáo -->
+                <div class="bg-white/5 rounded-xl p-4">
+                    <p class="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Loại báo cáo</p>
+                    <p class="font-semibold text-slate-200">
+                        @(Model.ReportType switch
+                        {
+                            ReportType.JobPost => "🗂 Tin tuyển dụng",
+                            ReportType.Company => "🏢 Công ty",
+                            ReportType.Spam => "🚫 Spam",
+                            ReportType.Fraud => "⚠️ Gian lận",
+                            ReportType.InappropriateContent => "❗ Nội dung không phù hợp",
+                            _ => "📌 Khác"
+                        })
+                    </p>
+                </div>
+
+                <!-- Người xử lý -->
+                <div class="bg-white/5 rounded-xl p-4">
+                    <p class="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Người xử lý</p>
+                    @if (Model.ProcessedByStaff != null)
+                    {
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-sm text-emerald-400">support_agent</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-200">@Model.ProcessedByStaff.FullName</p>
+                                @if (Model.ProcessedAt.HasValue)
+                                {
+                                    <p class="text-xs text-slate-500">@Model.ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-slate-600 text-sm italic">Chưa được xử lý</p>
+                    }
+                </div>
+
+                <!-- Thời gian xử lý -->
+                <div class="bg-white/5 rounded-xl p-4">
+                    <p class="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Thời gian xử lý</p>
+                    @if (Model.ProcessedAt.HasValue)
+                    {
+                        var duration = Model.ProcessedAt.Value - Model.CreatedAt;
+                        <p class="font-semibold text-slate-200">@Model.ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="text-xs text-slate-500">Sau @((int)duration.TotalHours)h @(duration.Minutes)m</p>
+                    }
+                    else
+                    {
+                        <p class="text-slate-600 text-sm italic">Chưa xử lý</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Lý do chi tiết -->
+        <div class="sd-card p-5">
+            <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-slate-500">description</span>
+                Lý do báo cáo
+            </h3>
+            <p class="text-slate-300 text-sm leading-relaxed bg-white/5 rounded-xl p-4">@Model.Reason</p>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <h3 class="text-sm font-semibold text-slate-300 mt-4 mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-slate-500">notes</span>
+                    Mô tả thêm
+                </h3>
+                <p class="text-slate-400 text-sm leading-relaxed bg-white/5 rounded-xl p-4">@Model.Description</p>
+            }
+        </div>
+
+        <!-- Đối tượng bị báo cáo -->
+        @if (hasJobTarget)
+        {
+            <div class="sd-card p-5">
+                <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-amber-400">work</span>
+                    Tin tuyển dụng bị báo cáo
+                </h3>
+                <div class="bg-white/5 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-amber-400">work</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-slate-200 truncate">@Model.JobPost!.Title</p>
+                        <p class="text-xs text-slate-500">@Model.JobPost.Employer?.CompanyName • Trạng thái: @Model.JobPost.Status</p>
+                    </div>
+                    <a href="@Url.Action("JobDetail", "StaffDashboard", new { id = Model.JobPost.JobID })"
+                       class="flex-shrink-0 px-3 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">open_in_new</span>
+                        Xem tin
+                    </a>
+                </div>
+
+                <!-- Hành động nhanh với tin -->
+                @if (canProcess && Model.JobPost.Status != "Closed")
+                {
+                    <div class="mt-3 flex items-center gap-3">
+                        <form asp-controller="StaffDashboard" asp-action="HideJob" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="jobId" value="@Model.JobPost.JobID" />
+                            <button type="submit"
+                                    onclick="return confirm('Xác nhận ẩn tin tuyển dụng này?')"
+                                    class="flex items-center gap-1.5 px-3 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium transition-colors">
+                                <span class="material-symbols-outlined text-sm">visibility_off</span>
+                                Ẩn tin tuyển dụng
+                            </button>
+                        </form>
+                        <span class="text-xs text-slate-600">Tin sẽ chuyển sang trạng thái Đóng</span>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (hasCompanyTarget)
+        {
+            <div class="sd-card p-5">
+                <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-orange-400">apartment</span>
+                    Công ty bị báo cáo
+                </h3>
+                <div class="bg-white/5 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-orange-500/15 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-orange-400">apartment</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-slate-200 truncate">@Model.Company!.CompanyName</p>
+                        <p class="text-xs text-slate-500">
+                            @Model.Company.Industry •
+                            @if (Model.Company.IsLocked)
+                            {
+                                <span class="text-rose-400 font-medium">🔒 Đã bị khóa</span>
+                            }
+                            else if (Model.Company.IsVerified)
+                            {
+                                <span class="text-emerald-400 font-medium">✅ Đã xác minh</span>
+                            }
+                            else
+                            {
+                                <span class="text-amber-400">⏳ Chờ duyệt</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = Model.Company.UserID })"
+                           class="px-3 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">open_in_new</span>
+                            Xem
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Khóa công ty -->
+                @if (canProcess)
+                {
+                    <div class="mt-3 flex items-center gap-3">
+                        <form asp-controller="StaffDashboard" asp-action="ToggleEmployerLock" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="employerId" value="@Model.Company.EmployerID" />
+                            <input type="hidden" name="returnUrl" value="@Url.Action("ReportDetail", new { id = Model.Id })" />
+                            @if (Model.Company.IsLocked)
+                            {
+                                <button type="submit"
+                                        onclick="return confirm('Xác nhận mở khóa công ty này?')"
+                                        class="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-medium transition-colors">
+                                    <span class="material-symbols-outlined text-sm">lock_open</span>
+                                    Mở khóa công ty
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit"
+                                        onclick="return confirm('Xác nhận KHÓA công ty này? Nhà tuyển dụng sẽ không thể đăng tin.')"
+                                        class="flex items-center gap-1.5 px-3 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium transition-colors">
+                                    <span class="material-symbols-outlined text-sm">lock</span>
+                                    Khóa công ty
+                                </button>
+                            }
+                        </form>
+                        <span class="text-xs text-slate-600">
+                            @(Model.Company.IsLocked ? "Công ty đang bị khóa" : "Công ty đang hoạt động bình thường")
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Ghi chú xử lý cũ -->
+        @if (!string.IsNullOrEmpty(Model.ProcessNote))
+        {
+            <div class="sd-card p-5">
+                <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-slate-500">sticky_note_2</span>
+                    Ghi chú xử lý
+                </h3>
+                <p class="text-slate-400 text-sm leading-relaxed bg-white/5 rounded-xl p-4 border-l-2 border-blue-500/40">
+                    @Model.ProcessNote
+                </p>
+            </div>
+        }
+    </div>
+
+    <!-- RIGHT: Panel xử lý -->
+    <div class="space-y-5">
+
+        @if (canProcess)
+        {
+            <!-- Form xử lý báo cáo -->
+            <div class="sd-card p-5">
+                <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-blue-400">manage_accounts</span>
+                    Xử lý báo cáo
+                </h3>
+                <form asp-action="ProcessReport" method="post" class="space-y-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="reportId" value="@Model.Id" />
+
+                    <!-- Hành động -->
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-2 font-medium">Kết quả xử lý</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors border border-transparent has-[:checked]:border-blue-500/40 has-[:checked]:bg-blue-500/5">
+                                <input type="radio" name="action" value="InProgress"
+                                @(Model.Status == ReportStatus.InProgress ? "checked" : "")
+                                       class="accent-blue-500" />
+                                <div>
+                                    <p class="text-sm font-medium text-slate-200">🔄 Đang xử lý</p>
+                                    <p class="text-xs text-slate-500">Ghi nhận và tiếp tục điều tra</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors border border-transparent has-[:checked]:border-emerald-500/40 has-[:checked]:bg-emerald-500/5">
+                                <input type="radio" name="action" value="Resolve"
+                                       class="accent-emerald-500" />
+                                <div>
+                                    <p class="text-sm font-medium text-slate-200">✅ Đã giải quyết</p>
+                                    <p class="text-xs text-slate-500">Đóng báo cáo, vấn đề đã được xử lý</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors border border-transparent has-[:checked]:border-rose-500/40 has-[:checked]:bg-rose-500/5">
+                                <input type="radio" name="action" value="Reject"
+                                       class="accent-rose-500" />
+                                <div>
+                                    <p class="text-sm font-medium text-slate-200">❌ Từ chối báo cáo</p>
+                                    <p class="text-xs text-slate-500">Báo cáo không hợp lệ hoặc không vi phạm</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-2 font-medium">Ghi chú xử lý</label>
+                        <textarea name="note" rows="3"
+                                  placeholder="Nhập ghi chú xử lý..."
+                                  class="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-blue-500 resize-none transition-colors">@Model.ProcessNote</textarea>
+                    </div>
+
+                    <!-- Ẩn tin tuyển dụng (nếu có) -->
+                    @if (hasJobTarget && Model.JobPost!.Status != "Closed")
+                    {
+                        <label class="flex items-start gap-3 p-3 bg-rose-500/5 border border-rose-500/15 rounded-lg cursor-pointer">
+                            <input type="checkbox" name="hideJob" value="true" class="mt-0.5 accent-rose-500" />
+                            <div>
+                                <p class="text-sm font-medium text-rose-400">Đồng thời ẩn tin tuyển dụng</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Tin sẽ bị đóng và không còn hiển thị cho ứng viên</p>
+                            </div>
+                        </label>
+                    }
+
+                    <button type="submit"
+                            class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        Lưu xử lý
+                    </button>
+                </form>
+            </div>
+
+            <!-- Khóa tài khoản người dùng -->
+            @if (Model.Reporter != null || Model.Company?.UserID != null)
+            {
+                <div class="sd-card p-5">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base text-rose-400">admin_panel_settings</span>
+                        Hành động tài khoản
+                    </h3>
+                    <div class="space-y-2">
+                        @if (hasCompanyTarget && Model.Company?.UserID != null)
+                        {
+                            <form asp-controller="StaffDashboard" asp-action="ToggleUserStatus" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@Model.Company.UserID" />
+                                <input type="hidden" name="returnUrl" value="@Url.Action("ReportDetail", new { id = Model.Id })" />
+                                <button type="submit"
+                                        onclick="return confirm('Xác nhận thay đổi trạng thái tài khoản nhà tuyển dụng?')"
+                                        class="w-full flex items-center gap-2.5 px-4 py-2.5 bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 text-slate-300 hover:text-rose-400 rounded-lg text-sm transition-colors">
+                                    <span class="material-symbols-outlined text-base">@(Model.Company.IsLocked ? "lock_open" : "block")</span>
+                                    @(Model.Company.IsLocked ? "Mở khóa TK nhà tuyển dụng" : "Khóa TK nhà tuyển dụng")
+                                </button>
+                            </form>
+                        }
+                        @if (Model.Reporter != null)
+                        {
+                            <form asp-controller="StaffDashboard" asp-action="ToggleUserStatus" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@Model.Reporter.UserID" />
+                                <input type="hidden" name="returnUrl" value="@Url.Action("ReportDetail", new { id = Model.Id })" />
+                                <button type="submit"
+                                        onclick="return confirm('Xác nhận thay đổi trạng thái tài khoản người báo cáo?')"
+                                        class="w-full flex items-center gap-2.5 px-4 py-2.5 bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/20 text-slate-300 hover:text-amber-400 rounded-lg text-sm transition-colors">
+                                    <span class="material-symbols-outlined text-base">@(Model.Reporter.Status == "Banned" ? "lock_open" : "person_off")</span>
+                                    @(Model.Reporter.Status == "Banned" ? "Mở khóa người báo cáo" : "Khóa người báo cáo")
+                                </button>
+                            </form>
+                        }
+                    </div>
+                    <p class="text-xs text-slate-600 mt-3">⚠️ Hành động này ảnh hưởng trực tiếp đến tài khoản người dùng.</p>
+                </div>
+            }
+        }
+
+        <!-- Trạng thái timeline -->
+        <div class="sd-card p-5">
+            <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-slate-500">timeline</span>
+                Tiến trình
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-xs text-blue-400">flag</span>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-300">Tạo báo cáo</p>
+                        <p class="text-xs text-slate-600">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+                @if (Model.Status != ReportStatus.Pending)
+                {
+                    <div class="ml-3.5 w-px h-4 bg-white/10"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full @statusBg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-xs @statusText">
+                                @(Model.Status == ReportStatus.Resolved ? "check_circle" :
+                                  Model.Status == ReportStatus.Rejected ? "cancel" : "sync")
+                            </span>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-slate-300">@statusLabel</p>
+                            @if (Model.ProcessedAt.HasValue)
+                            {
+                                <p class="text-xs text-slate-600">@Model.ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                            }
+                            @if (Model.ProcessedByStaff != null)
+                            {
+                                <p class="text-xs text-slate-600">bởi @Model.ProcessedByStaff.FullName</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Nút quay lại -->
+        <a href="@Url.Action("Reports", "StaffDashboard")"
+           class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 rounded-lg text-sm transition-colors">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            Quay lại danh sách
+        </a>
+    </div>
+</div>

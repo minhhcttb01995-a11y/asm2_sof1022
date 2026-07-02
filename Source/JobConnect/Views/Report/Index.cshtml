@@ -1,0 +1,131 @@
+@using JobConnect.Models
+@model List<Report>
+@{
+    ViewData["Title"] = "Quản lý báo cáo";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-on-surface">Quản lý báo cáo</h1>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- Filter -->
+    <form method="get" class="flex gap-3 mb-6">
+        <select name="status" class="px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Pending" selected="@(ViewBag.StatusFilter == ReportStatus.Pending ? "selected" : null)">Chờ xử lý</option>
+            <option value="InProgress" selected="@(ViewBag.StatusFilter == ReportStatus.InProgress ? "selected" : null)">Đang xử lý</option>
+            <option value="Resolved" selected="@(ViewBag.StatusFilter == ReportStatus.Resolved ? "selected" : null)">Đã giải quyết</option>
+            <option value="Rejected" selected="@(ViewBag.StatusFilter == ReportStatus.Rejected ? "selected" : null)">Đã từ chối</option>
+        </select>
+        <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">Lọc</button>
+        <a asp-action="Index" class="px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+            Đặt lại
+        </a>
+    </form>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                    <th class="text-left px-4 py-3 font-semibold text-xs">Người báo cáo</th>
+                    <th class="text-left px-5 py-3 font-semibold">Loại báo cáo</th>
+                    <th class="text-left px-5 py-3 font-semibold">Đối tượng</th>
+                    <th class="text-left px-5 py-3 font-semibold">Lý do</th>
+                    <th class="text-left px-5 py-3 font-semibold">Trạng thái</th>
+                    <th class="text-left px-5 py-3 font-semibold">Ngày tạo</th>
+                    <th class="px-5 py-3 text-center font-semibold">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @foreach (var report in Model)
+                {
+                    var statusClass = report.Status switch
+                    {
+                        ReportStatus.Pending => "bg-yellow-100 text-yellow-700",
+                        ReportStatus.InProgress => "bg-blue-100 text-blue-700",
+                        ReportStatus.Resolved => "bg-green-100 text-green-700",
+                        ReportStatus.Rejected => "bg-gray-100 text-gray-700",
+                        _ => "bg-gray-100 text-gray-700"
+                    };
+
+                    var reportTypeLabel = report.ReportType switch
+                    {
+                        ReportType.JobPost => "Tin tuyển dụng",
+                        ReportType.Company => "Công ty",
+                        ReportType.Spam => "Spam",
+                        ReportType.Fraud => "Gian lận",
+                        ReportType.InappropriateContent => "Nội dung không phù hợp",
+                        ReportType.Other => "Khác",
+                        _ => "Khác"
+                    };
+
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-4 py-3">
+                            <p class="font-medium text-on-surface">@report.Reporter?.FullName</p>
+                            <p class="text-xs text-secondary">@report.Reporter?.Email</p>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">@reportTypeLabel</span>
+                        </td>
+                        <td class="px-5 py-3 text-secondary">
+                            @report.ReportedEntityName
+                        </td>
+                        <td class="px-5 py-3 text-secondary" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            @report.Reason
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium @statusClass">@report.Status</span>
+                        </td>
+                        <td class="px-5 py-3 text-secondary text-xs">@report.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-5 py-3">
+                            <div class="flex items-center justify-center gap-2">
+                                <a asp-action="Details" asp-route-id="@report.Id"
+                                   class="flex items-center gap-1 px-3 py-1.5 bg-surface-container text-secondary hover:text-primary hover:bg-surface-container-high rounded-lg text-xs font-medium transition-colors">
+                                    <span class="material-symbols-outlined text-sm">visibility</span>
+                                    Xem
+                                </a>
+                                @if (report.Status == ReportStatus.Pending)
+                                {
+                                    <form asp-action="Close" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@report.Id" />
+                                        <button type="submit" onclick="return confirm('Bạn có chắc muốn đóng báo cáo này?')"
+                                                class="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-medium transition-colors">
+                                            <span class="material-symbols-outlined text-sm">close</span>
+                                            Đóng
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="flex justify-center gap-2 mt-6">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <a asp-action="Index" asp-route-page="@i" asp-route-status="@ViewBag.StatusFilter"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border @(i == (int)(ViewBag.CurrentPage ?? 1) ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                    @i
+                </a>
+            }
+        </div>
+    }
+</div>

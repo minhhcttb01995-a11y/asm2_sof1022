@@ -1,0 +1,454 @@
+@using System.Security.Claims
+@{
+    var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nhà tuyển dụng";
+    var currentPath = Context.Request.Path.Value ?? "";
+    bool IsActive(string path) => currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – Nhà tuyển dụng | JobConnect</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] } } } }</script>
+
+    <style>
+        *, *::before, *::after {
+        box-sizing: border-box;
+        }
+
+        body {
+        margin: 0;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        }
+
+        :root {
+        --sw: 240px;
+        --sb-bg: #080f1e;
+        --sb-border: #1e293b;
+        --sb-text: #94a3b8;
+        --sb-hover-text: #f1f5f9;
+        --sb-active-bg: rgba(59,130,246,.15);
+        --sb-active-text: #60a5fa;
+        --sb-active-border: #3b82f6;
+        --hh: 64px;
+        }
+
+        /* Dashboard shell */
+        .jc-dashboard {
+        display: flex;
+        min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .jc-sidebar {
+        width: var(--sw);
+        background: var(--sb-bg);
+        border-right: 1px solid var(--sb-border);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 100;
+        overflow-y: auto;
+        }
+
+        .jc-sidebar::-webkit-scrollbar {
+        width: 4px;
+        }
+
+        .jc-sidebar::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+        }
+
+        .jc-sidebar-brand {
+        padding: 20px 16px 16px;
+        border-bottom: 1px solid var(--sb-border);
+        }
+
+        .jc-sidebar-nav {
+        flex: 1;
+        padding: 12px 10px;
+        }
+
+        .jc-sidebar-nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        }
+
+        .jc-sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--sb-text);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background .15s, color .15s;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+        width: 100%;
+        background: none;
+        border-top: none;
+        border-right: none;
+        border-bottom: none;
+        }
+
+        .jc-sidebar-link:hover {
+        background: rgba(255,255,255,.06);
+        color: var(--sb-hover-text);
+        }
+
+        .jc-sidebar-link.active {
+        background: var(--sb-active-bg);
+        color: var(--sb-active-text);
+        border-left-color: var(--sb-active-border);
+        }
+
+        .jc-sidebar-link .material-symbols-outlined {
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        }
+
+        .jc-sidebar-footer {
+        padding: 12px 10px;
+        border-top: 1px solid var(--sb-border);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        }
+
+        /* Main */
+        .jc-dashboard-main {
+        margin-left: var(--sw);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-width: 0;
+        background: #0f172a;
+        }
+
+        /* Header */
+        .jc-dashboard-header {
+        height: var(--hh);
+        background: var(--sb-bg);
+        border-bottom: 1px solid var(--sb-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        }
+
+        /* Body padding */
+        .jc-dashboard-main > *:not(.jc-dashboard-header) {
+        padding: 24px;
+        }
+
+        .jc-dashboard-main > div.space-y-6 {
+        padding: 24px;
+        }
+
+        /* Page header */
+        .jc-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        }
+
+        .jc-page-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        }
+
+        .jc-page-subtitle {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 4px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        }
+
+        /* Buttons */
+        .jc-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 18px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .15s;
+        cursor: pointer;
+        border: none;
+        }
+
+        .jc-btn-primary {
+        background: #3b82f6;
+        color: #fff;
+        }
+
+        .jc-btn-primary:hover {
+        background: #2563eb;
+        color: #fff;
+        }
+
+        /* Stat cards */
+        .jc-stat-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        padding: 20px;
+        transition: border-color .2s, box-shadow .2s;
+        }
+
+        .jc-stat-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59,130,246,.15);
+        }
+
+        .jc-stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        }
+
+        .jc-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        line-height: 1;
+        }
+
+        .jc-stat-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 6px 0 0;
+        }
+
+        /* Table */
+        .jc-table-wrap {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        overflow: hidden;
+        }
+
+        .jc-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        }
+
+        .jc-table thead tr {
+        background: rgba(255,255,255,.04);
+        border-bottom: 1px solid #334155;
+        }
+
+        .jc-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #64748b;
+        }
+
+        .jc-table tbody tr {
+        border-bottom: 1px solid rgba(255,255,255,.05);
+        transition: background .12s;
+        }
+
+        .jc-table tbody tr:last-child {
+        border-bottom: none;
+        }
+
+        .jc-table tbody tr:hover {
+        background: rgba(255,255,255,.03);
+        }
+
+        .jc-table td {
+        padding: 13px 16px;
+        color: #cbd5e1;
+        vertical-align: middle;
+        }
+
+        .jc-table-link {
+        color: #93c5fd;
+        text-decoration: none;
+        font-weight: 500;
+        }
+
+        .jc-table-link:hover {
+        color: #60a5fa;
+        text-decoration: underline;
+        }
+
+        /* Badges */
+        .jc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        }
+
+        .jc-badge-success {
+        background: rgba(16,185,129,.15);
+        color: #34d399;
+        }
+
+        .jc-badge-warning {
+        background: rgba(245,158,11,.15);
+        color: #fbbf24;
+        }
+
+        .jc-badge-danger {
+        background: rgba(239,68,68,.15);
+        color: #f87171;
+        }
+
+        .jc-badge-neutral {
+        background: rgba(148,163,184,.1);
+        color: #94a3b8;
+        }
+
+        @@media (max-width: 1023px) {
+        .jc-sidebar {
+        transform: translateX(-100%);
+        }
+
+        .jc-sidebar.open {
+        transform: translateX(0);
+        }
+
+        .jc-dashboard-main {
+        margin-left: 0;
+        }
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="jc-dashboard">
+        <aside class="jc-sidebar">
+            <div class="jc-sidebar-brand">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-blue-400 text-3xl">business</span>
+                    <div>
+                        <h1 class="text-lg font-bold text-white">JobConnect</h1>
+                        <p class="text-xs text-slate-500">Nhà tuyển dụng</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="jc-sidebar-nav">
+                <ul class="space-y-1">
+                    <li>
+                        <a href="@Url.Action("Dashboard", "Employer")"
+                           class="jc-sidebar-link @(IsActive("/Employer/Dashboard") ? "active" : "")">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("PostJob", "Employer")"
+                           class="jc-sidebar-link @(IsActive("/Employer/PostJob") ? "active" : "")">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            <span>Đăng tin mới</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Interviews", "Employer")"
+                           class="jc-sidebar-link @(IsActive("/Employer/Interviews") || IsActive("/Employer/ScheduleInterview") || IsActive("/Employer/EditInterview") ? "active" : "")">
+                            <span class="material-symbols-outlined">event</span>
+                            <span>Lịch phỏng vấn</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("CompanyProfile", "Employer")"
+                           class="jc-sidebar-link @(IsActive("/Employer/CompanyProfile") ? "active" : "")">
+                            <span class="material-symbols-outlined">apartment</span>
+                            <span>Hồ sơ công ty</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="jc-sidebar-footer">
+                <a href="@Url.Action("Index", "Home")" class="jc-sidebar-link">
+                    <span class="material-symbols-outlined">open_in_new</span>
+                    <span>Trang công khai</span>
+                </a>
+                <form asp-action="Logout" asp-controller="Account" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="jc-sidebar-link text-red-400 w-full text-left">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span>Đăng xuất</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="jc-dashboard-main">
+            <header class="jc-dashboard-header">
+                <div class="flex items-center gap-4 min-w-0">
+                    <div>
+                        <h2 class="text-xl font-bold text-white truncate">@ViewData["Title"]</h2>
+                        <p class="text-slate-500 text-sm">@DateTime.Now.ToString("dddd, dd/MM/yyyy HH:mm", new System.Globalization.CultureInfo("vi-VN"))</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold text-white">
+                            @(userName.Length > 0 ? userName[0].ToString().ToUpper() : "N")
+                        </div>
+                        <span class="text-sm text-slate-300 max-w-[140px] truncate">@userName</span>
+                    </div>
+                </div>
+            </header>
+
+            @{
+                ViewData["FlashInline"] = true;
+            }
+            <partial name="_FlashMessages" />
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

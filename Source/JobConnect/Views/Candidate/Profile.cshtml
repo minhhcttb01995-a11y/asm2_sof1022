@@ -1,0 +1,278 @@
+﻿@using JobConnect.Models
+@model CandidateProfile
+@{
+    ViewData["Title"] = "Hồ sơ của tôi";
+    Layout = "_Layout";
+}
+
+<style>
+    body {
+        background-color: #000000 !important;
+    }
+
+    .glass-card {
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+
+    .input-field {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: #000000;
+        border: 1.5px solid #1a1a1a;
+        border-radius: 0.75rem;
+        color: #ffffff;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+    .avatar-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #3b82f6;
+        background: #0a0a0a;
+    }
+
+    .cv-card {
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid #1a1a1a;
+        border-radius: 1rem;
+        transition: all 0.2s;
+    }
+
+        .cv-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+</style>
+            transform: translateY(-2px);
+        }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-8">
+        <div class="w-12 h-12 rounded-xl bg-blue-600/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl text-blue-400">badge</span>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-white">Hồ sơ của tôi</h1>
+            <p class="text-slate-500 text-sm">Quản lý thông tin cá nhân và CV</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- SIDEBAR -->
+        <div class="glass-card p-6">
+            <div class="flex flex-col items-center text-center">
+                <div class="relative">
+                    @if (!string.IsNullOrEmpty(Model?.User?.AvatarURL))
+                    {
+                        <img src="@Model.User.AvatarURL" alt="Avatar" class="avatar-preview" />
+                    }
+                    else
+                    {
+                        <div class="avatar-preview flex items-center justify-center bg-slate-800">
+                            <span class="material-symbols-outlined text-5xl text-slate-500">person</span>
+                        </div>
+                    }
+                </div>
+                <h3 class="text-white font-bold text-xl mt-4">@(Model?.User?.FullName ?? "Chưa cập nhật")</h3>
+                <p class="text-slate-400">@(Model?.User?.Email ?? "")</p>
+                <span class="mt-3 px-4 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs font-semibold">Ứng viên</span>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-700 space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Điện thoại</span>
+                    <span class="text-white">@(Model?.Phone ?? Model?.User?.PhoneNumber ?? "Chưa cập nhật")</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Giới tính</span>
+                    <span class="text-white">@(Model?.Gender ?? "Chưa cập nhật")</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Ngày sinh</span>
+                    <span class="text-white">
+                        @(Model?.DateOfBirth.HasValue == true ? Model.DateOfBirth.Value.ToString("dd/MM/yyyy") : "Chưa cập nhật")
+                    </span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Kinh nghiệm</span>
+                    <span class="text-white font-semibold">@(Model?.ExperienceYears ?? 0) năm</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Lương mong muốn</span>
+                    <span class="text-green-400 font-semibold">@(Model?.DesiredSalary?.ToString("N0") ?? "0") ₫</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Địa chỉ</span>
+                    <span class="text-white text-right">@(Model?.Address ?? "Chưa cập nhật")</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Trạng thái</span>
+                    @if (Model?.IsOpenToWork == true)
+                    {
+                        <span class="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs">Đang tìm việc</span>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1 bg-slate-700 text-slate-400 rounded-full text-xs">Tạm dừng</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Update Profile Form -->
+            <div class="glass-card p-6">
+                <h2 class="text-lg font-bold text-white mb-5">Chỉnh sửa thông tin</h2>
+                <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="space-y-5">
+
+                        @* ── Thông tin cá nhân ── *@
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-800 pb-2">Thông tin cá nhân</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Họ và tên</label>
+                                <input type="text" name="fullName"
+                                       value="@(Model?.FullName ?? Model?.User?.FullName)"
+                                       placeholder="Nhập họ và tên đầy đủ"
+                                       class="input-field" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Chức danh / Vị trí ứng tuyển</label>
+                                <input type="text" name="jobTitle"
+                                       value="@Model?.JobTitle"
+                                       placeholder="VD: Senior .NET Developer, UI/UX Designer..."
+                                       class="input-field" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Số điện thoại</label>
+                                <input type="tel" name="phone"
+                                       value="@(Model?.Phone ?? Model?.User?.PhoneNumber)"
+                                       placeholder="Ví dụ: 0912345678"
+                                       class="input-field" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Ngày sinh</label>
+                                <input type="date" name="dateOfBirth"
+                                       value="@(Model?.DateOfBirth.HasValue == true ? Model.DateOfBirth.Value.ToString("yyyy-MM-dd") : "")"
+                                       class="input-field" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Giới tính</label>
+                                <select name="gender" class="input-field">
+                                    <option value="">-- Chọn --</option>
+                                    @{ var g = Model?.Gender; }
+                                    @if (g == "Nam") { <option value="Nam" selected>Nam</option> } else { <option value="Nam">Nam</option> }
+                                    @if (g == "Nữ") { <option value="Nữ" selected>Nữ</option> } else { <option value="Nữ">Nữ</option> }
+                                    @if (g == "Khác") { <option value="Khác" selected>Khác</option> } else { <option value="Khác">Khác</option> }
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Địa chỉ</label>
+                                <input type="text" name="address" value="@Model?.Address"
+                                       placeholder="Tỉnh / Thành phố" class="input-field" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Ảnh đại diện</label>
+                                <input type="file" name="avatarFile" accept="image/*" class="input-field" />
+                            </div>
+                        </div>
+
+                        @* ── Thông tin nghề nghiệp ── *@
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-800 pb-2 pt-2">Thông tin nghề nghiệp</p>
+
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Giới thiệu bản thân</label>
+                            <textarea name="summary" class="input-field" rows="4"
+                                      placeholder="Mô tả kinh nghiệm, kỹ năng và mục tiêu nghề nghiệp...">@Model?.Summary</textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Số năm kinh nghiệm</label>
+                                <input type="number" name="experienceYears" value="@Model?.ExperienceYears"
+                                       class="input-field" min="0" max="50" />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Mức lương mong muốn (VNĐ)</label>
+                                <input type="number" name="desiredSalary" value="@Model?.DesiredSalary"
+                                       placeholder="Ví dụ: 15000000" class="input-field" />
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="openToWork" name="isOpenToWork" value="true"
+                                   @(Model?.IsOpenToWork == true ? "checked" : "") class="w-5 h-5 accent-blue-500" />
+                            <label for="openToWork" class="text-slate-300 cursor-pointer">Tôi đang mở cho các cơ hội việc làm</label>
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition-all">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CV Section -->
+            <div class="glass-card p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h2 class="text-lg font-bold text-white">CV của tôi</h2>
+                    <a asp-action="CvManager" class="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">manage_accounts</span>
+                        Quản lý CV
+                    </a>
+                </div>
+
+                @if (Model?.CvFiles?.Any() == true)
+                {
+                    var defaultCv = Model.CvFiles.FirstOrDefault(c => c.IsDefault);
+                    if (defaultCv != null)
+                    {
+                        <div class="cv-card p-4 flex items-center gap-4">
+                            <span class="material-symbols-outlined text-4xl text-red-400">description</span>
+                            <div class="flex-1">
+                                <p class="text-white font-medium">@defaultCv.FileName</p>
+                                <p class="text-xs text-slate-500">@defaultCv.UploadedAt.ToString("dd/MM/yyyy")</p>
+                            </div>
+                            <a href="@defaultCv.FilePath" target="_blank"
+                               class="px-5 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700">
+                                Xem CV
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-10 text-slate-500">
+                        <span class="material-symbols-outlined text-5xl block mb-3">upload_file</span>
+                        <p>Bạn chưa có CV nào</p>
+                        <a asp-action="CvManager" class="text-blue-400 hover:underline mt-2 inline-block">Tải CV lên ngay →</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

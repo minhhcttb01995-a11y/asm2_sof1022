@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Staff Dashboard | JobConnect</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+        theme: {
+        extend: {
+        colors: {
+        glass: {
+        100: 'rgba(255, 255, 255, 0.05)',
+        200: 'rgba(255, 255, 255, 0.1)',
+        300: 'rgba(255, 255, 255, 0.15)',
+        }
+        }
+        }
+        }
+        }
+    </script>
+
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+
+    <style>
+        body {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        min-height: 100vh;
+        }
+
+        .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-item {
+        transition: all 0.3s ease;
+        }
+
+        .sidebar-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-item.active {
+        background: rgba(59, 130, 246, 0.3);
+        border-left: 3px solid #3b82f6;
+        }
+
+        .badge-pending {
+        background: rgba(234, 179, 8, 0.2);
+        color: #fbbf24;
+        }
+
+        .badge-open {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ade80;
+        }
+
+        .badge-rejected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        }
+
+        .badge-closed {
+        background: rgba(107, 114, 128, 0.2);
+        color: #9ca3af;
+        }
+
+        .badge-inprogress {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        }
+
+        .badge-resolved {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ade80;
+        }
+
+        /* ===== JC Component Classes ===== */
+        .jc-stat-card {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        transition: all 0.2s;
+        }
+
+        .jc-stat-card:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.15);
+        transform: translateY(-2px);
+        }
+
+        .jc-stat-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        }
+
+        .jc-card {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 1rem;
+        }
+
+        .jc-card-padded-lg {
+        padding: 1.5rem;
+        }
+
+        .jc-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        }
+
+        .jc-badge-warning {
+        background: rgba(234,179,8,0.2);
+        color: #fbbf24;
+        }
+
+        .jc-badge-success {
+        background: rgba(34,197,94,0.2);
+        color: #4ade80;
+        }
+
+        .jc-badge-danger {
+        background: rgba(239,68,68,0.2);
+        color: #f87171;
+        }
+
+        /* Material Symbols fallback — dùng Material Icons thường */
+        .material-symbols-outlined {
+        font-family: 'Material Icons', sans-serif;
+        font-size: 1.25rem;
+        }
+
+        /* Activity scrollbar */
+        .jc-scroll::-webkit-scrollbar {
+        width: 4px;
+        }
+
+        .jc-scroll::-webkit-scrollbar-track {
+        background: transparent;
+        }
+
+        .jc-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.15);
+        border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="text-white font-sans min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 glass-card flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+            <!-- Logo -->
+            <div class="p-6 border-b border-white/10 sticky top-0 bg-slate-900/90 backdrop-blur-sm z-10">
+                <div class="flex items-center gap-3">
+                    <span class="material-icons text-blue-400 text-3xl">dashboard</span>
+                    <div>
+                        <h1 class="text-xl font-bold">JobConnect</h1>
+                        <p class="text-xs text-gray-400">Staff Dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="@Url.Action("Index", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <span class="material-icons">home</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="pt-4 pb-2">
+                        <p class="px-4 text-xs text-gray-500 uppercase tracking-wider">Quản lý người dùng</p>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Candidates", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "Candidates" ? "active" : "")">
+                            <span class="material-icons">person</span>
+                            <span>Ứng viên</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Employers", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "Employers" ? "active" : "")">
+                            <span class="material-icons">business</span>
+                            <span>Nhà tuyển dụng</span>
+                        </a>
+                    </li>
+
+                    <li class="pt-4 pb-2">
+                        <p class="px-4 text-xs text-gray-500 uppercase tracking-wider">Duyệt nội dung</p>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("PendingCompanies", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "PendingCompanies" ? "active" : "")">
+                            <span class="material-icons">verified</span>
+                            <span>Duyệt công ty</span>
+                            @if (ViewBag.PendingCompaniesCount > 0)
+                            {
+                                <span class="ml-auto bg-yellow-500/20 text-yellow-400 text-xs px-2 py-1 rounded-full">@ViewBag.PendingCompaniesCount</span>
+                            }
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("PendingJobs", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "PendingJobs" ? "active" : "")">
+                            <span class="material-icons">work</span>
+                            <span>Duyệt tin tuyển dụng</span>
+                            @if (ViewBag.PendingJobsCount > 0)
+                            {
+                                <span class="ml-auto bg-yellow-500/20 text-yellow-400 text-xs px-2 py-1 rounded-full">@ViewBag.PendingJobsCount</span>
+                            }
+                        </a>
+                    </li>
+
+                    <li class="pt-4 pb-2">
+                        <p class="px-4 text-xs text-gray-500 uppercase tracking-wider">Xử lý nội dung</p>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Reports", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "Reports" ? "active" : "")">
+                            <span class="material-icons">flag</span>
+                            <span>Báo cáo</span>
+                            @if (ViewBag.PendingReportsCount > 0)
+                            {
+                                <span class="ml-auto bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full">@ViewBag.PendingReportsCount</span>
+                            }
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("StaffConversations", "Chat")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "active" : "")">
+                            <span class="material-icons">chat</span>
+                            <span>Tin nhắn trực tiếp</span>
+                        </a>
+                    </li>
+
+                    <li class="pt-4 pb-2">
+                        <p class="px-4 text-xs text-gray-500 uppercase tracking-wider">Cá nhân</p>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Index", "Home")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
+                            <span class="material-icons">home</span>
+                            <span>Trang chủ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("Profile", "StaffDashboard")"
+                           class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
+                            <span class="material-icons">account_circle</span>
+                            <span>Hồ sơ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <form asp-action="Logout" asp-controller="Account" method="post" class="inline w-full">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 w-full text-left">
+                                <span class="material-icons">logout</span>
+                                <span>Đăng xuất</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-h-screen p-8">
+            <!-- Top Bar -->
+            <header class="glass-card rounded-xl p-4 mb-6 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <a href="@Url.Action("Index", "StaffDashboard")"
+                       class="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors">
+                        <span class="material-icons">dashboard</span>
+                        <span class="font-medium">Dashboard nhân viên</span>
+                    </a>
+                    <div class="h-6 w-px bg-white/10"></div>
+                    <div>
+                        <h2 class="text-2xl font-bold">@ViewData["Title"]</h2>
+                        <p class="text-gray-400 text-sm">@DateTime.Now.ToString("dddd, dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="bg-green-500/20 text-green-400 px-4 py-2 rounded-lg flex items-center gap-2">
+                            <span class="material-icons text-sm">check_circle</span>
+                            <span>@TempData["Success"]</span>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg flex items-center gap-2">
+                            <span class="material-icons text-sm">error</span>
+                            <span>@TempData["Error"]</span>
+                        </div>
+                    }
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            @RenderBody()
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

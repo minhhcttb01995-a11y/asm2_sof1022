@@ -1,0 +1,595 @@
+﻿@using JobConnect.Models
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_LayoutAdmin";
+
+    var pendingJobs = ViewBag.PendingJobs as List<JobPost> ?? new();
+    var newUsers    = ViewBag.NewUsers   as List<User>    ?? new();
+    var newApps     = ViewBag.NewApps    as List<Application> ?? new();
+
+    int appTotal     = (int)(ViewBag.AppCount   ?? 0);
+    int appPending   = (int)(ViewBag.AppPending  ?? 0);
+    int appAccepted  = (int)(ViewBag.AppAccepted ?? 0);
+    int appRejected  = (int)(ViewBag.AppRejected ?? 0);
+    int appInterview = (int)(ViewBag.AppInterview ?? 0);
+
+    double pctPending   = appTotal > 0 ? appPending   * 100.0 / appTotal : 0;
+    double pctAccepted  = appTotal > 0 ? appAccepted  * 100.0 / appTotal : 0;
+    double pctRejected  = appTotal > 0 ? appRejected  * 100.0 / appTotal : 0;
+    double pctInterview = appTotal > 0 ? appInterview * 100.0 / appTotal : 0;
+
+    string period = ViewBag.Period ?? "month";
+
+    // Chart data
+    var chartLabels  = ViewBag.ChartLabels  as string[] ?? Array.Empty<string>();
+    var chartUsers = ViewBag.ChartUsers as int[] ?? Array.Empty<int>();
+    var chartJobs = ViewBag.ChartJobs as int[] ?? Array.Empty<int>();
+    var chartApps = ViewBag.ChartApps as int[] ?? Array.Empty<int>();
+
+    var indLabels = ViewBag.IndustryLabels as List<string> ?? new();
+    var indCounts = ViewBag.IndustryCounts as List<int>    ?? new();
+
+    double userGrowth = (double)(ViewBag.UserGrowth ?? 0);
+    double jobGrowth  = (double)(ViewBag.JobGrowth  ?? 0);
+    double appGrowth  = (double)(ViewBag.AppGrowth  ?? 0);
+
+    string GrowthBadge(double pct)
+    {
+        if (pct > 0) return $"<span class='growth-badge up'>▲ {pct:F1}%</span>";
+        if (pct < 0) return $"<span class='growth-badge down'>▼ {Math.Abs(pct):F1}%</span>";
+        return "<span class='growth-badge flat'>— 0%</span>";
+    }
+}
+
+@section Styles {
+<style>
+/* ── Growth badges ── */
+.growth-badge { font-size: .72rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.growth-badge.up   { background:#dcfce7; color:#16a34a; }
+.growth-badge.down { background:#fee2e2; color:#dc2626; }
+.growth-badge.flat { background:#f1f5f9; color:#64748b; }
+
+/* ── Period tabs ── */
+.period-tab {
+    padding: 5px 14px; border-radius: 10px; font-size: .8rem; font-weight: 500;
+    border: 1px solid #e2e8f0; color: #64748b; cursor: pointer;
+    transition: all .15s;
+}
+.period-tab.active, .period-tab:hover {
+    background: #3b82f6; color: #fff; border-color: #3b82f6;
+}
+
+/* ── KPI card ── */
+.kpi-card {
+    background:#fff; border-radius:16px; padding:20px;
+    border:1px solid #e8eaed;
+    transition: box-shadow .2s, transform .2s;
+}
+.kpi-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-2px); }
+.kpi-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+
+/* ── Chart wrapper ── */
+.chart-card { background:#fff; border-radius:16px; border:1px solid #e8eaed; padding:20px; }
+.chart-title { font-weight:600; font-size:.95rem; margin-bottom:16px; display:flex; align-items:center; gap:6px; }
+</style>
+}
+
+<div class="space-y-6">
+
+    @* ── Page header ──*@
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Tổng quan hệ thống</h1>
+            <p class="text-sm text-secondary mt-0.5">
+                @DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))
+            </p>
+        </div>
+        <a asp-action="Jobs" asp-route-status="Pending"
+           class="flex items-center gap-1.5 px-4 py-2 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-xl text-sm font-medium hover:bg-yellow-100 transition-colors">
+            <span class="material-symbols-outlined text-base">pending_actions</span>
+            @((int)(ViewBag.PendingJobCount ?? 0)) tin chờ duyệt
+        </a>
+    </div>
+
+    @* ── ROW 1: KPI Cards (7 chỉ số) ──*@
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+
+        @* Ứng viên*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-blue-50 mb-3">
+                <span class="material-symbols-outlined text-blue-600">person_search</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.CandidateCount</p>
+            <p class="text-xs text-secondary mt-0.5">Ứng viên</p>
+            <div class="mt-2">@Html.Raw(GrowthBadge(userGrowth)) <span class="text-xs text-secondary">tháng này</span></div>
+        </div>
+
+        @* Nhà tuyển dụng*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-purple-50 mb-3">
+                <span class="material-symbols-outlined text-purple-600">business_center</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.EmployerCount</p>
+            <p class="text-xs text-secondary mt-0.5">Nhà tuyển dụng</p>
+            <div class="mt-2 text-xs text-secondary">Đã đăng ký</div>
+        </div>
+
+        @* Nhân viên*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-indigo-50 mb-3">
+                <span class="material-symbols-outlined text-indigo-600">badge</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.StaffCount</p>
+            <p class="text-xs text-secondary mt-0.5">Nhân viên</p>
+            <div class="mt-2 text-xs text-secondary">Hệ thống</div>
+        </div>
+
+        @* Công ty đã xác minh*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-emerald-50 mb-3">
+                <span class="material-symbols-outlined text-emerald-600">apartment</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.CompanyCount</p>
+            <p class="text-xs text-secondary mt-0.5">Công ty</p>
+            <div class="mt-2 text-xs text-secondary">Đã xác minh</div>
+        </div>
+
+        @* Tin tuyển dụng*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-green-50 mb-3">
+                <span class="material-symbols-outlined text-green-600">work</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.JobCount</p>
+            <p class="text-xs text-secondary mt-0.5">Tin tuyển dụng</p>
+            <div class="mt-2">@Html.Raw(GrowthBadge(jobGrowth)) <span class="text-xs text-secondary">tháng này</span></div>
+        </div>
+
+        @* CV*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-orange-50 mb-3">
+                <span class="material-symbols-outlined text-orange-500">article</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.CvCount</p>
+            <p class="text-xs text-secondary mt-0.5">Hồ sơ CV</p>
+            <div class="mt-2 text-xs text-secondary">Đã upload</div>
+        </div>
+
+        @* Đơn ứng tuyển*@
+        <div class="kpi-card col-span-1">
+            <div class="kpi-icon bg-rose-50 mb-3">
+                <span class="material-symbols-outlined text-rose-500">inbox</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@ViewBag.AppCount</p>
+            <p class="text-xs text-secondary mt-0.5">Đơn ứng tuyển</p>
+            <div class="mt-2">@Html.Raw(GrowthBadge(appGrowth)) <span class="text-xs text-secondary">tháng này</span></div>
+        </div>
+
+    </div>
+
+    @* ── ROW 2: Biểu đồ tăng trưởng (line) + Phân bố ngành (doughnut) ──*@
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        @* Biểu đồ tăng trưởng -- chiếm 2/3*@
+        <div class="chart-card lg:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h2 class="chart-title mb-0">
+                    <span class="material-symbols-outlined text-primary text-base">trending_up</span>
+                    Biểu đồ tăng trưởng
+                </h2>
+                <div class="flex gap-2">
+                    <a href="?period=week"  class="period-tab @(period=="week"  ? "active" : "")">7 ngày</a>
+                    <a href="?period=month" class="period-tab @(period=="month" ? "active" : "")">30 ngày</a>
+                    <a href="?period=year"  class="period-tab @(period=="year"  ? "active" : "")">12 tháng</a>
+                </div>
+            </div>
+
+            @* Legend*@
+            <div class="flex gap-4 mb-3 text-xs text-secondary">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded bg-blue-500 inline-block"></span>Người dùng mới</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded bg-green-500 inline-block"></span>Tin tuyển dụng</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded bg-orange-400 inline-block"></span>Đơn ứng tuyển</span>
+            </div>
+
+            <canvas id="growthChart" height="200"></canvas>
+        </div>
+
+        @* Biểu đồ phân bố ngành -- chiếm 1/3*@
+        <div class="chart-card lg:col-span-1">
+            <h2 class="chart-title">
+                <span class="material-symbols-outlined text-primary text-base">donut_small</span>
+                Phân bố ngành nghề
+            </h2>
+            <canvas id="industryChart" height="200"></canvas>
+            <div class="mt-3 space-y-1" id="industryLegend"></div>
+        </div>
+
+    </div>
+
+    @* ── ROW 3: Trạng thái đơn + Thống kê nhanh ──*@
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        @* Trạng thái đơn ứng tuyển*@
+        <div class="chart-card">
+            <h2 class="chart-title">
+                <span class="material-symbols-outlined text-primary text-base">assignment</span>
+                Trạng thái đơn ứng tuyển
+            </h2>
+            <div class="space-y-3">
+                @{
+                    var statusRows = new[]
+                    {
+                        (Label:"Chờ xử lý",  Count:appPending,   Pct:pctPending,   Color:"bg-yellow-400"),
+                        (Label:"Phỏng vấn",  Count:appInterview, Pct:pctInterview, Color:"bg-purple-400"),
+                        (Label:"Chấp nhận",  Count:appAccepted,  Pct:pctAccepted,  Color:"bg-green-500"),
+                        (Label:"Từ chối",    Count:appRejected,  Pct:pctRejected,  Color:"bg-red-400"),
+                    };
+                }
+                @foreach (var row in statusRows)
+                {
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-secondary flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full @row.Color inline-block"></span>
+                                @row.Label
+                            </span>
+                            <span class="font-medium">
+                                @row.Count
+                                <span class="text-secondary font-normal">(@row.Pct.ToString("F0")%)</span>
+                            </span>
+                        </div>
+                        <div class="h-2 bg-surface-container rounded-full overflow-hidden">
+                            <div class="h-full @row.Color rounded-full transition-all"
+                                 style="width: @row.Pct.ToString("F0")%"></div>
+                        </div>
+                    </div>
+                }
+                <div class="pt-3 border-t border-outline-variant flex justify-between text-sm">
+                    <span class="text-secondary">Tổng đơn</span>
+                    <span class="font-bold text-on-surface">@appTotal</span>
+                </div>
+            </div>
+        </div>
+
+        @* Người dùng mới nhất*@
+        <div class="chart-card lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="chart-title mb-0">
+                    <span class="material-symbols-outlined text-primary text-base">person_add</span>
+                    Người dùng mới nhất
+                </h2>
+                <a asp-action="Users" class="text-xs text-primary hover:underline">Xem tất cả</a>
+            </div>
+            <div class="space-y-3">
+                @foreach (var u in newUsers)
+                {
+                    var roleCls = u.Role == "Admin"    ? "bg-purple-100 text-purple-700" :
+                                  u.Role == "Employer" ? "bg-blue-100 text-blue-700" :
+                                                         "bg-gray-100 text-gray-600";
+                    var roleLabel = u.Role == "Admin" ? "Admin" : u.Role == "Employer" ? "NTD" : "UV";
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center overflow-hidden flex-shrink-0">
+                            @if (!string.IsNullOrEmpty(u.AvatarURL))
+                            {
+                                <img src="@u.AvatarURL" class="w-9 h-9 object-cover rounded-full" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-sm text-secondary">person</span>
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-on-surface truncate">@u.FullName</p>
+                            <p class="text-xs text-secondary truncate">@u.Email</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium @roleCls">@roleLabel</span>
+                            <span class="text-xs text-secondary">@u.CreatedAt.ToString("dd/MM")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+
+    @* ── ROW 4: Tin chờ duyệt + Đơn mới nhất ──*@
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        @* Tin chờ duyệt*@
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            <div class="px-5 py-4 border-b border-outline-variant flex justify-between items-center">
+                <h2 class="font-semibold text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-yellow-500 text-base">pending_actions</span>
+                    Tin chờ duyệt
+                    @if (pendingJobs.Any())
+                    {
+                        <span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">@pendingJobs.Count</span>
+                    }
+                </h2>
+                <a asp-action="Jobs" asp-route-status="Pending" class="text-primary text-xs hover:underline">Xem tất cả</a>
+            </div>
+
+            @if (!pendingJobs.Any())
+            {
+                <div class="px-5 py-10 text-center text-secondary text-sm">
+                    <span class="material-symbols-outlined text-3xl block mb-2 opacity-30">check_circle</span>
+                    Không có tin nào chờ duyệt
+                </div>
+            }
+            else
+            {
+                <div class="divide-y divide-outline-variant">
+                    @foreach (var job in pendingJobs)
+                    {
+                        <div class="px-5 py-3 hover:bg-surface-container-low transition-colors">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-on-surface truncate">@job.Title</p>
+                                    <p class="text-xs text-secondary">@job.Employer?.CompanyName • @job.CreatedAt.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <form asp-action="SetJobStatus" method="post" class="flex gap-1.5 flex-shrink-0">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="jobId" value="@job.JobID" />
+                                    <input type="hidden" name="filterStatus" value="Pending" />
+                                    <button type="submit" name="status" value="Open"
+                                            class="px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors">
+                                        Duyệt
+                                    </button>
+                                    <button type="submit" name="status" value="Rejected"
+                                            class="px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors">
+                                        Từ chối
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @* Đơn ứng tuyển mới nhất*@
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            <div class="px-5 py-4 border-b border-outline-variant flex justify-between items-center">
+                <h2 class="font-semibold text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-base">inbox</span>
+                    Đơn ứng tuyển gần nhất
+                </h2>
+                <span class="text-xs text-secondary">5 đơn mới nhất</span>
+            </div>
+
+            @if (!newApps.Any())
+            {
+                <div class="px-5 py-10 text-center text-secondary text-sm">
+                    <span class="material-symbols-outlined text-3xl block mb-2 opacity-30">inbox</span>
+                    Chưa có đơn nào
+                </div>
+            }
+            else
+            {
+                <div class="divide-y divide-outline-variant">
+                    @foreach (var app in newApps)
+                    {
+                        var appCls = app.Status switch
+                        {
+                            "Accepted"  => "bg-green-100 text-green-700",
+                            "Rejected"  => "bg-red-100 text-red-700",
+                            "Interview" => "bg-purple-100 text-purple-700",
+                            "Reviewing" => "bg-blue-100 text-blue-700",
+                            _           => "bg-yellow-100 text-yellow-700"
+                        };
+                        var appLabel = app.Status switch
+                        {
+                            "Accepted"  => "Chấp nhận",
+                            "Rejected"  => "Từ chối",
+                            "Interview" => "Phỏng vấn",
+                            "Reviewing" => "Xem xét",
+                            _           => "Chờ xử lý"
+                        };
+                        <div class="px-5 py-3 hover:bg-surface-container-low transition-colors">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-on-surface truncate">
+                                        @(app.CandidateProfile?.FullName ?? app.CandidateProfile?.User?.Email ?? "—")
+                                    </p>
+                                    <p class="text-xs text-secondary truncate">
+                                        → @(app.Job?.Title ?? "—") · @(app.Job?.Employer?.CompanyName ?? "")
+                                    </p>
+                                    <p class="text-xs text-secondary">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium @appCls flex-shrink-0">@appLabel</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @* ── ROW 5: Quick links ──*@
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <a asp-action="Users"
+           class="flex items-center gap-3 bg-white rounded-2xl p-4 border border-outline-variant hover:border-primary hover:shadow-md transition-all group">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                <span class="material-symbols-outlined text-blue-600">manage_accounts</span>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-on-surface">Người dùng</p>
+                <p class="text-xs text-secondary">@ViewBag.UserCount tài khoản</p>
+            </div>
+        </a>
+        <a asp-action="Jobs"
+           class="flex items-center gap-3 bg-white rounded-2xl p-4 border border-outline-variant hover:border-primary hover:shadow-md transition-all group">
+            <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                <span class="material-symbols-outlined text-green-600">work</span>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-on-surface">Tin tuyển dụng</p>
+                <p class="text-xs text-secondary">@ViewBag.JobCount tin đăng</p>
+            </div>
+        </a>
+        <a asp-action="Companies"
+           class="flex items-center gap-3 bg-white rounded-2xl p-4 border border-outline-variant hover:border-primary hover:shadow-md transition-all group">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                <span class="material-symbols-outlined text-purple-600">apartment</span>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-on-surface">Công ty</p>
+                <p class="text-xs text-secondary">@ViewBag.EmployerCount công ty</p>
+            </div>
+        </a>
+        <a asp-action="Reports"
+           class="flex items-center gap-3 bg-white rounded-2xl p-4 border border-outline-variant hover:border-primary hover:shadow-md transition-all group">
+            <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                <span class="material-symbols-outlined text-orange-600">bar_chart</span>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-on-surface">Báo cáo</p>
+                <p class="text-xs text-secondary">Thống kê chi tiết</p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Dữ liệu từ C# ───────────────────────────────────────────────
+const chartLabels  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartLabels  ?? Array.Empty<string>()));
+const chartUsers   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartUsers   ?? Array.Empty<int>()));
+const chartJobs    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartJobs    ?? Array.Empty<int>()));
+const chartApps    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartApps    ?? Array.Empty<int>()));
+const indLabels    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.IndustryLabels ?? new List<string>()));
+const indCounts    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.IndustryCounts ?? new List<int>()));
+
+// ── Màu chung ───────────────────────────────────────────────────
+Chart.defaults.font.family = "'Inter','Segoe UI',sans-serif";
+Chart.defaults.font.size   = 12;
+Chart.defaults.color       = '#64748b';
+
+// ── 1. Biểu đồ tăng trưởng (Line) ──────────────────────────────
+const growthCtx = document.getElementById('growthChart').getContext('2d');
+new Chart(growthCtx, {
+    type: 'line',
+    data: {
+        labels: chartLabels,
+        datasets: [
+            {
+                label: 'Người dùng mới',
+                data: chartUsers,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,.08)',
+                borderWidth: 2.5,
+                pointRadius: chartLabels.length > 20 ? 0 : 4,
+                pointHoverRadius: 5,
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Tin tuyển dụng',
+                data: chartJobs,
+                borderColor: '#22c55e',
+                backgroundColor: 'rgba(34,197,94,.06)',
+                borderWidth: 2.5,
+                pointRadius: chartLabels.length > 20 ? 0 : 4,
+                pointHoverRadius: 5,
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Đơn ứng tuyển',
+                data: chartApps,
+                borderColor: '#fb923c',
+                backgroundColor: 'rgba(251,146,60,.06)',
+                borderWidth: 2.5,
+                pointRadius: chartLabels.length > 20 ? 0 : 4,
+                pointHoverRadius: 5,
+                fill: true,
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#1e293b',
+                titleColor: '#f1f5f9',
+                bodyColor: '#cbd5e1',
+                padding: 10,
+                cornerRadius: 10
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: {
+                    maxTicksLimit: 10,
+                    maxRotation: 0
+                }
+            },
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0,0,0,.05)' },
+                ticks: { precision: 0 }
+            }
+        }
+    }
+});
+
+// ── 2. Biểu đồ ngành (Doughnut) ────────────────────────────────
+const palette = [
+    '#3b82f6','#22c55e','#f59e0b','#ef4444',
+    '#8b5cf6','#06b6d4','#ec4899','#14b8a6'
+];
+
+const industryCtx = document.getElementById('industryChart').getContext('2d');
+new Chart(industryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: indLabels,
+        datasets: [{
+            data: indCounts,
+            backgroundColor: palette.slice(0, indLabels.length),
+            borderWidth: 2,
+            borderColor: '#fff',
+            hoverOffset: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#1e293b',
+                titleColor: '#f1f5f9',
+                bodyColor: '#cbd5e1',
+                padding: 10,
+                cornerRadius: 10,
+                callbacks: {
+                    label: ctx => ` ${ctx.label}: ${ctx.parsed} tin`
+                }
+            }
+        }
+    }
+});
+
+// Legend thủ công cho doughnut
+const legendEl = document.getElementById('industryLegend');
+indLabels.forEach((label, i) => {
+    const total = indCounts.reduce((a, b) => a + b, 0);
+    const pct   = total > 0 ? ((indCounts[i] / total) * 100).toFixed(0) : 0;
+    legendEl.innerHTML += `
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:.78rem;">
+            <span style="display:flex;align-items:center;gap:6px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:${palette[i]};display:inline-block;"></span>
+                <span style="color:#475569;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</span>
+            </span>
+            <span style="color:#94a3b8;">${indCounts[i]} (${pct}%)</span>
+        </div>`;
+});
+</script>
+}

@@ -1,0 +1,403 @@
+﻿@using JobConnect.Models
+@model List<JobPost>
+@{
+    ViewData["Title"] = "Tìm việc làm";
+    Layout = "_Layout";
+}
+
+<style>
+    /* Reset & Base - NỀN ĐEN */
+    body {
+        background-color: #000000 !important;
+    }
+
+    .job-card {
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #0a0a0a;
+        border: 1px solid #1a1a1a;
+    }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 61, 155, 0.2);
+            border-color: #3b82f6;
+        }
+
+    /* Đồng bộ màu đen */
+    .bg-surface {
+        background-color: #0a0a0a;
+    }
+
+    .bg-surface-container {
+        background-color: #111111;
+    }
+
+    .bg-surface-container-high {
+        background-color: #1a1a1a;
+    }
+
+    .text-on-surface {
+        color: #ffffff;
+    }
+
+    .text-on-surface-variant {
+        color: #e2e8f0;
+    }
+
+    .text-secondary {
+        color: #94a3b8;
+    }
+
+    .border-outline-variant {
+        border-color: #1a1a1a;
+    }
+
+    /* HIỆU ỨNG MƯA */
+    .rain-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9998;
+        overflow: hidden;
+    }
+
+    .drop {
+        position: absolute;
+        background: linear-gradient(to bottom, rgba(96, 165, 250, 0.6) 0%, rgba(56, 189, 248, 0.3) 50%, rgba(96, 165, 250, 0) 100%);
+        width: 2px;
+        border-radius: 0 0 3px 3px;
+        animation: fall linear infinite;
+    }
+
+    .drop-small {
+        position: absolute;
+        background: rgba(96, 165, 250, 0.3);
+        width: 1px;
+        border-radius: 0 0 2px 2px;
+        animation: fall linear infinite;
+    }
+
+    @@keyframes fall {
+        to {
+            transform: translateY(110vh);
+        }
+    }
+
+    /* Scrollbar màu đen */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #000000;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #1a1a1a;
+        border-radius: 4px;
+    }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+</style>
+
+<!-- Thêm container mưa -->
+<div class="rain-container" id="rainContainer"></div>
+
+<div class="max-w-6xl mx-auto px-6 py-8 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- SIDEBAR FILTERS -->
+        <aside class="lg:col-span-3">
+            <form method="get" id="filterForm" asp-action="Index">
+                <div class="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="font-bold text-white text-base">🔍 Bộ lọc</h2>
+                        <a asp-action="Index" class="text-blue-400 text-xs font-bold hover:underline">Xoá tất cả</a>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">📍 Địa điểm</label>
+                        <select name="Location"
+                                class="w-full px-3 py-2.5 border border-[#1a1a1a] rounded-lg bg-black text-slate-200 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                            <option value="">Tất cả địa điểm</option>
+                            @foreach (var loc in (ViewBag.Locations as List<Category> ?? new()))
+                            {
+                                <option value="@loc.Name" selected="@(ViewBag.Filter?.Location == loc.Name ? "selected" : null)">@loc.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Salary -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">💰 Mức lương</label>
+                        <div class="space-y-2">
+                            @foreach (var (label, val) in new[] { ("Dưới 10 triệu", "<10"), ("10 - 20 triệu", "10-20"), ("20 - 50 triệu", "20-50"), ("Trên 50 triệu", ">50") })
+                            {
+                                <label class="flex items-center gap-2.5 cursor-pointer group">
+                                    <input type="checkbox" name="Salary" value="@val"
+                                           class="w-4 h-4 rounded border-[#1a1a1a] text-blue-500 focus:ring-blue-500 bg-black" />
+                                    <span class="text-sm text-slate-300 group-hover:text-blue-400 transition-colors">@label</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Experience -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">📊 Kinh nghiệm</label>
+                        <div class="space-y-2">
+                            @foreach (var (label, val) in new[] { ("Chưa có kinh nghiệm", "none"), ("Dưới 1 năm", "<1"), ("1 - 3 năm", "1-3"), ("Trên 3 năm", ">3") })
+                            {
+                                <label class="flex items-center gap-2.5 cursor-pointer group">
+                                    <input type="radio" name="ExperienceLevel" value="@val"
+                                           checked="@(ViewBag.Filter?.ExperienceLevel == val ? "checked" : null)"
+                                           class="w-4 h-4 border-[#1a1a1a] text-blue-500 focus:ring-blue-500 bg-black" />
+                                    <span class="text-sm text-slate-300 group-hover:text-blue-400 transition-colors">@label</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Job Type -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">🏢 Loại hình</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var (label, val) in new[] { ("Toàn thời gian", "FullTime"), ("Bán thời gian", "PartTime"), ("Remote", "Remote"), ("Thực tập", "Intern") })
+                            {
+                                bool active = ViewBag.Filter?.JobType == val;
+                                <button type="submit" name="JobType" value="@val"
+                                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
+                                    @(active ? "bg-blue-600 text-white border-blue-600" : "bg-black text-blue-400 border-[#1a1a1a] hover:border-blue-500")">
+                                    @label
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Industry -->
+                    @if ((ViewBag.Industries as List<Category> ?? new()).Count > 0)
+                    {
+                        <div class="mt-5 pt-5 border-t border-[#1a1a1a]">
+                            <label class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">🏷️ Ngành nghề</label>
+                            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                @foreach (var cat in (ViewBag.Industries as List<Category> ?? new()))
+                                {
+                                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                                        <input type="checkbox" name="Category" value="@cat.CategoryID"
+                                               class="w-4 h-4 rounded border-[#1a1a1a] text-blue-500 focus:ring-blue-500 bg-black" />
+                                        <span class="text-sm text-slate-300 group-hover:text-blue-400 transition-colors">@cat.Name</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </form>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <section class="lg:col-span-9">
+            <!-- Search + Sort bar -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+                <form method="get" asp-action="Index" class="flex-1 flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">search</span>
+                        <input name="Keyword" value="@ViewBag.Filter?.Keyword" type="text"
+                               placeholder="Tìm kiếm chức danh, công ty..."
+                               class="w-full pl-10 pr-4 py-2.5 border border-[#1a1a1a] rounded-lg bg-black text-slate-200 text-sm focus:border-blue-500 outline-none" />
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-500 transition-all whitespace-nowrap">
+                        Tìm kiếm
+                    </button>
+                </form>
+                <div class="flex items-center gap-2 bg-black border border-[#1a1a1a] rounded-lg px-3 py-2">
+                    <span class="text-xs text-slate-500 whitespace-nowrap">Sắp xếp:</span>
+                    <select name="SortBy" class="border-none bg-transparent text-blue-400 text-sm font-bold focus:ring-0 outline-none cursor-pointer">
+                        <option class="bg-black">Mới nhất</option>
+                        <option class="bg-black">Lương cao nhất</option>
+                        <option class="bg-black">Phổ biến nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Result count -->
+            <p class="text-sm text-slate-500 mb-4">
+                Tìm thấy <strong class="text-white">@ViewBag.TotalCount</strong> việc làm phù hợp
+                @if (!string.IsNullOrEmpty(ViewBag.Filter?.Keyword as string))
+                {
+                    <span> cho "<strong class="text-blue-400">@ViewBag.Filter.Keyword</strong>"</span>
+                }
+            </p>
+
+            <!-- Job List -->
+            @if (!Model.Any())
+            {
+                <div class="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-16 text-center">
+                    <span class="material-symbols-outlined text-5xl text-slate-600 block mb-3">search_off</span>
+                    <p class="text-slate-400 font-medium">Không tìm thấy việc làm phù hợp.</p>
+                    <a asp-action="Index" class="text-blue-400 text-sm mt-3 inline-block hover:underline">← Xóa bộ lọc</a>
+                </div>
+            }
+
+            <div class="space-y-3">
+                @foreach (var job in Model)
+                {
+                    <div class="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-5 job-card flex flex-col md:flex-row gap-4">
+                        <!-- Logo -->
+                        <div class="w-12 h-12 rounded-xl bg-[#111111] border border-[#1a1a1a] flex items-center justify-center shrink-0 overflow-hidden">
+                            @if (!string.IsNullOrEmpty(job.Employer?.LogoURL))
+                            {
+                                <img src="@job.Employer.LogoURL" class="w-full h-full object-contain" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-slate-500">business</span>
+                            }
+                        </div>
+
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start gap-2">
+                                <div>
+                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                                       class="font-bold text-white hover:text-blue-400 transition-colors text-base block leading-snug">
+                                        @job.Title
+                                    </a>
+                                    <a asp-controller="Company" asp-action="Detail" asp-route-id="@job.Employer?.EmployerID"
+                                       class="text-blue-400 text-sm font-semibold hover:underline">
+                                        @job.Employer?.CompanyName
+                                    </a>
+                                </div>
+                                <button class="text-slate-600 hover:text-rose-400 transition-colors shrink-0">
+                                    <span class="material-symbols-outlined">favorite_border</span>
+                                </button>
+                            </div>
+
+                            <div class="flex flex-wrap gap-4 mt-2.5 text-sm text-slate-500">
+                                @if (!string.IsNullOrEmpty(job.Location))
+                                {
+                                    <span class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-base">location_on</span>
+                                        @job.Location
+                                    </span>
+                                }
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">payments</span>
+                                    @job.SalaryDisplay
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">schedule</span>
+                                    @((DateTime.Now - job.CreatedAt).TotalHours < 1 ? "Vừa đăng" :
+                                      (DateTime.Now - job.CreatedAt).TotalHours < 24 ? $"{(int)(DateTime.Now - job.CreatedAt).TotalHours} giờ trước" :
+                                      $"{(int)(DateTime.Now - job.CreatedAt).TotalDays} ngày trước")
+                                </span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <span class="px-2.5 py-1 bg-[#111111] text-slate-300 rounded text-xs font-semibold border border-[#1a1a1a]">@job.JobType</span>
+                                @if (!string.IsNullOrEmpty(job.ExperienceLevel))
+                                {
+                                    <span class="px-2.5 py-1 bg-[#111111] text-slate-300 rounded text-xs font-semibold border border-[#1a1a1a]">@job.ExperienceLevel</span>
+                                }
+                                @if (job.Deadline.HasValue && job.Deadline.Value < DateTime.Now.AddDays(7))
+                                {
+                                    <span class="px-2.5 py-1 bg-rose-950/30 text-rose-400 rounded text-xs font-semibold border border-rose-800/30">
+                                        ⏰ Hết hạn: @job.Deadline.Value.ToString("dd/MM/yyyy")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- PAGINATION -->
+            @if ((int)(ViewBag.TotalPages ?? 1) > 1)
+            {
+                int currentPage = (int)(ViewBag.Filter?.Page ?? 1);
+                int totalPages = (int)ViewBag.TotalPages;
+                <div class="flex justify-center items-center gap-1.5 mt-8">
+                    @if (currentPage > 1)
+                    {
+                        <a asp-action="Index" asp-route-Page="@(currentPage - 1)" asp-route-Keyword="@ViewBag.Filter?.Keyword"
+                           class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#1a1a1a] hover:bg-[#111111] transition-colors text-slate-400">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </a>
+                    }
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        if (i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
+                        {
+                            <a asp-action="Index" asp-route-Page="@i" asp-route-Keyword="@ViewBag.Filter?.Keyword"
+                               class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-colors
+                                @(i == currentPage ? "bg-blue-600 text-white" : "hover:bg-[#111111] text-slate-400 border border-[#1a1a1a]")">
+                                @i
+                            </a>
+                        }
+                        else if (i == currentPage - 2 || i == currentPage + 2)
+                        {
+                            <span class="w-10 h-10 flex items-center justify-center text-slate-600">…</span>
+                        }
+                    }
+
+                    @if (currentPage < totalPages)
+                    {
+                        <a asp-action="Index" asp-route-Page="@(currentPage + 1)" asp-route-Keyword="@ViewBag.Filter?.Keyword"
+                           class="w-10 h-10 flex items-center justify-center rounded-lg border border-[#1a1a1a] hover:bg-[#111111] transition-colors text-slate-400">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </a>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Hiệu ứng mưa
+        function initRain() {
+            const container = document.getElementById('rainContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let i = 0; i < 35; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (Math.random() * 1.2 + 0.8) + 's';
+                drop.style.animationDelay = (Math.random() * 8) + 's';
+                drop.style.height = (Math.random() * 40 + 40) + 'px';
+                drop.style.opacity = Math.random() * 0.4 + 0.15;
+                container.appendChild(drop);
+            }
+
+            for (let i = 0; i < 50; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop-small');
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (Math.random() * 1.5 + 0.6) + 's';
+                drop.style.animationDelay = (Math.random() * 10) + 's';
+                drop.style.height = (Math.random() * 20 + 15) + 'px';
+                drop.style.opacity = Math.random() * 0.25 + 0.1;
+                container.appendChild(drop);
+            }
+        }
+
+        // Tự động submit form khi checkbox/radio thay đổi
+        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
+            el.addEventListener('change', () => {
+                document.getElementById('filterForm').submit();
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', initRain);
+    </script>
+}

@@ -1,0 +1,205 @@
+@model List<JobConnect.Models.Category>
+@{
+    ViewData["Title"] = "Quản lý Danh mục";
+    Layout = "_StaffLayout";
+}
+
+<!-- Filter -->
+<form method="get" asp-action="Categories" class="glass-card rounded-xl p-4 mb-6 flex gap-4">
+    <select name="type" class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="">Tất cả loại</option>
+        <option value="Industry" selected="@(ViewBag.Type == "Industry" ? "selected" : null)">Ngành nghề</option>
+        <option value="Location" selected="@(ViewBag.Type == "Location" ? "selected" : null)">Địa điểm</option>
+        <option value="Level" selected="@(ViewBag.Type == "Level" ? "selected" : null)">Cấp độ</option>
+        <option value="JobType" selected="@(ViewBag.Type == "JobType" ? "selected" : null)">Loại công việc</option>
+    </select>
+    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+        Lọc
+    </button>
+    <a href="@Url.Action("Skills", "StaffDashboard")" 
+       class="px-6 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg text-sm font-medium transition-colors">
+        Quản lý Kỹ năng
+    </a>
+</form>
+
+    <!-- Create Category Form -->
+    <div class="glass-card rounded-xl p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Tạo danh mục mới</h3>
+        <form asp-action="CreateCategory" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @Html.AntiForgeryToken()
+            <input name="name" type="text" placeholder="Tên danh mục" required
+                   class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            <select name="type" class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+                <option value="Industry">Ngành nghề</option>
+                <option value="Location">Địa điểm</option>
+                <option value="Level">Cấp độ</option>
+                <option value="JobType">Loại công việc</option>
+            </select>
+            <input name="slug" type="text" placeholder="Slug (url-friendly)" required
+                   class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            <input name="description" type="text" placeholder="Mô tả (tùy chọn)"
+                   class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            <button type="submit" class="md:col-span-2 px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-sm font-medium transition-colors">
+                Tạo danh mục
+            </button>
+        </form>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="glass-card rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-white/5 border-b border-white/10">
+                <tr>
+                    <th class="text-left px-6 py-4 font-semibold">ID</th>
+                    <th class="text-left px-6 py-4 font-semibold">Tên</th>
+                    <th class="text-left px-6 py-4 font-semibold">Loại</th>
+                    <th class="text-left px-6 py-4 font-semibold">Slug</th>
+                    <th class="text-left px-6 py-4 font-semibold">Mô tả</th>
+                    <th class="text-center px-6 py-4 font-semibold">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/10">
+                @if (Model.Any())
+                {
+                    @foreach (var category in Model)
+                    {
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs text-gray-400">@category.CategoryID</span>
+                            </td>
+                            <td class="px-6 py-4 font-medium">@category.Name</td>
+                            <td class="px-6 py-4 text-gray-300">@category.Type</td>
+                            <td class="px-6 py-4 text-gray-400 text-xs">@category.Slug</td>
+                            <td class="px-6 py-4 text-gray-300 truncate max-w-xs">@category.Description ?? "-"</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button x-data="{ open: false }" 
+                                            x-on:click="open = true"
+                                            class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                                            title="Sửa">
+                                        <span class="material-icons text-sm">edit</span>
+                                    </button>
+                                    <form asp-action="DeleteCategory" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="categoryId" value="@category.CategoryID" />
+                                        <button type="submit" 
+                                                class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                title="Xóa">
+                                            <span class="material-icons text-sm">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-400">
+                            Không tìm thấy danh mục nào
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="flex items-center justify-center gap-2 mt-6">
+            @if (ViewBag.Page > 1)
+            {
+                <a href="@Url.Action("Categories", new { type = ViewBag.Type, page = ViewBag.Page - 1 })"
+                   class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                    <span class="material-icons text-sm">chevron_left</span>
+                </a>
+            }
+            
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
+                {
+                    <a href="@Url.Action("Categories", new { type = ViewBag.Type, page = i })"
+                       class="px-4 py-2 @(i == ViewBag.Page ? "bg-blue-500" : "bg-white/5 border border-white/10 hover:bg-white/10") rounded-lg transition-colors">
+                        @i
+                    </a>
+                }
+                else if (i == ViewBag.Page - 2 || i == ViewBag.Page + 2)
+                {
+                    <span class="px-2">...</span>
+                }
+            }
+            
+            @if (ViewBag.Page < ViewBag.TotalPages)
+            {
+                <a href="@Url.Action("Categories", new { type = ViewBag.Type, page = ViewBag.Page + 1 })"
+                   class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                    <span class="material-icons text-sm">chevron_right</span>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+<!-- Skills Tab -->
+<div x-show="activeTab === 'skills'" x-transition style="display: none;">
+    <a href="@Url.Action("Skills", "StaffDashboard")" class="block text-center py-8 text-gray-400">
+        Quản lý kỹ năng ở trang riêng
+    </a>
+</div>
+
+<!-- Edit Category Modal -->
+<div x-data="{ showModal: false, categoryId: null, name: '', type: 'Industry', slug: '', description: '' }" 
+     x-show="showModal" 
+     x-transition.opacity
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+     style="display: none;">
+    <div class="glass-card rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Sửa danh mục</h3>
+        <form asp-action="EditCategory" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="categoryId" x-bind:value="categoryId" />
+            
+            <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-2">Tên</label>
+                <input x-model="name" name="name" type="text" required
+                       class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-2">Loại</label>
+                <select x-model="type" name="type" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+                    <option value="Industry">Ngành nghề</option>
+                    <option value="Location">Địa điểm</option>
+                    <option value="Level">Cấp độ</option>
+                    <option value="JobType">Loại công việc</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-2">Slug</label>
+                <input x-model="slug" name="slug" type="text" required
+                       class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-2">Mô tả</label>
+                <input x-model="description" name="description" type="text"
+                       class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            </div>
+            
+            <div class="flex gap-3">
+                <button type="button" x-on:click="showModal = false" 
+                        class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
+                    Huỷ
+                </button>
+                <button type="submit" 
+                        class="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                    Lưu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

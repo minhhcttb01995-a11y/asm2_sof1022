@@ -1,0 +1,313 @@
+﻿@using JobConnect.Models
+@model Employer
+@{
+    ViewData["Title"] = Model.CompanyName;
+    Layout = "_Layout";
+    var jobs = ViewBag.Jobs as List<JobPost> ?? new List<JobPost>();
+}
+
+<style>
+    .section-card {
+        background: rgba(255,255,255,0.03);
+        border-radius: 1rem;
+        border: 1px solid #1e293b;
+        padding: 1.5rem;
+    }
+
+        .section-card:hover {
+            border-color: #334155;
+            transition: border-color 0.2s;
+        }
+
+    .benefit-card {
+        background: rgba(59,130,246,0.05);
+        border: 1px solid rgba(59,130,246,0.15);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+    }
+
+    .job-row {
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid #1e293b;
+        border-radius: 0.75rem;
+    }
+
+        .job-row:hover {
+            background: rgba(59,130,246,0.05);
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-1px);
+        }
+</style>
+
+<!-- Cover Banner -->
+<div class="relative">
+    @if (!string.IsNullOrEmpty(Model.CoverURL))
+    {
+        <img src="@Model.CoverURL" class="w-full h-36 object-cover" />
+    }
+    else
+    {
+        <div class="w-full h-36 bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-800 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px); background-size: 60px 60px;"></div>
+        </div>
+    }
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6">
+    <!-- Logo + name bar -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-4 mb-6">
+        <div class="flex items-end gap-4">
+            <div class="w-20 h-20 rounded-2xl border-2 border-slate-700 bg-slate-900 shadow-xl flex items-center justify-center overflow-hidden shrink-0 -mt-8 relative z-10">
+                @if (!string.IsNullOrEmpty(Model.LogoURL))
+                {
+                    <img src="@Model.LogoURL" class="w-full h-full object-contain" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined text-3xl text-slate-500">business</span>
+                }
+            </div>
+            <div class="pb-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="text-xl md:text-2xl font-bold text-white">@Model.CompanyName</h1>
+                    @if (Model.IsVerified)
+                    {
+                        <span class="flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                            <span class="material-symbols-outlined text-sm">verified</span> Đã xác minh
+                        </span>
+                    }
+                </div>
+                <div class="flex flex-wrap gap-3 mt-1 text-sm text-slate-400">
+                    @if (!string.IsNullOrEmpty(Model.Address))
+                    {
+                        <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-base text-slate-500">location_on</span>@Model.Address
+                        </span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Website))
+                    {
+                        <a href="@Model.Website" target="_blank" class="flex items-center gap-1 hover:text-blue-400 transition-colors">
+                            <span class="material-symbols-outlined text-base text-slate-500">public</span>@Model.Website
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="pb-1 flex gap-3">
+            <a asp-controller="Job" asp-action="Index" asp-route-company="@Model.EmployerID"
+               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20">
+                <span class="material-symbols-outlined text-base">add</span>
+                Theo dõi công ty
+            </a>
+            <a asp-controller="Report" asp-action="Create" asp-route-companyId="@Model.EmployerID"
+               class="inline-flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                <span class="material-symbols-outlined text-base">report</span>
+                Báo cáo
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
+
+        <!-- MAIN CONTENT -->
+        <div class="lg:col-span-2 space-y-5">
+
+            <!-- About -->
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="section-card">
+                    <h2 class="font-bold text-blue-400 text-lg mb-3">Tổng quan về công ty</h2>
+                    <div class="text-sm text-slate-400 leading-relaxed">@Html.Raw(Model.Description)</div>
+                </div>
+            }
+
+            <!-- Why work here -->
+            @{
+                var highlights = Model.WhyWorkHereItems;
+            }
+            @if (highlights.Any())
+            {
+                <div class="section-card">
+                    <h2 class="font-bold text-blue-400 text-lg mb-4">Tại sao nên làm việc tại @Model.CompanyName?</h2>
+                    @{
+                        var regular = highlights.Where(h => !h.IsHighlighted).ToList();
+                        var featured = highlights.Where(h => h.IsHighlighted).ToList();
+                    }
+                    @if (regular.Any())
+                    {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                            @foreach (var item in regular)
+                            {
+                                <div class="benefit-card">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="material-symbols-outlined text-blue-400 text-xl">@item.Icon</span>
+                                        <span class="font-bold text-sm text-white">@item.Title</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <p class="text-xs text-slate-400">@item.Description</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    @foreach (var item in featured)
+                    {
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-4 flex items-start gap-3 text-white @(featured.IndexOf(item) < featured.Count - 1 || regular.Any() ? "mb-3" : "")">
+                            <span class="material-symbols-outlined text-2xl">@item.Icon</span>
+                            <div>
+                                <div class="font-bold text-sm mb-1">@item.Title</div>
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <p class="text-blue-100 text-xs">@item.Description</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Job Openings -->
+            <div class="section-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-blue-400 text-lg flex items-center gap-2">
+                        Vị trí đang tuyển dụng
+                        <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2.5 py-0.5 rounded-full font-normal">@jobs.Count</span>
+                    </h2>
+                    <a asp-controller="Job" asp-action="Index"
+                       class="text-blue-400 text-sm font-bold hover:underline flex items-center gap-1">
+                        Xem tất cả <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </a>
+                </div>
+
+                @if (jobs.Any())
+                {
+                    <div class="space-y-3">
+                        @foreach (var job in jobs)
+                        {
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                               class="job-row flex items-start gap-3 p-4 group block">
+                                <div class="w-10 h-10 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center shrink-0 overflow-hidden">
+                                    @if (!string.IsNullOrEmpty(Model.LogoURL))
+                                    {
+                                        <img src="@Model.LogoURL" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-slate-500 text-lg">business</span>
+                                    }
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start gap-2">
+                                        <p class="font-bold text-sm text-slate-200 group-hover:text-blue-400 transition-colors">@job.Title</p>
+                                        <span class="text-slate-500 hover:text-red-400 shrink-0 transition-colors">
+                                            <span class="material-symbols-outlined text-base">favorite</span>
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-blue-400 font-semibold">@Model.CompanyName</p>
+                                    <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-500">
+                                        @if (!string.IsNullOrEmpty(job.Location))
+                                        {
+                                            <span class="flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-sm">location_on</span>@job.Location
+                                            </span>
+                                        }
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">payments</span>@job.SalaryDisplay
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">schedule</span>
+                                            @((DateTime.Now - job.CreatedAt).TotalDays < 1 ? "Vừa xong" :
+                                              (DateTime.Now - job.CreatedAt).TotalDays < 7 ? $"{(int)(DateTime.Now - job.CreatedAt).TotalDays} ngày trước" : "1 tuần trước")
+                                        </span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5 mt-2">
+                                        <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-xs text-slate-400 font-medium">@job.JobType</span>
+                                        @if (!string.IsNullOrEmpty(job.ExperienceLevel))
+                                        {
+                                            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-xs text-slate-400 font-medium">@job.ExperienceLevel</span>
+                                        }
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-10 text-slate-500">
+                        <span class="material-symbols-outlined text-4xl block mb-2">work_off</span>
+                        <p class="text-sm">Công ty hiện chưa có vị trí tuyển dụng.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <aside class="space-y-4">
+
+            <!-- Company Info -->
+            <div class="section-card">
+                <h3 class="font-bold text-white mb-4">Thông tin công ty</h3>
+                <div class="space-y-3">
+                    @foreach (var (icon, label, value) in new[]{
+                        ("group", "Quy mô công ty", string.IsNullOrEmpty(Model.CompanySize) ? null : Model.CompanySize + " nhân viên"),
+                        ("category", "Lĩnh vực", Model.Industry),
+                        ("calendar_today", "Thành lập", Model.CreatedAt.Year.ToString()),
+                        ("public", "Website", Model.Website),
+                        ("receipt_long", "Mã số thuế", Model.TaxCode),
+                        ("email", "Email liên hệ", Model.User?.Email),
+                    })
+                    {
+                        @if (!string.IsNullOrEmpty(value))
+                        {
+                            <div class="flex items-start gap-3 text-sm">
+                                <div class="w-8 h-8 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-blue-400 text-base">@icon</span>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-500">@label</div>
+                                    @if (icon == "public")
+                                    {
+                                        <a href="@value" target="_blank" class="font-semibold text-blue-400 hover:underline">@value</a>
+                                    }
+                                    else
+                                    {
+                                        <div class="font-semibold text-slate-200">@value</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- CTA Card -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
+                <h3 class="font-bold text-base mb-2">Ứng tuyển ngay!</h3>
+                <p class="text-blue-200 text-xs mb-4">Hãy trở thành một phần của đội ngũ hàng đầu Việt Nam.</p>
+                <a asp-controller="Job" asp-action="Index"
+                   class="block w-full text-center py-2.5 bg-white text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-50 transition-colors">
+                    Nộp đơn ứng tuyển
+                </a>
+            </div>
+
+            <!-- Stats -->
+            <div class="section-card">
+                <h3 class="font-bold text-white mb-3">Thống kê</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-blue-400">@jobs.Count</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Việc đang tuyển</div>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-blue-400">@jobs.Sum(j => j.Applications?.Count ?? 0)</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Ứng viên</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

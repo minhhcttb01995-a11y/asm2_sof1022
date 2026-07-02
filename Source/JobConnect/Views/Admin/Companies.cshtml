@@ -1,0 +1,223 @@
+﻿@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Báo cáo thống kê";
+
+    var statusColorMap = new Dictionary<string, string>
+    {
+        ["Pending"] = "bg-yellow-400",
+        ["Reviewed"] = "bg-blue-400",
+        ["Interview"] = "bg-purple-400",
+        ["Accepted"] = "bg-green-500",
+        ["Rejected"] = "bg-red-400",
+    };
+    var statusLabelMap = new Dictionary<string, string>
+    {
+        ["Pending"] = "Chờ duyệt",
+        ["Reviewed"] = "Đã xem",
+        ["Interview"] = "Phỏng vấn",
+        ["Accepted"] = "Chấp nhận",
+        ["Rejected"] = "Từ chối",
+    };
+
+    var kpis = new[]
+    {
+        (Icon: "people",    Label: "Tổng người dùng",     Value: ViewBag.TotalUsers?.ToString("N0")     ?? "0", Color: "text-blue-600",   Bg: "bg-blue-50"),
+        (Icon: "work",      Label: "Tổng tin tuyển dụng", Value: ViewBag.TotalJobs?.ToString("N0")      ?? "0", Color: "text-green-600",  Bg: "bg-green-50"),
+        (Icon: "send",      Label: "Đơn ứng tuyển",       Value: ViewBag.TotalApps?.ToString("N0")      ?? "0", Color: "text-purple-600", Bg: "bg-purple-50"),
+        (Icon: "apartment", Label: "Công ty đã duyệt",    Value: ViewBag.TotalCompanies?.ToString("N0") ?? "0", Color: "text-orange-600", Bg: "bg-orange-50"),
+    };
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-xl font-bold text-on-surface">Báo cáo thống kê</h1>
+        <p class="text-sm text-secondary">Tổng quan hoạt động hệ thống</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        @foreach (var k in kpis)
+        {
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs text-secondary mb-1">@k.Label</p>
+                        <p class="text-2xl font-bold text-on-surface">@k.Value</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl @k.Bg flex items-center justify-center">
+                        <span class="material-symbols-outlined @k.Color text-xl">@k.Icon</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Đơn ứng tuyển theo tháng -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+            <h2 class="font-semibold text-on-surface mb-4">Đơn ứng tuyển theo tháng</h2>
+            @if (ViewBag.MonthlyApps is List<(string Month, int Count)> monthData && monthData.Any())
+            {
+                int maxVal = monthData.Max(m => m.Count) + 1;
+                <div class="space-y-2">
+                    @foreach (var m in monthData)
+                    {
+                        int pctM = maxVal > 0 ? m.Count * 100 / maxVal : 0;
+                        <div class="flex items-center gap-3 text-sm">
+                            <span class="w-14 text-secondary text-xs shrink-0">@m.Month</span>
+                            <div class="flex-1 bg-surface-container rounded-full h-5 overflow-hidden">
+                                <div class="h-full bg-primary rounded-full transition-all" style="width:@(pctM)%"></div>
+                            </div>
+                            <span class="w-8 text-right font-medium text-on-surface text-xs">@m.Count</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
+            }
+        </div>
+
+        <!-- Top ngành nghề -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+            <h2 class="font-semibold text-on-surface mb-4">Top ngành nghề hot nhất</h2>
+            @if (ViewBag.TopCategories is List<(string Name, int Count)> catData && catData.Any())
+            {
+                int catMax = catData.Max(c => c.Count) + 1;
+                int rank = 0;
+                <div class="space-y-3">
+                    @foreach (var cat in catData)
+                    {
+                        rank++;
+                        int pctC = catMax > 0 ? cat.Count * 100 / catMax : 0;
+                        string rankClass = rank <= 3 ? "bg-primary text-white" : "bg-surface-container text-secondary";
+                        <div class="flex items-center gap-3 text-sm">
+                            <span class="w-6 h-6 rounded-full @rankClass flex items-center justify-center text-xs font-bold shrink-0">@rank</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-on-surface">@cat.Name</span>
+                                    <span class="text-secondary">@cat.Count tin</span>
+                                </div>
+                                <div class="bg-surface-container rounded-full h-2">
+                                    <div class="h-full bg-primary rounded-full" style="width:@(pctC)%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
+            }
+        </div>
+
+        <!-- Top công ty -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+            <h2 class="font-semibold text-on-surface mb-4">Top công ty đăng tin nhiều nhất</h2>
+            @if (ViewBag.TopCompanies is List<(string Name, int Count)> compData && compData.Any())
+            {
+                int cr = 0;
+                <div class="divide-y divide-outline-variant">
+                    @foreach (var comp in compData)
+                    {
+                        cr++;
+                        <div class="flex items-center gap-3 py-2.5 text-sm">
+                            <span class="w-6 text-center font-bold text-secondary text-xs">@cr</span>
+                            <span class="flex-1 font-medium text-on-surface">@comp.Name</span>
+                            <span class="badge badge-active">@comp.Count tin</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
+            }
+        </div>
+
+        <!-- Tỉ lệ đơn theo trạng thái -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+            <h2 class="font-semibold text-on-surface mb-4">Tỉ lệ kết quả đơn ứng tuyển</h2>
+            @if (ViewBag.AppStatus is List<(string Status, int Count)> statusData && statusData.Any())
+            {
+                int totalApps = statusData.Sum(s => s.Count);
+                <div class="flex rounded-full overflow-hidden h-4 mb-4">
+                    @foreach (var s in statusData.Where(x => x.Count > 0))
+                    {
+                        int pctBar = totalApps > 0 ? s.Count * 100 / totalApps : 0;
+                        string sColor = statusColorMap.GetValueOrDefault(s.Status, "bg-gray-400");
+                        string sLabel = statusLabelMap.GetValueOrDefault(s.Status, s.Status);
+                        <div class="@sColor h-full" style="width:@(pctBar)%" title="@sLabel: @s.Count"></div>
+                    }
+                </div>
+                <div class="space-y-2">
+                    @foreach (var s in statusData)
+                    {
+                        double pctNum = totalApps > 0 ? s.Count * 100.0 / totalApps : 0;
+                        string sColor2 = statusColorMap.GetValueOrDefault(s.Status, "bg-gray-400");
+                        string sLabel2 = statusLabelMap.GetValueOrDefault(s.Status, s.Status);
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full @sColor2 inline-block"></span>
+                                <span class="text-secondary">@sLabel2</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="font-medium text-on-surface">@s.Count</span>
+                                <span class="text-xs text-secondary w-10 text-right">@pctNum.ToString("F0")%</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Người dùng mới nhất -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
+        <h2 class="font-semibold text-on-surface mb-4">10 người dùng đăng ký gần nhất</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-xs text-secondary uppercase border-b border-outline-variant">
+                        <th class="py-2 text-left">Tên</th>
+                        <th class="py-2 text-left">Email</th>
+                        <th class="py-2 text-center">Vai trò</th>
+                        <th class="py-2 text-center">Ngày đăng ký</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant">
+                    @if (ViewBag.RecentUsers is List<JobConnect.Models.User> users)
+                    {
+                        @foreach (var u in users)
+                        {
+                            string roleBadge = u.Role switch
+                            {
+                                "Admin" => "badge-interview",
+                                "Employer" => "badge-reviewed",
+                                _ => "badge-active"
+                            };
+                            string roleLabel = u.Role switch
+                            {
+                                "Admin" => "Admin",
+                                "Employer" => "NTD",
+                                _ => "Ứng viên"
+                            };
+                            <tr class="text-sm">
+                                <td class="py-2.5 font-medium text-on-surface">@u.FullName</td>
+                                <td class="py-2.5 text-secondary">@u.Email</td>
+                                <td class="py-2.5 text-center"><span class="badge @roleBadge">@roleLabel</span></td>
+                                <td class="py-2.5 text-center text-xs text-secondary">@u.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
