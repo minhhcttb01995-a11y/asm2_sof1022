@@ -1,58 +1,79 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class Employer
+public partial class Employer
 {
-    [Key]
-    public int EmployerID { get; set; }
-    public int UserID { get; set; }
-    public string CompanyName { get; set; } = string.Empty;
+    public int EmployerId { get; set; }
+
+    /// <summary>Mã công ty - ngẫu nhiên, không trùng (VD: CTY7K2A9F).</summary>
+    public string? CompanyCode { get; set; }
+
+    public int UserId { get; set; }
+
+    public string CompanyName { get; set; } = null!;
+
     public string? TaxCode { get; set; }
+
     public string? Industry { get; set; }
-    public string? CompanySize { get; set; } // 1-10 | 11-50 | 51-200 | 200+
+
+    public string? CompanySize { get; set; }
+
     public string? Address { get; set; }
+
+    /// <summary>Giới tính của người đại diện tuyển dụng (Nam / Nữ / Khác).</summary>
+    public string? Gender { get; set; }
+
+    /// <summary>Số CCCD của người đại diện tuyển dụng.</summary>
+    public string? CCCD { get; set; }
+
     public string? Website { get; set; }
-    [Column(TypeName = "nvarchar(max)")]
-    public string? LogoURL { get; set; }
-    [Column(TypeName = "nvarchar(max)")]
-    public string? CoverURL { get; set; }
-    public bool IsVerified { get; set; } = false;
-    public bool IsLocked { get; set; } = false;   // ← THÊM MỚI: Admin có thể khoá công ty
-    [Column(TypeName = "nvarchar(max)")]
-    public string? Description { get; set; }
 
-    /// <summary>JSON danh sách lý do làm việc tại công ty (CompanyHighlight[]).</summary>
-    [Column(TypeName = "nvarchar(max)")]
-    public string? WhyWorkHereJson { get; set; }
+    public string? LogoUrl { get; set; }
 
-    [NotMapped]
-    public List<CompanyHighlight> WhyWorkHereItems
+    public string? CoverUrl { get; set; }
+
+    // Compatibility aliases (some views/controllers expect LogoURL / CoverURL)
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string? LogoURL
     {
-        get
-        {
-            if (string.IsNullOrWhiteSpace(WhyWorkHereJson))
-                return new List<CompanyHighlight>();
-
-            try
-            {
-                return JsonSerializer.Deserialize<List<CompanyHighlight>>(WhyWorkHereJson)
-                       ?? new List<CompanyHighlight>();
-            }
-            catch
-            {
-                return new List<CompanyHighlight>();
-            }
-        }
-        set => WhyWorkHereJson = value.Count == 0
-            ? null
-            : JsonSerializer.Serialize(value);
+        get => LogoUrl;
+        set => LogoUrl = value;
     }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public User User { get; set; } = null!;
-    public ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
-    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string? CoverURL
+    {
+        get => CoverUrl;
+        set => CoverUrl = value;
+    }
+
+    public bool IsVerified { get; set; }
+
+    public bool IsLocked { get; set; }
+
+    /// <summary>Đánh dấu công ty "Hot" để hiển thị nổi bật ở trang chủ.</summary>
+    public bool IsFeatured { get; set; }
+
+    public string Status { get; set; } = "Active";
+
+    public string? Description { get; set; }
+
+    public string? WhyWorkHereJson { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
+
+    public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
+
+    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+    public virtual User User { get; set; } = null!;
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public List<CompanyHighlight> WhyWorkHereItems { get; internal set; } = new();
 }

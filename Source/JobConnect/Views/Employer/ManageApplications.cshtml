@@ -14,31 +14,43 @@
         : Model.Where(a => a.Status == currentFilter).ToList();
 }
 
-<div class="max-w-6xl mx-auto px-6 py-8">
+<div class="max-w-[1600px] mx-auto px-6 py-8">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Quản lý đơn ứng tuyển</h1>
-            <p class="text-gray-600 text-sm mt-1">
-                Vị trí: <span class="font-semibold text-gray-900">@job?.Title</span> • @Model.Count đơn ứng tuyển
+            <h1 class="text-2xl font-bold text-white">Quản lý đơn ứng tuyển</h1>
+            <p class="text-slate-400 text-sm mt-1">
+                Vị trí: <span class="font-semibold text-slate-300">@job?.Title</span> • @Model.Count đơn ứng tuyển
             </p>
         </div>
-        <a asp-action="Dashboard"
-           class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-            Quay lại
-        </a>
+        <div class="flex items-center gap-2">
+            <a asp-action="ExportApplicationsCsv" asp-route-jobId="@job?.JobId" asp-route-status="@filterParam"
+               class="px-4 py-2 border border-green-700 text-green-400 rounded-lg text-sm font-medium hover:bg-green-500/10 inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">table_view</span>
+                Xuất Excel
+            </a>
+            <a asp-action="PrintApplications" asp-route-jobId="@job?.JobId" asp-route-status="@filterParam" target="_blank"
+               class="px-4 py-2 border border-red-700 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/10 inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                Xuất PDF
+            </a>
+            <a asp-action="Dashboard"
+               class="px-4 py-2 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium hover:bg-[#1e293b]/10">
+                Quay lại
+            </a>
+        </div>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-sm flex items-center gap-2">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-sm flex items-center gap-2 auto-hide-alert">
             <span class="material-symbols-outlined text-green-600 text-base">check_circle</span>
             @TempData["Success"]
         </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm flex items-center gap-2">
-            <span class="material-symbols-outlined text-red-600 text-base">error</span>
+        <div class="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-800 rounded-xl text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-red-400 text-base">error</span>
             @TempData["Error"]
         </div>
     }
@@ -46,8 +58,8 @@
     @if (!Model.Any())
     {
         <div class="text-center py-12">
-            <span class="material-icons text-gray-400 text-6xl mb-4">inbox</span>
-            <p class="text-lg text-gray-600">Chưa có ứng viên nào nộp đơn cho tin tuyển dụng này.</p>
+            <span class="material-icons text-slate-400 text-6xl mb-4">inbox</span>
+            <p class="text-lg text-slate-300">Chưa có ứng viên nào nộp đơn cho tin tuyển dụng này.</p>
         </div>
     }
     else
@@ -56,49 +68,49 @@
         <div class="flex flex-wrap gap-2 mb-5">
             @foreach (var status in statuses)
             {
-                <a asp-action="ManageApplications" asp-route-jobId="@job?.JobID" asp-route-status="@(status == "Tất cả" ? "" : status)"
+                <a asp-action="ManageApplications" asp-route-jobId="@job?.JobId" asp-route-status="@(status == "Tất cả" ? "" : status)"
                    class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-                    @(currentFilter == status ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")">
+                    @(currentFilter == status ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700")">
                     @status
                 </a>
             }
         </div>
 
         <!-- Danh sách ứng viên -->
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div class="bg-[#1e293b] rounded-xl border border-slate-700 overflow-hidden shadow-sm">
             <table class="w-full text-left">
-                <thead class="bg-gray-50 border-b border-gray-200">
+                <thead class="bg-[#0f172a] border-b border-slate-700">
                     <tr>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Ứng viên</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Ngày nộp</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Trạng thái</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Hành động</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Ứng viên</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Ngày nộp</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Trạng thái</th>
+                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Hành động</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @foreach (var app in filteredApps)
                     {
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-[#0f172a] transition-colors">
                             <td class="px-5 py-3">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
                                         @((app.CandidateProfile?.User?.FullName?[0].ToString().ToUpper() ?? "U"))
                                     </div>
                                     <div>
-                                        <div class="font-medium text-gray-900">@app.CandidateProfile?.User?.FullName</div>
-                                        <div class="text-xs text-gray-500">@app.CandidateProfile?.User?.Email</div>
+                                        <div class="font-medium text-white">@app.CandidateProfile?.User?.FullName</div>
+                                        <div class="text-xs text-slate-400">@app.CandidateProfile?.User?.Email</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-5 py-3 text-gray-600 text-sm">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="px-5 py-3 text-slate-300 text-sm">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="px-5 py-3">
                                 <span class="px-2.5 py-1 rounded-full text-xs font-medium
                                     @(app.Status == "Pending" ? "bg-yellow-100 text-yellow-700" :
-                                          app.Status == "Reviewing" ? "bg-blue-100 text-blue-700" :
-                                          app.Status == "Interview" ? "bg-purple-100 text-purple-700" :
-                                          app.Status == "Accepted" ? "bg-green-100 text-green-700" :
-                                          app.Status == "Rejected" ? "bg-red-100 text-red-600" :
-                                          "bg-gray-100 text-gray-600")">
+                                              app.Status == "Reviewing" ? "bg-blue-100 text-blue-300" :
+                                              app.Status == "Interview" ? "bg-purple-100 text-purple-700" :
+                                              app.Status == "Accepted" ? "bg-green-100 text-green-700" :
+                                              app.Status == "Rejected" ? "bg-red-100 text-red-400" :
+                                              "bg-slate-800 text-slate-300")">
                                     @(app.Status == "Pending" ? "Chờ xét duyệt" :
                                       app.Status == "Reviewing" ? "Đang xem xét" :
                                       app.Status == "Interview" ? "Mời phỏng vấn" :
@@ -111,8 +123,8 @@
                                     @* Tải CV *@
                                     @if (app.CvFile != null)
                                     {
-                                        <a asp-action="DownloadCv" asp-route-cvId="@app.CVID"
-                                           class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
+                                        <a asp-action="DownloadCv" asp-route-cvId="@app.Cvid"
+                                           class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-500/10 transition-colors">
                                             <span class="material-symbols-outlined text-sm">download</span>
                                             Tải CV
                                         </a>
@@ -144,7 +156,7 @@
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="appId" value="@app.AppID" />
                                             <button type="submit"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors">
                                                 <span class="material-symbols-outlined text-sm">cancel</span>
                                                 Từ chối
                                             </button>

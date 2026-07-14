@@ -16,7 +16,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] } } } }</script>
+    <script>
+        tailwind.config = {
+        theme: {
+        extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'] },
+        colors: {
+        primary: '#3b82f6',
+        'on-surface': '#1e293b',
+        secondary: '#64748b',
+        'surface-container': '#f8fafc',
+        'surface-container-low': '#f8fafc',
+        'surface-container-high': '#eef2f7',
+        'outline-variant': '#e2e8f0'
+        }
+        }
+        }
+        }
+    </script>
 
     <style>
         *, *::before, *::after {
@@ -359,15 +376,16 @@
     </style>
 
     @await RenderSectionAsync("Styles", required: false)
+    <partial name="_ResponsiveAndSkeleton" />
 </head>
 <body>
     <div class="jc-dashboard">
         <aside class="jc-sidebar">
             <div class="jc-sidebar-brand">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-blue-400 text-3xl">business</span>
+                    <span class="material-symbols-outlined text-blue-600 text-3xl">business</span>
                     <div>
-                        <h1 class="text-lg font-bold text-white">JobConnect</h1>
+                        <h1 class="text-lg font-bold text-slate-900">JobConnect</h1>
                         <p class="text-xs text-slate-500">Nhà tuyển dụng</p>
                     </div>
                 </div>
@@ -390,6 +408,13 @@
                         </a>
                     </li>
                     <li>
+                        <a href="@Url.Action("JobStats", "Employer")"
+                           class="jc-sidebar-link @(IsActive("/Employer/JobStats") ? "active" : "")">
+                            <span class="material-symbols-outlined">query_stats</span>
+                            <span>Thống kê tin đăng</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="@Url.Action("Interviews", "Employer")"
                            class="jc-sidebar-link @(IsActive("/Employer/Interviews") || IsActive("/Employer/ScheduleInterview") || IsActive("/Employer/EditInterview") ? "active" : "")">
                             <span class="material-symbols-outlined">event</span>
@@ -403,17 +428,28 @@
                             <span>Hồ sơ công ty</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="@Url.Action("MyProfile", "Employer")"
+                           class="jc-sidebar-link @(IsActive("/Employer/MyProfile") ? "active" : "")">
+                            <span class="material-symbols-outlined">account_circle</span>
+                            <span>Hồ sơ cá nhân</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
             <div class="jc-sidebar-footer">
+                <a href="@Url.Action("Settings", "Account")" class="jc-sidebar-link">
+                    <span class="material-symbols-outlined">lock</span>
+                    <span>Cài đặt bảo mật</span>
+                </a>
                 <a href="@Url.Action("Index", "Home")" class="jc-sidebar-link">
                     <span class="material-symbols-outlined">open_in_new</span>
                     <span>Trang công khai</span>
                 </a>
                 <form asp-action="Logout" asp-controller="Account" method="post">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="jc-sidebar-link text-red-400 w-full text-left">
+                    <button type="submit" class="jc-sidebar-link text-red-600 w-full text-left">
                         <span class="material-symbols-outlined">logout</span>
                         <span>Đăng xuất</span>
                     </button>
@@ -426,15 +462,15 @@
                 <div class="flex items-center gap-4 min-w-0">
                     <div>
                         <h2 class="text-xl font-bold text-white truncate">@ViewData["Title"]</h2>
-                        <p class="text-slate-500 text-sm">@DateTime.Now.ToString("dddd, dd/MM/yyyy HH:mm", new System.Globalization.CultureInfo("vi-VN"))</p>
+                        <p class="text-slate-400 text-sm">@DateTime.Now.ToString("dddd, dd/MM/yyyy HH:mm", new System.Globalization.CultureInfo("vi-VN"))</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3 shrink-0">
-                    <div class="flex items-center gap-2 px-3 py-2 bg-slate-800/50 rounded-xl border border-slate-700">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-slate-200">
                         <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold text-white">
                             @(userName.Length > 0 ? userName[0].ToString().ToUpper() : "N")
                         </div>
-                        <span class="text-sm text-slate-300 max-w-[140px] truncate">@userName</span>
+                        <span class="text-sm text-slate-600 max-w-[140px] truncate">@userName</span>
                     </div>
                 </div>
             </header>

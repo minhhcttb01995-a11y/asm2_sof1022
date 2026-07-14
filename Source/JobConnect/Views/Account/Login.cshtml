@@ -32,62 +32,29 @@
 
         body {
         font-family: 'Inter', sans-serif;
-        background: #000000;
+        background: #f1f5f9;
         min-height: 100vh;
         position: relative;
         overflow-x: hidden;
         }
 
-        .rain-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
-        overflow: hidden;
-        }
-
-        .drop {
-        position: absolute;
-        background: linear-gradient(to bottom, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0.2) 50%, rgba(59, 130, 246, 0) 100%);
-        width: 2px;
-        border-radius: 0 0 3px 3px;
-        animation: fall linear infinite;
-        }
-
-        .drop-small {
-        position: absolute;
-        background: rgba(59, 130, 246, 0.25);
-        width: 1px;
-        border-radius: 0 0 2px 2px;
-        animation: fall linear infinite;
-        }
-
-        @@keyframes fall {
-        to {
-        transform: translateY(110vh);
-        }
-        }
-
-        .glass-card {
-        background: rgba(10, 10, 10, 0.85);
+                                        .glass-card {
+        background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(20px);
         border: 1px solid rgba(59, 130, 246, 0.2);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
         }
 
         .input-field {
         width: 100%;
         padding: 0.875rem 1rem;
-        background: #000000;
-        border: 1.5px solid #1a1a1a;
+        background: #f1f5f9;
+        border: 1.5px solid #e2e8f0;
         border-radius: 0.75rem;
         font-size: 0.875rem;
         outline: none;
         transition: all 0.2s ease;
-        color: #ffffff;
+        color: #0f172a;
         }
 
         .input-field:focus {
@@ -115,12 +82,12 @@
         justify-content: center;
         gap: 0.75rem;
         padding: 0.75rem;
-        background: #000000;
-        border: 1.5px solid #1a1a1a;
+        background: #f1f5f9;
+        border: 1.5px solid #e2e8f0;
         border-radius: 0.75rem;
         font-size: 0.875rem;
         font-weight: 600;
-        color: #e2e8f0;
+        color: #1e293b;
         cursor: pointer;
         transition: all 0.2s ease;
         width: 100%;
@@ -129,7 +96,7 @@
 
         .social-btn:hover {
         border-color: #3b82f6;
-        background: #0f172a;
+        background: #eff6ff;
         transform: translateY(-2px);
         }
 
@@ -172,11 +139,11 @@
         }
 
         ::-webkit-scrollbar-track {
-        background: #000000;
+        background: #f1f5f9;
         }
 
         ::-webkit-scrollbar-thumb {
-        background: #1a1a1a;
+        background: #cbd5e1;
         border-radius: 4px;
         }
 
@@ -190,14 +157,12 @@
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
-    <div class="rain-container" id="rainContainer"></div>
-
     <div class="relative z-10 text-center mb-8 pt-8">
         <a href="/" class="inline-flex items-center gap-2 text-3xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
             <span class="material-symbols-outlined text-4xl text-blue-500">bolt</span>
             JobConnect
         </a>
-        <p class="text-slate-500 text-sm mt-2">Chào mừng bạn trở lại với hệ thống tuyển dụng chuyên nghiệp.</p>
+        <p class="text-slate-600 text-sm mt-2">Chào mừng bạn trở lại với hệ thống tuyển dụng chuyên nghiệp.</p>
     </div>
 
     <div class="relative z-10 w-full max-w-md mx-auto px-4">
@@ -205,14 +170,14 @@
 
             @if (TempData["Error"] != null)
             {
-                <div class="mb-4 p-3 bg-red-950/30 border border-red-800/50 rounded-xl text-red-400 text-sm">
+                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
                     @TempData["Error"]
                 </div>
             }
 
             @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
             {
-                <div class="mb-4 p-3 bg-red-950/30 border border-red-800/50 rounded-xl text-red-400 text-sm">
+                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
                     @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                     {
                         <p>@error.ErrorMessage</p>
@@ -230,7 +195,7 @@
                         Email hoặc tên đăng nhập
                     </label>
                     <input asp-for="Email" type="email" placeholder="example@jobconnect.com" class="input-field" required />
-                    <span asp-validation-for="Email" class="text-red-400 text-xs mt-1 block"></span>
+                    <span asp-validation-for="Email" class="text-red-600 text-xs mt-1 block"></span>
                 </div>
 
                 <div>
@@ -239,19 +204,19 @@
                             <span class="material-symbols-outlined text-sm align-middle mr-1">lock</span>
                             Mật khẩu
                         </label>
-                        <a href="ForgotPassword" class="text-xs text-blue-400 font-semibold hover:text-blue-300">Quên mật khẩu?</a>
+                        <a href="ForgotPassword" class="text-xs text-blue-600 font-semibold hover:text-blue-700">Quên mật khẩu?</a>
                     </div>
                     <div class="relative">
                         <input asp-for="Password" type="password" id="passwordInput" placeholder="••••••••" class="input-field" style="padding-right: 2.75rem" required />
-                        <button type="button" onclick="togglePwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400">
+                        <button type="button" onclick="togglePwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600">
                             <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon">visibility_off</span>
                         </button>
                     </div>
-                    <span asp-validation-for="Password" class="text-red-400 text-xs mt-1 block"></span>
+                    <span asp-validation-for="Password" class="text-red-600 text-xs mt-1 block"></span>
                 </div>
 
-                <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-400">
-                    <input asp-for="RememberMe" type="checkbox" class="w-4 h-4 rounded border-slate-600 bg-black text-blue-500" />
+                <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+                    <input asp-for="RememberMe" type="checkbox" class="w-4 h-4 rounded border-slate-200 bg-white text-blue-500" />
                     Ghi nhớ đăng nhập
                 </label>
 
@@ -261,9 +226,9 @@
                 </button>
 
                 <div class="flex items-center gap-3 my-4">
-                    <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
-                    <span class="text-xs text-slate-500 font-medium">HOẶC ĐĂNG NHẬP VỚI</span>
-                    <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
+                    <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+                    <span class="text-xs text-slate-600 font-medium">HOẶC ĐĂNG NHẬP VỚI</span>
+                    <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -294,19 +259,19 @@
         </div>
 
         <div class="text-center mt-6">
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-slate-600">
                 Bạn chưa có tài khoản?
-                <a asp-controller="Account" asp-action="Register" class="text-blue-400 font-bold hover:text-blue-300">Đăng ký ngay</a>
+                <a asp-controller="Account" asp-action="Register" class="text-blue-600 font-bold hover:text-blue-700">Đăng ký ngay</a>
             </p>
-            <p class="text-sm text-slate-500 mt-1">
+            <p class="text-sm text-slate-600 mt-1">
                 Nhà tuyển dụng?
-                <a asp-controller="Account" asp-action="RegisterEmployer" class="text-blue-400 font-bold hover:text-blue-300">Đăng ký tại đây</a>
+                <a asp-controller="Account" asp-action="RegisterEmployer" class="text-blue-600 font-bold hover:text-blue-700">Đăng ký tại đây</a>
             </p>
             <div class="flex gap-4 text-xs text-slate-600 justify-center pt-4">
                 <span>© 2026 JobConnect.</span>
-                <a href="#" class="hover:text-blue-400">Điều khoản</a>
-                <a href="#" class="hover:text-blue-400">Bảo mật</a>
-                <a href="#" class="hover:text-blue-400">Liên hệ</a>
+                <a href="#" class="hover:text-blue-600">Điều khoản</a>
+                <a href="#" class="hover:text-blue-600">Bảo mật</a>
+                <a href="#" class="hover:text-blue-600">Liên hệ</a>
             </div>
         </div>
     </div>
@@ -324,33 +289,7 @@
         }
         }
 
-        function initRain() {
-        const container = document.getElementById('rainContainer');
-        if (!container) return;
-        container.innerHTML = '';
-        for (let i = 0; i < 40; i++) {
-        const drop = document.createElement('div');
-        drop.classList.add('drop');
-        drop.style.left = Math.random() * 100 + '%';
-        drop.style.animationDuration = (Math.random() * 1.2 + 0.8) + 's';
-        drop.style.animationDelay = (Math.random() * 8) + 's';
-        drop.style.height = (Math.random() * 40 + 40) + 'px';
-        drop.style.opacity = Math.random() * 0.4 + 0.15;
-        container.appendChild(drop);
-        }
-        for (let i = 0; i < 60; i++) {
-        const drop = document.createElement('div');
-        drop.classList.add('drop-small');
-        drop.style.left = Math.random() * 100 + '%';
-        drop.style.animationDuration = (Math.random() * 1.5 + 0.6) + 's';
-        drop.style.animationDelay = (Math.random() * 10) + 's';
-        drop.style.height = (Math.random() * 20 + 15) + 'px';
-        drop.style.opacity = Math.random() * 0.25 + 0.1;
-        container.appendChild(drop);
-        }
-        }
-        document.addEventListener('DOMContentLoaded', initRain);
-    </script>
+                </script>
 
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />

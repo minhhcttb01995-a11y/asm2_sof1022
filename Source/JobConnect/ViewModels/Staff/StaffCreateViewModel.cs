@@ -17,9 +17,18 @@ public class StaffCreateViewModel
     [StringLength(100)]
     public string FullName { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "CCCD là bắt buộc")]
+    [StringLength(20, MinimumLength = 9, ErrorMessage = "CCCD phải từ 9-20 ký tự")]
+    [RegularExpression(@"^\d+$", ErrorMessage = "CCCD chỉ được chứa số")]
+    public string CCCD { get; set; } = string.Empty;
+
     [StringLength(20)]
     [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
     public string? Phone { get; set; }
+
+    [StringLength(20)]
+    public string? Gender { get; set; }
+
 
     [StringLength(100)]
     public string Position { get; set; } = string.Empty;

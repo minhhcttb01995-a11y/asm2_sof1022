@@ -9,10 +9,12 @@ namespace JobConnect.Services;
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
+    private readonly ICodeGeneratorService _codeGen;
 
-    public AuthService(AppDbContext db)
+    public AuthService(AppDbContext db, ICodeGeneratorService codeGen)
     {
         _db = db;
+        _codeGen = codeGen;
     }
 
     public async Task<User?> LoginAsync(string email, string password)
@@ -50,11 +52,16 @@ public class AuthService : IAuthService
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 Role = "Candidate",
                 CreatedAt = DateTime.Now,
-                AvatarURL = "/img/default-avatar.png"
+                AvatarURL = null
             };
 
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
+
+            // Mã người dùng: tự tăng theo UserId (vd: UV000042)
+            user.UserCode = _codeGen.GenerateUserCode("Candidate", user.UserId);
+            await _db.SaveChangesAsync();
+
             return true;
         }
         catch (Exception ex)
@@ -77,22 +84,27 @@ public class AuthService : IAuthService
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 Role = "Employer",
                 CreatedAt = DateTime.Now,
-                AvatarURL = "/img/default-avatar.png"
+                AvatarURL = null
             };
 
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
+            // Mã người dùng: tự tăng theo UserId (vd: NTD000022)
+            user.UserCode = _codeGen.GenerateUserCode("Employer", user.UserId);
+
             // Tạo employer profile
             var employer = new Employer
             {
-                UserID = user.UserID,
+                UserId = user.UserId,
+                CompanyCode = await _codeGen.GenerateCompanyCodeAsync(),
                 CompanyName = model.CompanyName,
                 TaxCode = model.TaxCode,
                 Industry = model.Industry,
                 Address = model.Address,
                 Website = model.Website,
                 IsVerified = false,
+                Status = "Pending",
                 CreatedAt = DateTime.Now
             };
 

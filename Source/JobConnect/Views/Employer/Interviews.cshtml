@@ -41,7 +41,7 @@
                         <tr>
                             <td>
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 font-bold">
+                                    <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-600 font-bold">
                                         @((item.Application?.CandidateProfile?.FullName?[0].ToString().ToUpper() ?? "U"))
                                     </div>
                                     <span class="font-medium text-white">@item.Application?.CandidateProfile?.FullName</span>
@@ -51,13 +51,17 @@
                             <td class="text-slate-400">@item.InterviewDate.ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="text-slate-400">@item.Location</td>
                             <td>
-                                <div class="flex gap-2">
+                                <div class="jc-actions">
                                     <a asp-action="EditInterview" asp-route-id="@item.InterviewID"
-                                       class="text-blue-400 text-xs hover:text-blue-300">Sửa</a>
+                                       class="jc-action-btn edit" title="Sửa lịch phỏng vấn">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </a>
                                     <form asp-action="DeleteInterview" asp-route-id="@item.InterviewID" method="post"
                                           onsubmit="return confirm('Bạn có chắc muốn hủy lịch phỏng vấn này?')" class="inline">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="text-red-400 text-xs hover:text-red-300">Hủy</button>
+                                        <button type="submit" class="jc-action-btn delete" title="Hủy lịch phỏng vấn">
+                                            <span class="material-symbols-outlined">event_busy</span>
+                                        </button>
                                     </form>
                                 </div>
                             </td>

@@ -1,4 +1,5 @@
 @using JobConnect.Models
+@using JobConnect.Helpers
 @model Category
 @{
     ViewData["Title"] = "Chỉnh sửa Danh mục";
@@ -30,7 +31,7 @@
         <form asp-action="CategoryEdit" method="post" class="space-y-5">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="CategoryID" />
-            
+
             <div>
                 <label asp-for="Name" class="block text-sm font-medium text-on-surface mb-1">Tên danh mục <span class="text-red-500">*</span></label>
                 <input asp-for="Name" required type="text" placeholder="Ví dụ: Công nghệ thông tin, Hà Nội, Senior"
@@ -45,7 +46,7 @@
                     {
                         foreach (string type in ViewBag.Types)
                         {
-                            <option value="@type">@type</option>
+                            <option value="@type">@CategoryTypeLabels.GetLabel(type)</option>
                         }
                     }
                 </select>
@@ -74,7 +75,7 @@
                 <a asp-action="Categories" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container text-center whitespace-nowrap">
                     Huỷ
                 </a>
-                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 whitespace-nowrap">
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 whitespace-nowrap">
                     Cập nhật
                 </button>
             </div>

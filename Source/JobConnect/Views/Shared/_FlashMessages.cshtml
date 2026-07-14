@@ -33,3 +33,20 @@
         @info
     </div>
 }
+
+
+@if (!string.IsNullOrEmpty(success) || !string.IsNullOrEmpty(error) || !string.IsNullOrEmpty(warning) || !string.IsNullOrEmpty(info))
+{
+    <script>
+        (function () {
+            document.querySelectorAll('.flash-msg').forEach(function (el) {
+                setTimeout(function () {
+                    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    el.style.opacity = '0';
+                    el.style.transform = 'translate(-50%, -10px)';
+                    setTimeout(function () { el.remove(); }, 400);
+                }, 3000);
+            });
+        })();
+    </script>
+}

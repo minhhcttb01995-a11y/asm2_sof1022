@@ -33,7 +33,7 @@
     }
 </style>
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-[1300px] mx-auto">
     <!-- Header -->
     <div class="flex items-center gap-3 mb-6">
         <a asp-action="Blog" class="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant hover:bg-surface-container text-secondary transition-colors">
@@ -123,7 +123,7 @@
                             Hủy
                         </a>
                         <button type="submit"
-                                class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                                class="flex-1 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
                             Lưu bài
                         </button>
                     </div>
@@ -148,17 +148,26 @@
                     <label class="block text-sm font-semibold text-on-surface mb-2">Ảnh bìa</label>
 
                     <!-- Preview -->
-                    <div id="coverPreview" class="hidden h-36 rounded-xl overflow-hidden border border-outline-variant mb-3">
+                    <div id="coverPreview" class="hidden relative h-36 rounded-xl overflow-hidden border border-outline-variant mb-3 group">
                         <img id="coverImg" src="" class="w-full h-full object-cover" />
+                        <button type="button" id="coverRemoveBtn" class="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-white transition-all">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
                     </div>
                     <div id="coverPlaceholder" class="h-36 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center mb-3 cursor-pointer hover:border-primary hover:bg-blue-50 transition-all">
                         <span class="material-symbols-outlined text-2xl text-secondary mb-1">add_photo_alternate</span>
-                        <p class="text-xs text-secondary">Nhập URL ảnh bên dưới</p>
+                        <p class="text-xs text-secondary">Nhấp để tải ảnh lên, hoặc nhập URL bên dưới</p>
                     </div>
 
-                    <input type="url" name="CoverURL" id="coverUrlInput"
+                    <input type="file" id="coverFileInput" accept="image/*" class="hidden" />
+                    <button type="button" id="coverUploadBtn" class="w-full mb-2 py-2 border border-outline-variant rounded-xl text-sm text-secondary hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">upload</span>
+                        Tải ảnh từ máy tính
+                    </button>
+                    <input type="text" id="coverUrlInput"
                            class="w-full px-3 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary transition-all"
                            placeholder="https://example.com/image.jpg" />
+                    <input type="hidden" name="CoverURL" id="coverUrlHidden" />
                 </div>
             </div>
         </div>
@@ -213,16 +222,53 @@
     document.getElementById('excerptCount').textContent = this.value.length + ' / 200';
     });
 
-    // Cover URL preview
-    document.getElementById('coverUrlInput').addEventListener('input', function () {
-    const url = this.value.trim();
-    if (url) {
-    document.getElementById('coverImg').src = url;
+    // Cover preview
+    function setCover(value) {
+    document.getElementById('coverUrlHidden').value = value || '';
+    if (value) {
+    document.getElementById('coverImg').src = value;
     document.getElementById('coverPreview').classList.remove('hidden');
     document.getElementById('coverPlaceholder').classList.add('hidden');
     } else {
+    document.getElementById('coverImg').src = '';
     document.getElementById('coverPreview').classList.add('hidden');
     document.getElementById('coverPlaceholder').classList.remove('hidden');
     }
+    }
+
+    // Gõ URL ảnh trực tiếp
+    document.getElementById('coverUrlInput').addEventListener('input', function () {
+    setCover(this.value.trim());
+    });
+
+    // Bấm nút hoặc bấm vào khung trống để mở hộp thoại chọn file
+    document.getElementById('coverUploadBtn').addEventListener('click', function () {
+    document.getElementById('coverFileInput').click();
+    });
+    document.getElementById('coverPlaceholder').addEventListener('click', function () {
+    document.getElementById('coverFileInput').click();
+    });
+
+    // Đọc file ảnh đã chọn và chuyển thành base64 để lưu
+    document.getElementById('coverFileInput').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+    alert('Vui lòng chọn một tệp hình ảnh.');
+    return;
+    }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+    document.getElementById('coverUrlInput').value = '';
+    setCover(e.target.result);
+    };
+    reader.readAsDataURL(file);
+    });
+
+    // Xóa ảnh bìa hiện tại
+    document.getElementById('coverRemoveBtn').addEventListener('click', function () {
+    document.getElementById('coverUrlInput').value = '';
+    document.getElementById('coverFileInput').value = '';
+    setCover('');
     });
 </script>

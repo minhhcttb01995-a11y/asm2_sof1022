@@ -5,6 +5,29 @@
     var purpose = ViewBag.Purpose as string ?? "register";
     var isLogin = purpose == "login";
     var otpError = ViewBag.OtpError as string;
+
+    var titles = new Dictionary<string, string> {
+        { "login", "Xác thực phiên đăng nhập" },
+        { "change_password", "Xác thực đổi mật khẩu" },
+        { "change_email", "Xác thực đổi email" },
+        { "delete_account", "Xác thực xóa tài khoản" },
+    };
+    var descriptions = new Dictionary<string, string> {
+        { "login", "Vì bạn chưa đăng nhập hơn 24 giờ, hãy xác thực để tiếp tục." },
+        { "change_password", "Để bảo vệ tài khoản, vui lòng nhập mã OTP gồm 6 chữ số đã gửi đến" },
+        { "change_email", "Vui lòng nhập mã OTP gồm 6 chữ số đã gửi đến địa chỉ email mới" },
+        { "delete_account", "Để xác nhận xóa tài khoản vĩnh viễn, vui lòng nhập mã OTP đã gửi đến" },
+    };
+    var title = titles.TryGetValue(purpose, out var t) ? t : "Xác thực Email của bạn";
+    var description = descriptions.TryGetValue(purpose, out var d) ? d : "Chúng tôi đã gửi mã OTP gồm 6 chữ số đến";
+    var icon = purpose switch
+    {
+        "login" => "lock_open",
+        "change_password" => "password",
+        "change_email" => "mail",
+        "delete_account" => "warning",
+        _ => "mark_email_unread"
+    };
 }
 
 <div class="min-h-screen flex items-center justify-center px-4 py-12"
@@ -14,44 +37,42 @@
         <!-- Icon -->
         <div class="flex justify-center mb-6">
             <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                <span class="material-symbols-outlined text-blue-400" style="font-size:2.5rem;">
-                    @(isLogin ? "lock_open" : "mark_email_unread")
+                <span class="material-symbols-outlined text-blue-600" style="font-size:2.5rem;">
+                    @icon
                 </span>
             </div>
         </div>
 
         <!-- Title -->
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-white mb-2">
-                @(isLogin ? "Xác thực phiên đăng nhập" : "Xác thực Email của bạn")
+            <h1 class="text-2xl font-bold text-slate-900 mb-2">
+                @title
             </h1>
-            <p class="text-slate-400 text-sm">
-                @(isLogin
-                    ? "Vì bạn chưa đăng nhập hơn 24 giờ, hãy xác thực để tiếp tục."
-                    : "Chúng tôi đã gửi mã OTP gồm 6 chữ số đến")
+            <p class="text-slate-500 text-sm">
+                @description
             </p>
-            <p class="text-blue-400 font-bold mt-1">@email</p>
+            <p class="text-blue-600 font-bold mt-1">@email</p>
         </div>
 
         @if (TempData["Success"] != null)
         {
-            <div class="mb-5 px-4 py-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm flex items-center gap-2">
+            <div class="mb-5 px-4 py-3 bg-green-500/10 border border-green-500/20 text-green-600 rounded-xl text-sm flex items-center gap-2 auto-hide-alert">
                 <span class="material-symbols-outlined text-base">check_circle</span>@TempData["Success"]
             </div>
         }
         @if (TempData["Info"] != null)
         {
-            <div class="mb-5 px-4 py-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-xl text-sm flex items-center gap-2">
+            <div class="mb-5 px-4 py-3 bg-blue-500/10 border border-blue-500/20 text-blue-700 rounded-xl text-sm flex items-center gap-2">
                 <span class="material-symbols-outlined text-base">info</span>@TempData["Info"]
             </div>
         }
 
         <!-- Card -->
-        <div class="bg-white/3 border border-slate-800 rounded-2xl p-8 backdrop-blur-sm">
+        <div class="bg-white/3 border border-slate-200 rounded-2xl p-8 backdrop-blur-sm">
 
             @if (!string.IsNullOrEmpty(otpError))
             {
-                <div class="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-2">
+                <div class="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-base">error</span>@otpError
                 </div>
             }
@@ -61,7 +82,7 @@
                 <input type="hidden" name="email" value="@email" />
                 <input type="hidden" name="purpose" value="@purpose" />
 
-                <label class="block text-sm font-semibold text-slate-300 mb-4 text-center">
+                <label class="block text-sm font-semibold text-slate-600 mb-4 text-center">
                     Nhập mã xác thực OTP
                 </label>
 
@@ -70,7 +91,7 @@
                     @for (int i = 0; i < 6; i++)
                     {
                         <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                               class="otp-digit w-11 h-13 text-center text-xl font-bold text-white bg-slate-900 border-2 border-slate-700 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                               class="otp-digit w-11 h-13 text-center text-xl font-bold text-slate-900 bg-white border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                                style="width:44px;height:52px;" autocomplete="off" />
                     }
                 </div>
@@ -84,7 +105,7 @@
             </form>
 
             <!-- Gửi lại -->
-            <div class="mt-6 pt-5 border-t border-slate-800 text-center">
+            <div class="mt-6 pt-5 border-t border-slate-200 text-center">
                 <p class="text-slate-500 text-sm mb-3">Không nhận được mã?</p>
                 <div class="flex items-center justify-center gap-3">
                     <form asp-action="ResendEmailOtp" method="post" class="inline">
@@ -92,7 +113,7 @@
                         <input type="hidden" name="email" value="@email" />
                         <input type="hidden" name="purpose" value="@purpose" />
                         <button type="submit" id="resendBtn"
-                                class="text-blue-400 font-bold text-sm hover:underline flex items-center gap-1 disabled:opacity-40"
+                                class="text-blue-600 font-bold text-sm hover:underline flex items-center gap-1 disabled:opacity-40"
                                 disabled>
                             <span class="material-symbols-outlined text-sm">refresh</span>
                             Gửi lại mã
@@ -103,10 +124,24 @@
             </div>
         </div>
 
+        @{
+            var backAction = purpose switch
+            {
+                "login" => "Login",
+                "change_password" or "change_email" or "delete_account" => "Settings",
+                _ => "Register"
+            };
+            var backLabel = purpose switch
+            {
+                "login" => "Quay lại đăng nhập",
+                "change_password" or "change_email" or "delete_account" => "Quay lại cài đặt tài khoản",
+                _ => "Quay lại đăng ký"
+            };
+        }
         <div class="text-center mt-5">
-            <a asp-action="@(isLogin ? "Login" : "Register")"
-               class="text-slate-500 hover:text-slate-300 text-sm transition-colors">
-                ← @(isLogin ? "Quay lại đăng nhập" : "Quay lại đăng ký")
+            <a asp-action="@backAction"
+               class="text-slate-500 hover:text-slate-600 text-sm transition-colors">
+                ← @backLabel
             </a>
         </div>
     </div>

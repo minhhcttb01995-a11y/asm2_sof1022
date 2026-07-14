@@ -1,21 +1,37 @@
 @using JobConnect.Models
+@using JobConnect.Helpers
 @{
     ViewData["Title"] = "Quản lý Danh mục";
     Layout = "_LayoutAdmin";
 }
 
-<div class="max-w-6xl mx-auto px-6 py-8">
+<div class="w-full px-6 py-8 xl:px-10">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-on-surface">Quản lý Danh mục</h1>
             <p class="text-secondary text-sm">Quản lý danh mục ngành nghề, địa điểm, cấp độ, loại công việc</p>
         </div>
-        <a asp-action="CategoryCreate" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+        <button type="button" onclick="openCreateCategoryModal()" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
             <span class="material-symbols-outlined text-base">add</span>
             Thêm danh mục
-        </a>
+        </button>
     </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            @TempData["Error"]
+        </div>
+    }
 
     <!-- Filters -->
     <div class="bg-white rounded-2xl p-4 border border-outline-variant mb-6">
@@ -60,7 +76,7 @@
                     }
                 </select>
             </div>
-            <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+            <button type="submit" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
                 Lọc
             </button>
             <a asp-action="Categories" class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
@@ -90,7 +106,7 @@
                             <td class="px-6 py-4 text-sm font-medium text-on-surface">@category.Name</td>
                             <td class="px-6 py-4 text-sm text-secondary">@category.Slug</td>
                             <td class="px-6 py-4">
-                                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">@category.Type</span>
+                                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">@CategoryTypeLabels.GetLabel(category.Type)</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-secondary">@category.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="px-6 py-4 text-right">
@@ -144,7 +160,7 @@
                 {
                     if (i == ViewBag.Page)
                     {
-                        <span class="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium">@i</span>
+                        <span class="px-3 py-2 bg-primary text-slate-900 rounded-lg text-sm font-medium">@i</span>
                     }
                     else
                     {
@@ -165,3 +181,103 @@
         </div>
     }
 </div>
+
+<!-- Create Category Modal -->
+<div id="createCategoryModal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl border border-outline-variant p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-on-surface">Thêm Danh mục mới</h2>
+            <button type="button" onclick="closeCreateCategoryModal()" class="p-2 text-secondary hover:bg-surface-container rounded-lg">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div id="createCategoryError" class="hidden mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            <span id="createCategoryErrorText"></span>
+        </div>
+
+        <form id="createCategoryForm" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+
+            <div>
+                <label for="categoryName" class="block text-sm font-medium text-on-surface mb-1">Tên danh mục <span class="text-red-500">*</span></label>
+                <input id="categoryName" name="Name" required type="text" placeholder="Ví dụ: Công nghệ thông tin, Hà Nội, Senior"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+
+            <div>
+                <label for="categoryType" class="block text-sm font-medium text-on-surface mb-1">Loại danh mục <span class="text-red-500">*</span></label>
+                <select id="categoryType" name="Type" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="Industry">Ngành nghề</option>
+                    <option value="Location">Địa điểm</option>
+                    <option value="Level">Cấp độ</option>
+                    <option value="JobType">Loại công việc</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="categorySlug" class="block text-sm font-medium text-on-surface mb-1">Slug <span class="text-red-500">*</span></label>
+                <input id="categorySlug" name="Slug" required type="text" placeholder="Ví dụ: cong-nghe-thong-tin, ha-noi, senior"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                <p class="text-xs text-secondary mt-1">Slug sẽ được dùng trong URL, chỉ chứa chữ thường, số và dấu gạch ngang</p>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeCreateCategoryModal()" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container text-center whitespace-nowrap">
+                    Huỷ
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 whitespace-nowrap">
+                    Tạo danh mục
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCreateCategoryModal() {
+        document.getElementById('createCategoryModal').classList.remove('hidden');
+        document.getElementById('createCategoryModal').classList.add('flex');
+    }
+
+    function closeCreateCategoryModal() {
+        document.getElementById('createCategoryModal').classList.add('hidden');
+        document.getElementById('createCategoryModal').classList.remove('flex');
+        document.getElementById('createCategoryForm').reset();
+        document.getElementById('createCategoryError').classList.add('hidden');
+    }
+
+    document.getElementById('createCategoryModal').addEventListener('click', function (e) {
+        if (e.target === this) closeCreateCategoryModal();
+    });
+
+    document.getElementById('createCategoryForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const token = document.querySelector('#createCategoryForm input[name="__RequestVerificationToken"]').value;
+        const errorBox = document.getElementById('createCategoryError');
+        const errorText = document.getElementById('createCategoryErrorText');
+
+        try {
+            const response = await fetch('@Url.Action("CategoryCreate", "Admin")', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.reload();
+            } else {
+                errorText.textContent = 'Không thể thêm danh mục. Vui lòng kiểm tra lại thông tin (có thể Slug đã tồn tại).';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
+            }
+        } catch (err) {
+            errorText.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+        }
+    });
+</script>

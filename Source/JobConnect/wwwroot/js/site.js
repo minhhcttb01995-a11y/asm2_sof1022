@@ -216,3 +216,15 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3500);
 }
+
+
+/** Tự động ẩn các banner thông báo (Success/Error/Warning/Info) sau vài giây */
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.auto-hide-alert').forEach(function (el) {
+        setTimeout(function () {
+            el.style.transition = 'opacity 0.5s ease';
+            el.style.opacity = '0';
+            setTimeout(function () { el.remove(); }, 500);
+        }, 3000);
+    });
+});

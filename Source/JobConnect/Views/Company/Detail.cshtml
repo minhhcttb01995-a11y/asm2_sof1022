@@ -1,4 +1,5 @@
 ﻿@using JobConnect.Models
+@using JobConnect.Extensions
 @model Employer
 @{
     ViewData["Title"] = Model.CompanyName;
@@ -55,11 +56,11 @@
     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 </div>
 
-<div class="max-w-6xl mx-auto px-6">
+<div class="max-w-[1600px] mx-auto px-6">
     <!-- Logo + name bar -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-4 mb-6">
         <div class="flex items-end gap-4">
-            <div class="w-20 h-20 rounded-2xl border-2 border-slate-700 bg-slate-900 shadow-xl flex items-center justify-center overflow-hidden shrink-0 -mt-8 relative z-10">
+            <div class="w-20 h-20 rounded-2xl border-2 border-slate-200 bg-white shadow-xl flex items-center justify-center overflow-hidden shrink-0 -mt-8 relative z-10">
                 @if (!string.IsNullOrEmpty(Model.LogoURL))
                 {
                     <img src="@Model.LogoURL" class="w-full h-full object-contain" />
@@ -71,15 +72,15 @@
             </div>
             <div class="pb-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h1 class="text-xl md:text-2xl font-bold text-white">@Model.CompanyName</h1>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-900">@Model.CompanyName</h1>
                     @if (Model.IsVerified)
                     {
-                        <span class="flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                        <span class="flex items-center gap-1 bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold">
                             <span class="material-symbols-outlined text-sm">verified</span> Đã xác minh
                         </span>
                     }
                 </div>
-                <div class="flex flex-wrap gap-3 mt-1 text-sm text-slate-400">
+                <div class="flex flex-wrap gap-3 mt-1 text-sm text-slate-500">
                     @if (!string.IsNullOrEmpty(Model.Address))
                     {
                         <span class="flex items-center gap-1">
@@ -88,7 +89,7 @@
                     }
                     @if (!string.IsNullOrEmpty(Model.Website))
                     {
-                        <a href="@Model.Website" target="_blank" class="flex items-center gap-1 hover:text-blue-400 transition-colors">
+                        <a href="@Model.Website" target="_blank" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
                             <span class="material-symbols-outlined text-base text-slate-500">public</span>@Model.Website
                         </a>
                     }
@@ -96,16 +97,44 @@
             </div>
         </div>
         <div class="pb-1 flex gap-3">
-            <a asp-controller="Job" asp-action="Index" asp-route-company="@Model.EmployerID"
-               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20">
-                <span class="material-symbols-outlined text-base">add</span>
-                Theo dõi công ty
-            </a>
-            <a asp-controller="Report" asp-action="Create" asp-route-companyId="@Model.EmployerID"
-               class="inline-flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
-                <span class="material-symbols-outlined text-base">report</span>
-                Báo cáo
-            </a>
+            @{
+                bool isFollowing = ViewBag.IsFollowing ?? false;
+            }
+            <form asp-controller="Company" asp-action="ToggleFollow" asp-route-id="@Model.EmployerId" method="post" class="inline">
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                @if (isFollowing)
+                {
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-300 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all">
+                        <span class="material-symbols-outlined text-base">check</span>
+                        Đang theo dõi
+                    </button>
+                }
+                else
+                {
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20">
+                        <span class="material-symbols-outlined text-base">add</span>
+                        Theo dõi công ty
+                    </button>
+                }
+            </form>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <button type="button" onclick="document.getElementById('reportModal').classList.remove('hidden')"
+                        class="inline-flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-600 border border-red-500/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                    <span class="material-symbols-outlined text-base">report</span>
+                    Báo cáo
+                </button>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login"
+                   class="inline-flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-600 border border-red-500/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                    <span class="material-symbols-outlined text-base">report</span>
+                    Báo cáo
+                </a>
+            }
         </div>
     </div>
 
@@ -118,19 +147,19 @@
             @if (!string.IsNullOrEmpty(Model.Description))
             {
                 <div class="section-card">
-                    <h2 class="font-bold text-blue-400 text-lg mb-3">Tổng quan về công ty</h2>
-                    <div class="text-sm text-slate-400 leading-relaxed">@Html.Raw(Model.Description)</div>
+                    <h2 class="font-bold text-blue-600 text-lg mb-3">Tổng quan về công ty</h2>
+                    <div class="text-sm text-slate-500 leading-relaxed">@Html.Raw(Model.Description)</div>
                 </div>
             }
 
             <!-- Why work here -->
             @{
-                var highlights = Model.WhyWorkHereItems;
+                var highlights = Model.WhyWorkHereItems ?? new List<CompanyHighlight>();
             }
             @if (highlights.Any())
             {
                 <div class="section-card">
-                    <h2 class="font-bold text-blue-400 text-lg mb-4">Tại sao nên làm việc tại @Model.CompanyName?</h2>
+                    <h2 class="font-bold text-blue-600 text-lg mb-4">Tại sao nên làm việc tại @Model.CompanyName?</h2>
                     @{
                         var regular = highlights.Where(h => !h.IsHighlighted).ToList();
                         var featured = highlights.Where(h => h.IsHighlighted).ToList();
@@ -142,12 +171,12 @@
                             {
                                 <div class="benefit-card">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <span class="material-symbols-outlined text-blue-400 text-xl">@item.Icon</span>
-                                        <span class="font-bold text-sm text-white">@item.Title</span>
+                                        <span class="material-symbols-outlined text-blue-600 text-xl">@item.Icon</span>
+                                        <span class="font-bold text-sm text-slate-900">@item.Title</span>
                                     </div>
                                     @if (!string.IsNullOrEmpty(item.Description))
                                     {
-                                        <p class="text-xs text-slate-400">@item.Description</p>
+                                        <p class="text-xs text-slate-500">@item.Description</p>
                                     }
                                 </div>
                             }
@@ -172,12 +201,12 @@
             <!-- Job Openings -->
             <div class="section-card">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-blue-400 text-lg flex items-center gap-2">
+                    <h2 class="font-bold text-blue-600 text-lg flex items-center gap-2">
                         Vị trí đang tuyển dụng
-                        <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2.5 py-0.5 rounded-full font-normal">@jobs.Count</span>
+                        <span class="bg-blue-500/10 text-blue-600 border border-blue-500/20 text-xs px-2.5 py-0.5 rounded-full font-normal">@jobs.Count</span>
                     </h2>
                     <a asp-controller="Job" asp-action="Index"
-                       class="text-blue-400 text-sm font-bold hover:underline flex items-center gap-1">
+                       class="text-blue-600 text-sm font-bold hover:underline flex items-center gap-1">
                         Xem tất cả <span class="material-symbols-outlined text-base">arrow_forward</span>
                     </a>
                 </div>
@@ -187,9 +216,9 @@
                     <div class="space-y-3">
                         @foreach (var job in jobs)
                         {
-                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId"
                                class="job-row flex items-start gap-3 p-4 group block">
-                                <div class="w-10 h-10 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center shrink-0 overflow-hidden">
+                                <div class="w-10 h-10 rounded-lg border border-slate-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
                                     @if (!string.IsNullOrEmpty(Model.LogoURL))
                                     {
                                         <img src="@Model.LogoURL" class="w-full h-full object-contain" />
@@ -201,12 +230,12 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex justify-between items-start gap-2">
-                                        <p class="font-bold text-sm text-slate-200 group-hover:text-blue-400 transition-colors">@job.Title</p>
-                                        <span class="text-slate-500 hover:text-red-400 shrink-0 transition-colors">
+                                        <p class="font-bold text-sm text-slate-700 group-hover:text-blue-600 transition-colors">@job.Title</p>
+                                        <span class="text-slate-500 hover:text-red-600 shrink-0 transition-colors">
                                             <span class="material-symbols-outlined text-base">favorite</span>
                                         </span>
                                     </div>
-                                    <p class="text-xs text-blue-400 font-semibold">@Model.CompanyName</p>
+                                    <p class="text-xs text-blue-600 font-semibold">@Model.CompanyName</p>
                                     <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-500">
                                         @if (!string.IsNullOrEmpty(job.Location))
                                         {
@@ -215,7 +244,7 @@
                                             </span>
                                         }
                                         <span class="flex items-center gap-1">
-                                            <span class="material-symbols-outlined text-sm">payments</span>@job.SalaryDisplay
+                                            <span class="material-symbols-outlined text-sm">payments</span>@job.FormatSalary()
                                         </span>
                                         <span class="flex items-center gap-1">
                                             <span class="material-symbols-outlined text-sm">schedule</span>
@@ -224,10 +253,10 @@
                                         </span>
                                     </div>
                                     <div class="flex flex-wrap gap-1.5 mt-2">
-                                        <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-xs text-slate-400 font-medium">@job.JobType</span>
+                                        <span class="bg-white border border-slate-200 px-2 py-0.5 rounded text-xs text-slate-500 font-medium">@job.JobType</span>
                                         @if (!string.IsNullOrEmpty(job.ExperienceLevel))
                                         {
-                                            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-xs text-slate-400 font-medium">@job.ExperienceLevel</span>
+                                            <span class="bg-white border border-slate-200 px-2 py-0.5 rounded text-xs text-slate-500 font-medium">@job.ExperienceLevel</span>
                                         }
                                     </div>
                                 </div>
@@ -250,7 +279,7 @@
 
             <!-- Company Info -->
             <div class="section-card">
-                <h3 class="font-bold text-white mb-4">Thông tin công ty</h3>
+                <h3 class="font-bold text-slate-900 mb-4">Thông tin công ty</h3>
                 <div class="space-y-3">
                     @foreach (var (icon, label, value) in new[]{
                         ("group", "Quy mô công ty", string.IsNullOrEmpty(Model.CompanySize) ? null : Model.CompanySize + " nhân viên"),
@@ -265,17 +294,17 @@
                         {
                             <div class="flex items-start gap-3 text-sm">
                                 <div class="w-8 h-8 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-outlined text-blue-400 text-base">@icon</span>
+                                    <span class="material-symbols-outlined text-blue-600 text-base">@icon</span>
                                 </div>
                                 <div>
                                     <div class="text-xs text-slate-500">@label</div>
                                     @if (icon == "public")
                                     {
-                                        <a href="@value" target="_blank" class="font-semibold text-blue-400 hover:underline">@value</a>
+                                        <a href="@value" target="_blank" class="font-semibold text-blue-600 hover:underline">@value</a>
                                     }
                                     else
                                     {
-                                        <div class="font-semibold text-slate-200">@value</div>
+                                        <div class="font-semibold text-slate-700">@value</div>
                                     }
                                 </div>
                             </div>
@@ -296,14 +325,14 @@
 
             <!-- Stats -->
             <div class="section-card">
-                <h3 class="font-bold text-white mb-3">Thống kê</h3>
+                <h3 class="font-bold text-slate-900 mb-3">Thống kê</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
-                        <div class="text-2xl font-bold text-blue-400">@jobs.Count</div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-blue-600">@jobs.Count</div>
                         <div class="text-xs text-slate-500 mt-0.5">Việc đang tuyển</div>
                     </div>
-                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
-                        <div class="text-2xl font-bold text-blue-400">@jobs.Sum(j => j.Applications?.Count ?? 0)</div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-3 text-center">
+                        <div class="text-2xl font-bold text-blue-600">@jobs.Sum(j => j.Applications?.Count ?? 0)</div>
                         <div class="text-xs text-slate-500 mt-0.5">Ứng viên</div>
                     </div>
                 </div>
@@ -311,3 +340,137 @@
         </aside>
     </div>
 </div>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <!-- MODAL BÁO CÁO -->
+    <div id="reportModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl text-slate-100 relative">
+            <div class="text-center mb-1">
+                <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-red-500 text-2xl">report</span>
+                </div>
+                <h3 class="font-bold text-xl text-white">Gửi báo cáo</h3>
+                <p class="text-slate-400 text-sm mt-1">Báo cáo vi phạm hoặc nội dung không phù hợp</p>
+            </div>
+            <button type="button" onclick="document.getElementById('reportModal').classList.add('hidden')"
+                    class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                ✕
+            </button>
+
+            <form id="reportAntiForgeryForm">
+                @Html.AntiForgeryToken()
+            </form>
+
+            <div id="reportFormWrapper" class="space-y-4 mt-5">
+                <div>
+                    <label class="block text-sm font-semibold mb-1.5 text-slate-300">Loại báo cáo</label>
+                    <select id="reportType" class="w-full px-4 py-3 bg-white border border-slate-200 text-slate-800 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                        <option value="1">Công ty</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-1.5 text-slate-300">Lý do báo cáo <span class="text-red-500">*</span></label>
+                    <input id="reportReason" type="text"
+                           class="w-full px-4 py-3 bg-white border border-slate-200 text-slate-800 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none placeholder-slate-400"
+                           placeholder="Ví dụ: Công ty không tồn tại, Thông tin giả mạo..." />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-1.5 text-slate-300">Mô tả chi tiết</label>
+                    <textarea id="reportDescription" rows="4"
+                              class="w-full px-4 py-3 bg-white border border-slate-200 text-slate-800 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none outline-none placeholder-slate-400"
+                              placeholder="Cung cấp thêm thông tin chi tiết về vấn đề bạn muốn báo cáo..."></textarea>
+                </div>
+
+                <div class="flex items-start gap-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5">
+                    <span class="material-symbols-outlined text-amber-500 text-lg shrink-0">warning</span>
+                    <p class="text-xs text-amber-200 leading-relaxed">
+                        <span class="font-bold text-amber-400">Lưu ý quan trọng:</span>
+                        Báo cáo sai lệch hoặc spam có thể dẫn đến hạn chế tài khoản của bạn. Vui lòng chỉ báo cáo khi thực sự cần thiết.
+                    </p>
+                </div>
+
+                <p id="reportError" class="hidden text-sm text-red-400 font-medium"></p>
+
+                <div class="flex gap-3 pt-1">
+                    <button type="button" onclick="document.getElementById('reportModal').classList.add('hidden')"
+                            class="flex-1 py-3 bg-white text-slate-800 rounded-xl font-semibold hover:bg-slate-100 transition-colors">
+                        Hủy bỏ
+                    </button>
+                    <button type="button" id="reportSubmitBtn" onclick="submitReport()"
+                            class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all">
+                        Gửi báo cáo
+                    </button>
+                </div>
+            </div>
+
+            <div id="reportSuccessMsg" class="hidden text-center py-6">
+                <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-green-500 text-2xl">check_circle</span>
+                </div>
+                <h3 class="font-bold text-lg text-white">Đã gửi báo cáo thành công</h3>
+                <p class="text-slate-400 text-sm mt-1">Chúng tôi sẽ xem xét và xử lý sớm nhất có thể.</p>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            async function submitReport() {
+                const reasonEl = document.getElementById('reportReason');
+                const errorEl = document.getElementById('reportError');
+                const btn = document.getElementById('reportSubmitBtn');
+
+                if (!reasonEl.value.trim()) {
+                    errorEl.textContent = 'Vui lòng nhập lý do báo cáo.';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+                errorEl.classList.add('hidden');
+                btn.disabled = true;
+                btn.textContent = 'Đang gửi...';
+
+                const formData = new URLSearchParams();
+                formData.append('reportType', document.getElementById('reportType').value);
+                formData.append('reason', reasonEl.value.trim());
+                formData.append('description', document.getElementById('reportDescription').value.trim());
+                formData.append('companyId', '@Model.EmployerId');
+
+                const tokenInput = document.querySelector('#reportAntiForgeryForm input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+
+                try {
+                    const res = await fetch('/Report/CreateAjax', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': token
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        document.getElementById('reportFormWrapper').classList.add('hidden');
+                        document.getElementById('reportSuccessMsg').classList.remove('hidden');
+                        setTimeout(() => {
+                            document.getElementById('reportModal').classList.add('hidden');
+                        }, 2000);
+                    } else {
+                        errorEl.textContent = data.message || 'Có lỗi xảy ra, vui lòng thử lại.';
+                        errorEl.classList.remove('hidden');
+                        btn.disabled = false;
+                        btn.textContent = 'Gửi báo cáo';
+                    }
+                } catch (e) {
+                    errorEl.textContent = 'Không thể kết nối máy chủ, vui lòng thử lại.';
+                    errorEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi báo cáo';
+                }
+            }
+        </script>
+    }
+}

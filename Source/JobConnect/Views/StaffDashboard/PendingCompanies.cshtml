@@ -1,19 +1,39 @@
 @model List<JobConnect.Models.Employer>
+@using JobConnect.Models
 @{
     ViewData["Title"] = "Duyệt Công ty";
     Layout = "_StaffLayout";
+    var companyStatuses = ViewBag.CompanyStatuses as List<StatusCatalog>;
 }
+
+<!-- Filter -->
+<form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4">
+    <select name="status" class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="">Tất cả trạng thái</option>
+        @if (companyStatuses != null)
+        {
+            @foreach (var status in companyStatuses)
+            {
+                <option value="@status.Code" selected="@((string?)ViewBag.Status == status.Code ? "selected" : null)">@status.Name</option>
+            }
+        }
+    </select>
+    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+        Lọc
+    </button>
+</form>
 
 <!-- Companies Table -->
 <div class="glass-card rounded-xl overflow-hidden">
     <table class="w-full text-sm">
         <thead class="bg-white/5 border-b border-white/10">
             <tr>
-                <th class="text-left px-6 py-4 font-semibold">ID</th>
+                <th class="text-left px-6 py-4 font-semibold">Mã</th>
                 <th class="text-left px-6 py-4 font-semibold">Tên công ty</th>
                 <th class="text-left px-6 py-4 font-semibold">Email</th>
                 <th class="text-left px-6 py-4 font-semibold">Ngành nghề</th>
                 <th class="text-left px-6 py-4 font-semibold">Quy mô</th>
+                <th class="text-left px-6 py-4 font-semibold">Trạng thái</th>
                 <th class="text-left px-6 py-4 font-semibold">Ngày đăng ký</th>
                 <th class="text-center px-6 py-4 font-semibold">Thao tác</th>
             </tr>
@@ -23,9 +43,13 @@
             {
                 @foreach (var company in Model)
                 {
+                    var statusInfo = companyStatuses?.FirstOrDefault(s => s.Code == company.Status);
+                    var statusLabel = statusInfo?.Name ?? company.Status;
+                    var statusClass = statusInfo?.ColorClass ?? "bg-gray-500/20 text-gray-300";
+
                     <tr class="hover:bg-white/5 transition-colors">
                         <td class="px-6 py-4">
-                            <span class="font-mono text-xs text-gray-400">@company.EmployerID</span>
+                            <span class="font-mono text-xs text-gray-400">@(company.CompanyCode ?? company.EmployerId.ToString())</span>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
@@ -40,29 +64,31 @@
                         <td class="px-6 py-4 text-gray-300">@company.User?.Email ?? "-"</td>
                         <td class="px-6 py-4 text-gray-300">@company.Industry ?? "-"</td>
                         <td class="px-6 py-4 text-gray-300">@company.CompanySize ?? "-"</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium @statusClass">@statusLabel</span>
+                        </td>
                         <td class="px-6 py-4 text-gray-400">@company.CreatedAt.ToString("dd/MM/yyyy")</td>
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = company.UserID })"
+                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = company.UserId })"
                                    class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
                                    title="Xem chi tiết">
                                     <span class="material-icons text-sm">visibility</span>
                                 </a>
-                                <form asp-action="ApproveCompany" method="post" class="inline">
+                                <form asp-action="ChangeCompanyStatus" method="post" class="inline">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="employerId" value="@company.EmployerID" />
-                                    <button type="submit" 
-                                            class="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
-                                            title="Xác minh công ty">
-                                        <span class="material-icons text-sm">check</span>
-                                    </button>
+                                    <input type="hidden" name="employerId" value="@company.EmployerId" />
+                                    <select name="newStatus" onchange="this.form.submit()"
+                                            class="px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs outline-none focus:border-blue-500">
+                                        @if (companyStatuses != null)
+                                        {
+                                            @foreach (var status in companyStatuses)
+                                            {
+                                                <option value="@status.Code" selected="@(company.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                            }
+                                        }
+                                    </select>
                                 </form>
-                                <button x-data="{ open: false }" 
-                                        x-on:click="open = true"
-                                        class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
-                                        title="Từ chối công ty">
-                                    <span class="material-icons text-sm">close</span>
-                                </button>
                             </div>
                         </td>
                     </tr>
@@ -71,8 +97,8 @@
             else
             {
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">
-                        Không có công ty nào chờ duyệt
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-400">
+                        Không có công ty nào
                     </td>
                 </tr>
             }
@@ -86,17 +112,17 @@
     <div class="flex items-center justify-center gap-2 mt-6">
         @if (ViewBag.Page > 1)
         {
-            <a href="@Url.Action("PendingCompanies", new { page = ViewBag.Page - 1 })"
+            <a href="@Url.Action("PendingCompanies", new { status = ViewBag.Status, page = ViewBag.Page - 1 })"
                class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
                 <span class="material-icons text-sm">chevron_left</span>
             </a>
         }
-        
+
         @for (int i = 1; i <= ViewBag.TotalPages; i++)
         {
             if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
             {
-                <a href="@Url.Action("PendingCompanies", new { page = i })"
+                <a href="@Url.Action("PendingCompanies", new { status = ViewBag.Status, page = i })"
                    class="px-4 py-2 @(i == ViewBag.Page ? "bg-blue-500" : "bg-white/5 border border-white/10 hover:bg-white/10") rounded-lg transition-colors">
                     @i
                 </a>
@@ -106,56 +132,13 @@
                 <span class="px-2">...</span>
             }
         }
-        
+
         @if (ViewBag.Page < ViewBag.TotalPages)
         {
-            <a href="@Url.Action("PendingCompanies", new { page = ViewBag.Page + 1 })"
+            <a href="@Url.Action("PendingCompanies", new { status = ViewBag.Status, page = ViewBag.Page + 1 })"
                class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
                 <span class="material-icons text-sm">chevron_right</span>
             </a>
         }
     </div>
 }
-
-<!-- Reject Modal (Alpine.js) -->
-<div x-data="{ showModal: false, employerId: null, reason: '' }" 
-     x-show="showModal" 
-     x-transition.opacity
-     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-     style="display: none;">
-    <div class="glass-card rounded-xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4">Từ chối công ty</h3>
-        <p class="text-sm text-gray-400 mb-4">Vui lòng nhập lý do từ chối:</p>
-        <textarea x-model="reason" 
-                  placeholder="Lý do từ chối..."
-                  class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"
-                  rows="3"></textarea>
-        <div class="flex gap-3 mt-4">
-            <button x-on:click="showModal = false" 
-                    class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">
-                Huỷ
-            </button>
-            <form asp-action="RejectCompany" method="post" class="flex-1">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="employerId" x-bind:value="employerId" />
-                <input type="hidden" name="reason" x-bind:value="reason" />
-                <button type="submit" 
-                        class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium transition-colors">
-                    Từ chối
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-// Trigger reject modal
-document.querySelectorAll('button[title="Từ chối công ty"]').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        const row = e.target.closest('tr');
-        const employerId = row.querySelector('input[name="employerId"]').value;
-        document.querySelector('[x-data]').__x.$data.employerId = employerId;
-        document.querySelector('[x-data]').__x.$data.showModal = true;
-    });
-});
-</script>

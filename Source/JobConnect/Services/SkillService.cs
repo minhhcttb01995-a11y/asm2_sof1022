@@ -24,7 +24,7 @@ public class SkillService : ISkillService
     public async Task<List<Skill>> GetAllAsync()
     {
         return await _db.Skills
-            .OrderBy(s => s.Category)
+            .OrderBy(s => s.CategoryId)
             .ThenBy(s => s.Name)
             .ToListAsync();
     }
@@ -36,7 +36,7 @@ public class SkillService : ISkillService
     {
         return await _db.Skills
             .Where(s => s.IsActive)
-            .OrderBy(s => s.Category)
+            .OrderBy(s => s.CategoryId)
             .ThenBy(s => s.Name)
             .ToListAsync();
     }
@@ -47,7 +47,7 @@ public class SkillService : ISkillService
     public async Task<List<Skill>> GetByCategoryAsync(SkillCategory category)
     {
         return await _db.Skills
-            .Where(s => s.Category == category && s.IsActive)
+            .Where(s => s.CategoryId == (int)category && s.IsActive)
             .OrderBy(s => s.Name)
             .ToListAsync();
     }
@@ -154,8 +154,8 @@ public class SkillService : ISkillService
     {
         return await _db.CandidateSkills
             .Include(cs => cs.Skill)
-            .Where(cs => cs.ProfileID == profileId)
-            .OrderBy(cs => cs.Skill.Category)
+            .Where(cs => cs.ProfileId == profileId)
+            .OrderBy(cs => cs.Skill.CategoryId)
             .ThenBy(cs => cs.Skill.Name)
             .ToListAsync();
     }
@@ -176,7 +176,7 @@ public class SkillService : ISkillService
 
         var candidateSkill = new CandidateSkill
         {
-            ProfileID = profileId,
+            ProfileId = profileId,
             SkillID = skillId,
             ProficiencyLevel = proficiency,
             YearsOfExperience = yearsOfExp,
@@ -195,7 +195,7 @@ public class SkillService : ISkillService
     public async Task<bool> UpdateCandidateSkillAsync(int profileId, int skillId, ProficiencyLevel proficiency, decimal yearsOfExp, DateTime? lastUsed)
     {
         var candidateSkill = await _db.CandidateSkills
-            .FirstOrDefaultAsync(cs => cs.ProfileID == profileId && cs.SkillID == skillId);
+            .FirstOrDefaultAsync(cs => cs.ProfileId == profileId && cs.SkillID == skillId);
 
         if (candidateSkill == null)
             return false;
@@ -215,7 +215,7 @@ public class SkillService : ISkillService
     public async Task<bool> RemoveCandidateSkillAsync(int profileId, int skillId)
     {
         var candidateSkill = await _db.CandidateSkills
-            .FirstOrDefaultAsync(cs => cs.ProfileID == profileId && cs.SkillID == skillId);
+            .FirstOrDefaultAsync(cs => cs.ProfileId == profileId && cs.SkillID == skillId);
 
         if (candidateSkill == null)
             return false;
@@ -231,7 +231,7 @@ public class SkillService : ISkillService
     public async Task<bool> HasCandidateSkillAsync(int profileId, int skillId)
     {
         return await _db.CandidateSkills
-            .AnyAsync(cs => cs.ProfileID == profileId && cs.SkillID == skillId);
+            .AnyAsync(cs => cs.ProfileId == profileId && cs.SkillID == skillId);
     }
 
     /// <summary>
@@ -241,7 +241,7 @@ public class SkillService : ISkillService
     {
         const int targetSkillCount = 5; // Target: 5 skills for full completion
         var skillCount = await _db.CandidateSkills
-            .CountAsync(cs => cs.ProfileID == profileId);
+            .CountAsync(cs => cs.ProfileId == profileId);
 
         return Math.Min(100, (skillCount * 100) / targetSkillCount);
     }

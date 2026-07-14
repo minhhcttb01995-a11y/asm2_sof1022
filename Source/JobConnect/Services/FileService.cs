@@ -77,6 +77,16 @@ public class FileService : IFileService
     {
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
 
+        // Chặn ở tầng service (không chỉ dựa vào validate ở controller) để tránh
+        // upload file thực thi (.exe/.php/.aspx/...) nếu có chỗ khác gọi thẳng hàm này.
+        var allowedExt = new[] { ".pdf", ".docx", ".doc" };
+        if (!allowedExt.Contains(ext))
+            throw new InvalidOperationException("Chỉ chấp nhận file PDF hoặc DOCX/DOC.");
+
+        const long maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.Length <= 0 || file.Length > maxSize)
+            throw new InvalidOperationException("File CV không hợp lệ hoặc vượt quá 5MB.");
+
         var folder = Path.Combine(_env.WebRootPath, "uploads", "cvs");
         Directory.CreateDirectory(folder);
 
@@ -89,11 +99,11 @@ public class FileService : IFileService
         var relativePath = $"/uploads/cvs/{savedName}";
 
         // Nếu chưa có CV nào, tự đặt mặc định
-        var hasExisting = await _db.CvFiles.AnyAsync(c => c.ProfileID == profileId);
+        var hasExisting = await _db.CvFiles.AnyAsync(c => c.ProfileId == profileId);
 
         var cvFile = new CvFile
         {
-            ProfileID = profileId,
+            ProfileId = profileId,
             FileName = file.FileName,
             FilePath = relativePath,
             FileSize = file.Length,
@@ -112,13 +122,13 @@ public class FileService : IFileService
         // Xác minh CV thuộc về user này
         var target = await _db.CvFiles
             .Include(c => c.Profile)
-            .FirstOrDefaultAsync(c => c.CvID == cvId && c.Profile != null && c.Profile.UserID == userId);
+            .FirstOrDefaultAsync(c => c.Cvid == cvId && c.Profile != null && c.Profile.UserId == userId);
 
         if (target == null) return false;
 
         // Bỏ mặc định tất cả CV cũ của profile
         var others = await _db.CvFiles
-            .Where(c => c.ProfileID == target.ProfileID && c.CvID != cvId)
+            .Where(c => c.ProfileId == target.ProfileId && c.Cvid != cvId)
             .ToListAsync();
 
         foreach (var cv in others)
@@ -133,7 +143,7 @@ public class FileService : IFileService
     {
         var cv = await _db.CvFiles
             .Include(c => c.Profile)
-            .FirstOrDefaultAsync(c => c.CvID == cvId && c.Profile != null && c.Profile.UserID == userId);
+            .FirstOrDefaultAsync(c => c.Cvid == cvId && c.Profile != null && c.Profile.UserId == userId);
 
         if (cv == null) return false;
 
@@ -151,7 +161,7 @@ public class FileService : IFileService
         if (cv.IsDefault)
         {
             var next = await _db.CvFiles
-                .Where(c => c.ProfileID == cv.ProfileID)
+                .Where(c => c.ProfileId == cv.ProfileId)
                 .OrderByDescending(c => c.UploadedAt)
                 .FirstOrDefaultAsync();
 
@@ -173,6 +183,9 @@ public class FileService : IFileService
             var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
             if (!allowedExts.Contains(ext)) return string.Empty;
 
+            const long maxAvatarSize = 3 * 1024 * 1024; // 3MB
+            if (avatarFile.Length > maxAvatarSize) return string.Empty;
+
             var fileName = $"user_{userId}_{Guid.NewGuid()}{ext}";
             var relativeFolder = "uploads/avatar";
             var relativePath = Path.Combine(relativeFolder, fileName).Replace("\\", "/");
@@ -187,7 +200,7 @@ public class FileService : IFileService
             var user = await _db.Users.FindAsync(userId);
             if (user != null)
             {
-                user.AvatarURL = "/" + relativePath;
+                user.AvatarUrl = "/" + relativePath;
                 await _db.SaveChangesAsync();
             }
 

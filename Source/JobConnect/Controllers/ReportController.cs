@@ -1,5 +1,6 @@
 using JobConnect.Data;
 using JobConnect.Models;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,13 @@ public class ReportController : Controller
 {
     private readonly AppDbContext _context;
     private readonly ILogger<ReportController> _logger;
+    private readonly IAntiforgery _antiforgery;
 
-    public ReportController(AppDbContext context, ILogger<ReportController> logger)
+    public ReportController(AppDbContext context, ILogger<ReportController> logger, IAntiforgery antiforgery)
     {
         _context = context;
         _logger = logger;
+        _antiforgery = antiforgery;
     }
 
     // GET: Report/Create
@@ -79,17 +82,18 @@ public class ReportController : Controller
             entityName = job?.Title;
         }
 
+        int reportType1 = reportType;
         var report = new Report
         {
             ReporterId = userId,
-            ReporterType = reporterType,
-            ReportType = (ReportType)reportType,
+            ReporterType = (int)reporterType,
+            ReportType = (ReportType)reportType1,
             JobPostId = jobPostId,
             CompanyId = companyId,
             ReportedEntityName = entityName,
             Reason = reason,
             Description = description,
-            Status = ReportStatus.Pending,
+            Status = (int)ReportStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -98,6 +102,93 @@ public class ReportController : Controller
 
         TempData["Success"] = "Đã gửi báo cáo thành công. Chúng tôi sẽ xem xét và xử lý sớm.";
         return RedirectToAction("Index", "Home");
+    }
+
+    // POST: Report/CreateAjax  (dùng cho modal báo cáo, không chuyển trang)
+    // Lưu ý: KHÔNG dùng [ValidateAntiForgeryToken] trực tiếp vì nó chạy TRƯỚC try/catch —
+    // nếu token lỗi, exception sẽ rơi ra trang HTML thay vì JSON, khiến JS phía client
+    // (res.json()) bị crash và hiện nhầm thông báo "Không thể kết nối máy chủ".
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> CreateAjax(int reportType, string reason, string? description, int? companyId = null, int? jobPostId = null)
+    {
+        try
+        {
+            try
+            {
+                await _antiforgery.ValidateRequestAsync(HttpContext);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Json(new { success = false, message = "Phiên làm việc đã hết hạn, vui lòng tải lại trang và thử lại." });
+            }
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var userId))
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để gửi báo cáo." });
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập lý do báo cáo." });
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để gửi báo cáo." });
+            }
+
+            var reporterType = user.Role == "Employer" ? ReporterType.Employer : ReporterType.Candidate;
+
+            if (reportType == (int)ReportType.Company && companyId == null)
+            {
+                return Json(new { success = false, message = "Thiếu thông tin công ty để báo cáo." });
+            }
+
+            if (reportType == (int)ReportType.JobPost && jobPostId == null)
+            {
+                return Json(new { success = false, message = "Thiếu thông tin tin tuyển dụng để báo cáo." });
+            }
+
+            string? entityName = null;
+            if (companyId.HasValue)
+            {
+                var company = await _context.Employers.FindAsync(companyId.Value);
+                entityName = company?.CompanyName;
+            }
+            else if (jobPostId.HasValue)
+            {
+                var job = await _context.JobPosts.FindAsync(jobPostId.Value);
+                entityName = job?.Title;
+            }
+
+            var report = new Report
+            {
+                ReporterId = userId,
+                ReporterType = (int)reporterType,
+                ReportType = (ReportType)reportType,
+                JobPostId = jobPostId,
+                CompanyId = companyId,
+                ReportedEntityName = entityName,
+                Reason = reason,
+                Description = description,
+                Status = (int)ReportStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Đã gửi báo cáo thành công." });
+        }
+        catch (Exception ex)
+        {
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            _logger.LogError(ex, "Lỗi khi gửi báo cáo qua CreateAjax");
+            return Json(new { success = false, message = "Có lỗi xảy ra ở server: " + detail });
+        }
     }
 
     // GET: Report
@@ -188,7 +279,7 @@ public class ReportController : Controller
         report.ProcessedAt = DateTime.UtcNow;
 
         // If resolved/rejected and involves violation, lock the entity
-        if (status == ReportStatus.Resolved && report.ReportType == ReportType.JobPost && report.JobPost != null)
+        if (status == ReportStatus.Resolved && report.ReportType == (int)ReportType.JobPost && report.JobPost != null)
         {
             report.JobPost.Status = "Locked";
         }

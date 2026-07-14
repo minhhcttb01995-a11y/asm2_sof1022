@@ -4,9 +4,100 @@
 @{
     ViewData["Title"] = "Quản lý nhân viên hệ thống";
     Layout = "_LayoutAdmin";
+    var staffStatuses = ViewBag.StaffStatuses as List<StatusCatalog>;
 }
 
-<div class="max-w-7xl mx-auto px-6 py-8">
+<!-- Modal Thêm nhân viên -->
+<div id="modalCreateStaff" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-7 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-bold text-on-surface">Thêm nhân viên mới</h2>
+            <button type="button" onclick="closeCreateStaffModal()" class="text-secondary hover:text-on-surface">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form asp-controller="Staff" asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Email</label>
+                    <input name="Email" required type="email" placeholder="email@example.com"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Mật khẩu</label>
+                    <input name="Password" required type="password" placeholder="Tối thiểu 6 ký tự"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Họ tên</label>
+                    <input name="FullName" required type="text" placeholder="Nguyễn Văn A"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Số CCCD</label>
+                    <input name="CCCD" required type="text" inputmode="numeric" maxlength="20" placeholder="079203001234"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Số điện thoại</label>
+                    <input name="Phone" type="tel" placeholder="0901234567"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Giới tính</label>
+                    <select name="Gender"
+                            class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary bg-white">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-on-surface mb-1">Chức vụ</label>
+                    <select name="Position" required
+                            class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary bg-white">
+                        <option value="">-- Chọn chức vụ --</option>
+                        <option value="Chuyên viên tuyển dụng">Chuyên viên tuyển dụng</option>
+                        <option value="Chuyên viên hỗ trợ">Chuyên viên hỗ trợ</option>
+                        <option value="Chuyên viên chăm sóc khách hàng">Chuyên viên chăm sóc khách hàng</option>
+                        <option value="Chuyên viên kiểm duyệt nội dung">Chuyên viên kiểm duyệt nội dung</option>
+                        <option value="Kế toán">Kế toán</option>
+                        <option value="Nhân viên IT">Nhân viên IT</option>
+                        <option value="Quản lý">Quản lý</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-on-surface mb-1">Phòng ban</label>
+                    <select name="Department" required
+                            class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary bg-white">
+                        <option value="">-- Chọn phòng ban --</option>
+                        <option value="Nhân sự">Nhân sự</option>
+                        <option value="Chăm sóc KH">Chăm sóc KH</option>
+                        <option value="Kiểm duyệt nội dung">Kiểm duyệt nội dung</option>
+                        <option value="Kế toán">Kế toán</option>
+                        <option value="Kỹ thuật - IT">Kỹ thuật - IT</option>
+                        <option value="Ban giám đốc">Ban giám đốc</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-6 mt-2 border-t border-outline-variant">
+
+                <button type="button" onclick="closeCreateStaffModal()"
+                        class="flex-1 md:flex-none md:w-40 px-4 py-2.5 mt-6 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                    Huỷ
+                </button>
+                <button type="submit"
+                        class="flex-1 md:flex-none md:w-48 px-4 py-2.5 mt-6 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+                    Tạo tài khoản
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="w-full px-6 py-8">
 
     
     @* Header  *@
@@ -16,16 +107,11 @@
             <p class="text-sm text-secondary mt-1">Danh sách nhân viên hệ thống JobConnect</p>
         </div>
         <div class="flex items-center gap-2">
-            <a asp-action="Deleted"
-               class="flex items-center gap-2 px-4 py-2.5 border border-red-200 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all">
-                <span class="material-symbols-outlined text-base">delete_sweep</span>
-                Đã xóa
-            </a>
-            <a asp-action="Create"
-               class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 shadow-sm transition-all">
+            <button type="button" onclick="openCreateStaffModal()"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 shadow-sm transition-all">
                 <span class="material-symbols-outlined text-base">person_add</span>
                 Thêm nhân viên
-            </a>
+            </button>
         </div>
     </div>
 
@@ -33,7 +119,7 @@
     @* Alerts  *@
     @if (TempData["Success"] != null)
     {
-        <div class="mb-5 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+        <div class="mb-5 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
             <span class="material-symbols-outlined text-base">check_circle</span>
             @TempData["Success"]
         </div>
@@ -63,19 +149,11 @@
                 <label class="block text-xs font-medium text-secondary mb-1.5">Trạng thái</label>
                 <select name="statusFilter" class="w-full px-3 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary bg-white">
                     <option value="">Tất cả</option>
-                    <option value="Active" selected="@(Model.StatusFilter == StaffStatus.Active ? "selected" : null)">Hoạt động</option>
-                    <option value="Locked" selected="@(Model.StatusFilter == StaffStatus.Locked ? "selected" : null)">Đã khóa</option>
-                </select>
-            </div>
-            <div class="min-w-[160px]">
-                <label class="block text-xs font-medium text-secondary mb-1.5">Phòng ban</label>
-                <select name="departmentFilter" class="w-full px-3 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary bg-white">
-                    <option value="">Tất cả</option>
-                    @if (ViewBag.Departments != null)
+                    @if (staffStatuses != null)
                     {
-                        @foreach (var dept in ViewBag.Departments)
+                        @foreach (var status in staffStatuses)
                         {
-                            <option value="@dept" selected="@(Model.DepartmentFilter == dept ? "selected" : null)">@dept</option>
+                            <option value="@status.Code" selected="@(Model.StatusFilter == status.Code ? "selected" : null)">@status.Name</option>
                         }
                     }
                 </select>
@@ -86,7 +164,6 @@
                     <option value="CreatedAt" selected="@(Model.SortBy == "CreatedAt" ? "selected" : null)">Ngày tạo</option>
                     <option value="EmployeeCode" selected="@(Model.SortBy == "EmployeeCode" ? "selected" : null)">Mã NV</option>
                     <option value="FullName" selected="@(Model.SortBy == "FullName" ? "selected" : null)">Họ tên</option>
-                    <option value="Department" selected="@(Model.SortBy == "Department" ? "selected" : null)">Phòng ban</option>
                     <option value="Status" selected="@(Model.SortBy == "Status" ? "selected" : null)">Trạng thái</option>
                 </select>
             </div>
@@ -133,7 +210,7 @@
                         <th class="text-left px-5 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Nhân viên</th>
                         <th class="text-left px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Mã NV</th>
                         <th class="text-left px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Chức vụ</th>
-                        <th class="text-left px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Phòng ban</th>
+                        <th class="text-left px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">CCCD</th>
                         <th class="text-left px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Trạng thái</th>
                         <th class="text-left px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Ngày tạo</th>
                         <th class="text-center px-4 py-3.5 font-semibold text-xs text-secondary uppercase tracking-wide">Thao tác</th>
@@ -142,12 +219,9 @@
                 <tbody class="divide-y divide-outline-variant/60">
                     @foreach (var staff in Model.StaffList)
                     {
-                        var (statusClass, statusLabel, statusDot) = staff.Status switch
-                        {
-                            StaffStatus.Active => ("bg-emerald-50 text-emerald-700 border border-emerald-200", "Hoạt động", "bg-emerald-500"),
-                            StaffStatus.Locked => ("bg-amber-50 text-amber-700 border border-amber-200", "Đã khóa", "bg-amber-500"),
-                            _ => ("bg-slate-100 text-slate-500 border border-slate-200", "Không rõ", "bg-slate-400")
-                        };
+                        var statusInfo = staffStatuses?.FirstOrDefault(s => s.Code == staff.Status);
+                        var statusLabel = statusInfo?.Name ?? staff.Status;
+                        var statusClass = statusInfo?.ColorClass ?? "bg-slate-100 text-slate-500 border border-slate-200";
 
                         <tr class="hover:bg-surface-container-low/50 transition-colors group">
 
@@ -183,18 +257,16 @@
                                 <span class="text-sm text-on-surface font-medium">@staff.Position</span>
                             </td>
 
-                            @* Phòng ban  *@
+                            @* CCCD  *@
                             <td class="px-4 py-3.5">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium">
-                                    <span class="material-symbols-outlined text-xs">corporate_fare</span>
-                                    @staff.Department
+                                <span class="font-mono text-xs text-secondary">
+                                    @(string.IsNullOrEmpty(staff.CCCD) ? "—" : staff.CCCD)
                                 </span>
                             </td>
 
                             @* Trạng thái  *@
                             <td class="px-4 py-3.5">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold @statusClass">
-                                    <span class="w-1.5 h-1.5 rounded-full @statusDot"></span>
                                     @statusLabel
                                 </span>
                             </td>
@@ -219,51 +291,28 @@
                                         <span class="material-symbols-outlined text-sm">visibility</span>
                                     </a>
 
-                                    @* Sửa  *@
-                                    <a asp-action="Edit" asp-route-id="@staff.Id"
-                                       title="Chỉnh sửa"
-                                       class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container text-secondary hover:bg-blue-500 hover:text-white transition-all">
-                                        <span class="material-symbols-outlined text-sm">edit</span>
-                                    </a>
-
-                                    @* Khóa / Mở khóa  *@
-                                    @if (staff.Status == StaffStatus.Active)
-                                    {
-                                        <form asp-action="Lock" method="post" class="inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@staff.Id" />
-                                            <button type="submit" title="Khóa tài khoản"
-                                                    onclick="return confirm('Khóa tài khoản nhân viên này?')"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-transparent transition-all">
-                                                <span class="material-symbols-outlined text-sm">lock</span>
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <form asp-action="Unlock" method="post" class="inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@staff.Id" />
-                                            <button type="submit" title="Mở khóa tài khoản"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 hover:border-transparent transition-all">
-                                                <span class="material-symbols-outlined text-sm">lock_open</span>
-                                            </button>
-                                        </form>
-                                    }
-
-                                    @* Reset mật khẩu  *@
-                                    <a asp-action="ResetPassword" asp-route-id="@staff.Id"
-                                       title="Đặt lại mật khẩu"
-                                       class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-500 hover:text-white border border-purple-200 hover:border-transparent transition-all">
-                                        <span class="material-symbols-outlined text-sm">key</span>
-                                    </a>
+                                    @* Đổi trạng thái  *@
+                                    <form asp-action="ChangeStaffStatus" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@staff.Id" />
+                                        <select name="newStatus" onchange="this.form.submit()"
+                                                class="px-2 py-1.5 border border-outline-variant rounded-lg text-xs outline-none focus:border-primary bg-white">
+                                            @if (staffStatuses != null)
+                                            {
+                                                @foreach (var status in staffStatuses)
+                                                {
+                                                    <option value="@status.Code" selected="@(staff.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </form>
 
                                     @* Xóa mềm  *@
                                     <form asp-action="Delete" method="post" class="inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@staff.Id" />
-                                        <button type="submit" title="Xóa nhân viên"
-                                                onclick="return confirm('Xóa nhân viên \" @staff.FullName\"? Hành động này sẽ ẩn nhân viên khỏi danh sách.')"
+                                        <button type="submit" title="Xóa vĩnh viễn"
+                                                onclick="return confirm('Xóa VĨNH VIỄN nhân viên \" @staff.FullName\"? Hành động này KHÔNG THỂ hoàn tác.')"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white border border-red-200 hover:border-transparent transition-all">
                                             <span class="material-symbols-outlined text-sm">delete</span>
                                         </button>
@@ -315,3 +364,21 @@
         </div>
     }
 </div>
+
+<script>
+    function openCreateStaffModal() {
+        document.getElementById('modalCreateStaff').classList.remove('hidden');
+        document.getElementById('modalCreateStaff').classList.add('flex');
+    }
+    function closeCreateStaffModal() {
+        document.getElementById('modalCreateStaff').classList.add('hidden');
+        document.getElementById('modalCreateStaff').classList.remove('flex');
+    }
+    document.getElementById('modalCreateStaff').addEventListener('click', function (e) {
+        if (e.target === this) closeCreateStaffModal();
+    });
+    @if (TempData["OpenCreateModal"] != null)
+    {
+                    <text>openCreateStaffModal();</text>
+    }
+</script>

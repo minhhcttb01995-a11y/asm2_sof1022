@@ -75,7 +75,7 @@
                                 <div class="flex items-center justify-center gap-2">
                                     <button x-data="{ open: false }" 
                                             x-on:click="open = true"
-                                            class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                                            class="p-2 bg-blue-500/20 text-blue-600 rounded-lg hover:bg-blue-500/30 transition-colors"
                                             title="Sửa">
                                         <span class="material-icons text-sm">edit</span>
                                     </button>
@@ -83,7 +83,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="categoryId" value="@category.CategoryID" />
                                         <button type="submit" 
-                                                class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                                class="p-2 bg-red-500/20 text-red-600 rounded-lg hover:bg-red-500/30 transition-colors"
                                                 title="Xóa">
                                             <span class="material-icons text-sm">delete</span>
                                         </button>
@@ -154,7 +154,7 @@
 <div x-data="{ showModal: false, categoryId: null, name: '', type: 'Industry', slug: '', description: '' }" 
      x-show="showModal" 
      x-transition.opacity
-     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+     class="fixed inset-0 bg-white flex items-center justify-center z-50"
      style="display: none;">
     <div class="glass-card rounded-xl p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-semibold mb-4">Sửa danh mục</h3>

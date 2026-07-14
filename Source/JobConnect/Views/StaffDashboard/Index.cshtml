@@ -43,12 +43,12 @@
 
     string ActionColor(string action) => action switch
     {
-        "APPROVE_JOB" or "APPROVE_COMPANY" => "text-green-400 bg-green-500/20",
-        "REJECT_JOB" or "REJECT_COMPANY" => "text-red-400 bg-red-500/20",
-        "RESOLVE_REPORT" or "PROCESS_REPORT" => "text-yellow-400 bg-yellow-500/20",
-        "LOCK_USER" => "text-red-400 bg-red-500/20",
-        "UNLOCK_USER" => "text-green-400 bg-green-500/20",
-        _ => "text-blue-400 bg-blue-500/20"
+        "APPROVE_JOB" or "APPROVE_COMPANY" => "text-green-600 bg-green-500/20",
+        "REJECT_JOB" or "REJECT_COMPANY" => "text-red-600 bg-red-500/20",
+        "RESOLVE_REPORT" or "PROCESS_REPORT" => "text-yellow-600 bg-yellow-500/20",
+        "LOCK_USER" => "text-red-600 bg-red-500/20",
+        "UNLOCK_USER" => "text-green-600 bg-green-500/20",
+        _ => "text-blue-600 bg-blue-500/20"
     };
 }
 
@@ -58,7 +58,7 @@
     <div class="jc-stat-card">
         <div class="flex items-center gap-2 mb-3">
             <div class="jc-stat-icon bg-blue-500/20">
-                <span class="material-icons text-blue-400 text-lg">business</span>
+                <span class="material-icons text-blue-600 text-lg">business</span>
             </div>
             <span class="text-xs text-slate-400 leading-tight">Tổng công ty</span>
         </div>
@@ -68,7 +68,7 @@
     <div class="jc-stat-card">
         <div class="flex items-center gap-2 mb-3">
             <div class="jc-stat-icon bg-green-500/20">
-                <span class="material-icons text-green-400 text-lg">work</span>
+                <span class="material-icons text-green-600 text-lg">work</span>
             </div>
             <span class="text-xs text-slate-400 leading-tight">Tin đang mở</span>
         </div>
@@ -78,7 +78,7 @@
     <div class="jc-stat-card">
         <div class="flex items-center gap-2 mb-3">
             <div class="jc-stat-icon bg-purple-500/20">
-                <span class="material-icons text-purple-400 text-lg">people</span>
+                <span class="material-icons text-purple-600 text-lg">people</span>
             </div>
             <span class="text-xs text-slate-400 leading-tight">Tổng ứng viên</span>
         </div>
@@ -88,42 +88,42 @@
     <div class="jc-stat-card">
         <div class="flex items-center gap-2 mb-3">
             <div class="jc-stat-icon bg-yellow-500/20">
-                <span class="material-icons text-yellow-400 text-lg">schedule</span>
+                <span class="material-icons text-yellow-600 text-lg">schedule</span>
             </div>
             <span class="text-xs text-slate-400 leading-tight">Tin chờ duyệt</span>
         </div>
         <p class="text-2xl font-bold text-white">@Model.PendingJobPostsCount</p>
         @if (Model.PendingJobPostsCount > 0)
         {
-            <p class="text-xs text-yellow-400 mt-1">Cần xử lý</p>
+            <p class="text-xs text-yellow-600 mt-1">Cần xử lý</p>
         }
     </div>
 
     <div class="jc-stat-card">
         <div class="flex items-center gap-2 mb-3">
             <div class="jc-stat-icon bg-orange-500/20">
-                <span class="material-icons text-orange-400 text-lg">domain_verification</span>
+                <span class="material-icons text-orange-600 text-lg">domain_verification</span>
             </div>
             <span class="text-xs text-slate-400 leading-tight">Công ty chờ duyệt</span>
         </div>
         <p class="text-2xl font-bold text-white">@Model.PendingCompaniesCount</p>
         @if (Model.PendingCompaniesCount > 0)
         {
-            <p class="text-xs text-orange-400 mt-1">Cần xử lý</p>
+            <p class="text-xs text-orange-600 mt-1">Cần xử lý</p>
         }
     </div>
 
     <div class="jc-stat-card">
         <div class="flex items-center gap-2 mb-3">
             <div class="jc-stat-icon bg-red-500/20">
-                <span class="material-icons text-red-400 text-lg">flag</span>
+                <span class="material-icons text-red-600 text-lg">flag</span>
             </div>
             <span class="text-xs text-slate-400 leading-tight">Báo cáo chờ xử lý</span>
         </div>
         <p class="text-2xl font-bold text-white">@Model.PendingReports</p>
         @if (Model.PendingReports > 0)
         {
-            <p class="text-xs text-red-400 mt-1">Cần xử lý</p>
+            <p class="text-xs text-red-600 mt-1">Cần xử lý</p>
         }
     </div>
 
@@ -135,7 +135,7 @@
     <!-- Doughnut Chart -->
     <div class="jc-card jc-card-padded-lg">
         <div class="flex items-center gap-2 mb-4">
-            <span class="material-icons text-blue-400 text-base">pie_chart</span>
+            <span class="material-icons text-blue-600 text-base">pie_chart</span>
             <h3 class="text-base font-semibold text-white">Phân bố tin tuyển dụng theo ngành nghề</h3>
         </div>
         <div class="relative h-56 w-full">
@@ -146,7 +146,7 @@
     <!-- Recent Activities -->
     <div class="jc-card jc-card-padded-lg flex flex-col">
         <div class="flex items-center gap-2 mb-4">
-            <span class="material-icons text-purple-400 text-base">history</span>
+            <span class="material-icons text-purple-600 text-base">history</span>
             <h3 class="text-base font-semibold text-white">Hoạt động gần đây</h3>
         </div>
 
@@ -166,7 +166,7 @@
                             <p class="text-sm font-medium text-white truncate">@activity.StaffName</p>
                             <p class="text-xs text-slate-400 truncate">@label</p>
                         </div>
-                        <p class="text-xs text-slate-500 flex-shrink-0 whitespace-nowrap">
+                        <p class="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap">
                             @activity.CreatedAt.ToString("dd/MM HH:mm")
                         </p>
                     </div>
@@ -176,8 +176,8 @@
         else
         {
             <div class="flex-1 flex flex-col items-center justify-center py-6">
-                <span class="material-icons text-slate-600 text-4xl mb-2">history_toggle_off</span>
-                <p class="text-sm text-slate-500">Chưa có hoạt động nào</p>
+                <span class="material-icons text-slate-300 text-4xl mb-2">history_toggle_off</span>
+                <p class="text-sm text-slate-400">Chưa có hoạt động nào</p>
             </div>
         }
     </div>
@@ -191,7 +191,7 @@
     <div class="jc-card jc-card-padded-lg">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <span class="material-icons text-yellow-400 text-base">work_history</span>
+                <span class="material-icons text-yellow-600 text-base">work_history</span>
                 <h3 class="text-base font-semibold text-white">Tin tuyển dụng chờ duyệt</h3>
             </div>
             @if (Model.PendingJobPostsCount > 0)
@@ -211,7 +211,7 @@
                             <p class="text-xs text-slate-400 truncate">@job.CompanyName</p>
                         </div>
                         <div class="ml-3 flex items-center gap-2">
-                            <span class="text-xs text-slate-500">@job.CreatedAt.ToString("dd/MM")</span>
+                            <span class="text-xs text-slate-400">@job.CreatedAt.ToString("dd/MM")</span>
                             <a href="@Url.Action("JobDetail", "StaffDashboard", new { id = job.Id })"
                                class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 rounded-lg text-xs font-medium text-white transition-colors">
                                 Xem
@@ -224,8 +224,8 @@
         else
         {
             <div class="flex flex-col items-center justify-center py-8">
-                <span class="material-icons text-slate-600 text-4xl mb-2">check_circle</span>
-                <p class="text-sm text-slate-500">Không có tin nào chờ duyệt</p>
+                <span class="material-icons text-slate-300 text-4xl mb-2">check_circle</span>
+                <p class="text-sm text-slate-400">Không có tin nào chờ duyệt</p>
             </div>
         }
     </div>
@@ -234,7 +234,7 @@
     <div class="jc-card jc-card-padded-lg">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <span class="material-icons text-orange-400 text-base">business_center</span>
+                <span class="material-icons text-orange-600 text-base">business_center</span>
                 <h3 class="text-base font-semibold text-white">Công ty chờ duyệt</h3>
             </div>
             @if (Model.PendingCompaniesCount > 0)
@@ -258,7 +258,7 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="employerId" value="@company.Id" />
                                 <button type="submit"
-                                        class="px-2.5 py-1.5 bg-green-500/20 hover:bg-green-500/40 text-green-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                        class="px-2.5 py-1.5 bg-green-500/20 hover:bg-green-500/40 text-green-600 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
                                     <span class="material-icons text-sm">check</span>
                                 </button>
                             </form>
@@ -267,7 +267,7 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="employerId" value="@company.Id" />
                                 <button type="submit"
-                                        class="px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                        class="px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-600 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
                                     <span class="material-icons text-sm">close</span>
                                 </button>
                             </form>
@@ -279,8 +279,8 @@
         else
         {
             <div class="flex flex-col items-center justify-center py-8">
-                <span class="material-icons text-slate-600 text-4xl mb-2">verified</span>
-                <p class="text-sm text-slate-500">Không có công ty nào chờ duyệt</p>
+                <span class="material-icons text-slate-300 text-4xl mb-2">verified</span>
+                <p class="text-sm text-slate-400">Không có công ty nào chờ duyệt</p>
             </div>
         }
     </div>

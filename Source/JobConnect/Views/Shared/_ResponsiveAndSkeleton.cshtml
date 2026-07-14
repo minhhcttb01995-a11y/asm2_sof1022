@@ -1,0 +1,116 @@
+@* ==========================================================
+    Dùng chung cho mọi layout (Admin / Employer / Staff / Public):
+    1) Bảng dữ liệu tự cuộn ngang trên mobile thay vì vỡ layout
+    2) Grid thống kê (KPI cards) tự co cột trên màn hình nhỏ
+    3) Bộ class skeleton (shimmer) để hiển thị trạng thái đang tải
+   ========================================================== *@
+<style>
+    /* ---------- 1) Bảng responsive: mọi <table> nằm trong container
+       có overflow-hidden sẽ tự chuyển sang cuộn ngang trên mobile,
+       thay vì bị cắt/vỡ giao diện. Áp dụng cho toàn bộ trang Admin/Staff
+       (Tailwind) mà không cần sửa từng view. ---------- */
+    @@media (max-width: 900px) {
+        .overflow-hidden:has(table) {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .overflow-hidden:has(table) table {
+            min-width: 640px;
+        }
+
+        /* Bảng jc-table (Employer) */
+        .jc-table-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .jc-table {
+            min-width: 700px;
+        }
+
+        /* KPI grid dùng chung cho Employer Dashboard / JobStats */
+        .jc-kpi-grid-2,
+        .jc-kpi-grid-3,
+        .jc-kpi-grid-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .jc-kpi-grid-2,
+        .jc-kpi-grid-3,
+        .jc-kpi-grid-4 {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    .jc-kpi-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .jc-kpi-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .jc-kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* ---------- 2) Skeleton loading (shimmer) dùng chung ---------- */
+    .skeleton {
+        position: relative;
+        overflow: hidden;
+        background: #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background-image: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0,
+            rgba(255, 255, 255, 0.55) 50%,
+            rgba(255, 255, 255, 0) 100%
+        );
+        animation: jc-shimmer 1.4s infinite;
+    }
+
+    /* Skeleton trên nền tối (Employer / Admin dark card) */
+    .skeleton-dark {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+        .skeleton-dark::after {
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.12) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+        }
+
+    @@keyframes jc-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    .skeleton-text {
+        height: 12px;
+        margin-bottom: 8px;
+    }
+
+    .skeleton-title {
+        height: 16px;
+        width: 60%;
+        margin-bottom: 10px;
+    }
+
+    .skeleton-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .skeleton-btn {
+        height: 32px;
+        width: 90px;
+    }
+</style>

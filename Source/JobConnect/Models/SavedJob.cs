@@ -1,17 +1,27 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class SavedJob
+public partial class SavedJob
 {
-    [Key]
-    public int SaveID { get; set; }
-    public int UserID { get; set; }
-    public int JobID { get; set; }
-    public DateTime SavedAt { get; set; } = DateTime.Now;
+    public int SaveId { get; set; }
 
-    public User User { get; set; } = null!;
-    [ForeignKey(nameof(JobID))]
-    public JobPost JobPost { get; set; } = null!;
+    public int UserId { get; set; }
+
+    public int JobId { get; set; }
+
+    public DateTime SavedAt { get; set; }
+
+    public virtual JobPost Job { get; set; } = null!;
+
+    // Compatibility alias for views/controllers expecting JobPost
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public JobPost JobPost
+    {
+        get => Job;
+        set => Job = value;
+    }
+
+    public virtual User User { get; set; } = null!;
 }

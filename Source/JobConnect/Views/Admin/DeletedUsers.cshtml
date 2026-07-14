@@ -6,7 +6,7 @@
 }
 
 <!-- Modal Xác nhận xóa vĩnh viễn -->
-<div id="modalPermanentDelete" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+<div id="modalPermanentDelete" class="fixed inset-0 z-50 hidden items-center justify-center bg-white">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="max-w-[1700px] mx-auto px-6 py-8">
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-on-surface">Người dùng đã xóa</h1>
@@ -50,7 +50,7 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
             <span class="material-symbols-outlined text-base">check_circle</span>
             @TempData["Success"]
         </div>
@@ -67,7 +67,7 @@
     <form method="get" class="flex gap-3 mb-6">
         <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên, email..."
                class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
-        <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">Tìm</button>
+        <button type="submit" class="px-6 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">Tìm</button>
     </form>
 
     <!-- Table -->
@@ -103,7 +103,7 @@
 
                     <tr class="hover:bg-surface-container-low transition-colors">
                         <td class="px-4 py-3">
-                            <span class="font-mono text-xs text-secondary bg-surface-container px-2 py-1 rounded-lg select-all">@user.UserID</span>
+                            <span class="font-mono text-xs text-secondary bg-surface-container px-2 py-1 rounded-lg select-all">@user.UserId</span>
                         </td>
                         <td class="px-5 py-3">
                             <div class="flex items-center gap-3">
@@ -134,7 +134,7 @@
                                 <!-- Khôi phục -->
                                 <form asp-action="RestoreUser" method="post" class="inline">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="userId" value="@user.UserID" />
+                                    <input type="hidden" name="userId" value="@user.UserId" />
                                     <button type="submit"
                                             class="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-medium transition-colors">
                                         <span class="material-symbols-outlined text-sm">restore</span>
@@ -143,7 +143,7 @@
                                 </form>
 
                                 <!-- Xóa vĩnh viễn -->
-                                <button onclick="openPermanentDeleteModal(@user.UserID, '@user.FullName.Replace("'", "\\'")')"
+                                <button onclick="openPermanentDeleteModal(@user.UserId, '@user.FullName.Replace("'", "\\'")')"
                                         class="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-medium transition-colors">
                                     <span class="material-symbols-outlined text-sm">delete_forever</span>
                                     Xóa vĩnh viễn
@@ -164,7 +164,7 @@
             {
                 <a asp-action="DeletedUsers" asp-route-page="@i" asp-route-keyword="@ViewBag.Keyword"
                    class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border
-                    @(i == (int)(ViewBag.Page ?? 1) ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                    @(i == (int)(ViewBag.Page ?? 1) ? "bg-primary text-slate-900 border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
                     @i
                 </a>
             }

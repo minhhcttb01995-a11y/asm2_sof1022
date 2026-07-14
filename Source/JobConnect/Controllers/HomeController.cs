@@ -1,4 +1,6 @@
-   using JobConnect.Data;
+using JobConnect.Data;
+using JobConnect.Models;
+using JobConnect.Services;
 using JobConnect.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,33 +10,42 @@ namespace JobConnect.Controllers;
 public class HomeController : Controller
 {
     private readonly AppDbContext _db;
-    public HomeController(AppDbContext db) => _db = db;
+    private readonly IStatusCatalogService _statusSvc;
+    public HomeController(AppDbContext db, IStatusCatalogService statusSvc)
+    {
+        _db = db;
+        _statusSvc = statusSvc;
+    }
 
     public async Task<IActionResult> Index()
     {
+        var visibleJobStatuses = await _statusSvc.GetPublicVisibleCodesAsync(StatusEntityTypes.JobPost);
+        var visibleEmployerStatuses = await _statusSvc.GetPublicVisibleCodesAsync(StatusEntityTypes.Employer);
+
         var vm = new HomeViewModel
         {
             FeaturedJobs = await _db.JobPosts
                 .Include(j => j.Employer)
-                .Where(j => j.Status == "Open" && j.IsFeatured)
+                .Where(j => visibleJobStatuses.Contains(j.Status) && visibleEmployerStatuses.Contains(j.Employer.Status))
                 .OrderByDescending(j => j.CreatedAt)
-                .Take(8).ToListAsync(),
+                .Take(24).ToListAsync(),
 
             LatestJobs = await _db.JobPosts
                 .Include(j => j.Employer)
-                .Where(j => j.Status == "Open")
+                .Where(j => visibleJobStatuses.Contains(j.Status) && visibleEmployerStatuses.Contains(j.Employer.Status))
                 .OrderByDescending(j => j.CreatedAt)
                 .Take(12).ToListAsync(),
 
             TopCompanies = await _db.Employers
-                .Where(e => e.IsVerified)
-                .OrderByDescending(e => e.JobPosts.Count(j => j.Status == "Open"))
+                .Where(e => e.IsVerified && visibleEmployerStatuses.Contains(e.Status))
+                .OrderByDescending(e => e.JobPosts.Count(j => visibleJobStatuses.Contains(j.Status)))
                 .Take(8).ToListAsync(),
 
-            TotalJobs = await _db.JobPosts.CountAsync(j => j.Status == "Open"),
-            TotalCompanies = await _db.Employers.CountAsync(e => e.IsVerified),
+            TotalJobs = await _db.JobPosts.CountAsync(j => visibleJobStatuses.Contains(j.Status) && visibleEmployerStatuses.Contains(j.Employer.Status)),
+            TotalCompanies = await _db.Employers.CountAsync(e => e.IsVerified && visibleEmployerStatuses.Contains(e.Status)),
             TotalCandidates = await _db.Users.CountAsync(u => u.Role == "Candidate"),
-            Industries = await _db.Categories.Where(c => c.Type == "Industry").ToListAsync()
+            Industries = await _db.Categories.Where(c => c.Type == "Industry").ToListAsync(),
+            Locations = await _db.Categories.Where(c => c.Type == "Location").OrderBy(c => c.Name).ToListAsync()
         };
         return View(vm);
     }

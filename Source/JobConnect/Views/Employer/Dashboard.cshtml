@@ -8,6 +8,15 @@
     int jobCount = (int)(ViewBag.JobCount ?? 0);
     int openCount = (int)(ViewBag.OpenCount ?? 0);
     int appCount = (int)(ViewBag.AppCount ?? 0);
+    int totalCvReceived = (int)(ViewBag.TotalCvReceived ?? 0);
+    int cvToday = (int)(ViewBag.CvToday ?? 0);
+    int totalViews = (int)(ViewBag.TotalViews ?? 0);
+    int totalApplies = (int)(ViewBag.TotalApplies ?? 0);
+    double applyViewRate = (double)(ViewBag.ApplyViewRate ?? 0);
+    int expiredCount = (int)(ViewBag.ExpiredCount ?? 0);
+    int expiringSoonCount = (int)(ViewBag.ExpiringSoonCount ?? 0);
+    var expiringSoonJobs = ViewBag.ExpiringSoonJobs as List<JobPost> ?? new List<JobPost>();
+    var expiringTransactions = ViewBag.ExpiringTransactions as List<JobConnect.Models.Transaction> ?? new List<JobConnect.Models.Transaction>();
 }
 
 <div class="space-y-6">
@@ -27,130 +36,205 @@
         </a>
     </div>
 
+    @if (expiringSoonJobs.Any() || expiringTransactions.Any())
+    {
+        <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start">
+            <span class="material-symbols-outlined" style="color:#f87171;font-size:22px">notification_important</span>
+            <div style="flex:1">
+                <p style="color:#fca5a5;font-weight:600;font-size:14px;margin:0 0 6px">Nhắc hết hạn</p>
+                @if (expiringSoonJobs.Any())
+                {
+                    <p style="color:#e2e8f0;font-size:13px;margin:0 0 4px">
+                        Có <strong>@expiringSoonJobs.Count</strong> tin tuyển dụng sắp hết hạn trong 7 ngày tới:
+                        @string.Join(", ", expiringSoonJobs.Take(3).Select(j => $"\"{j.Title}\" ({j.Deadline:dd/MM})"))
+                        @(expiringSoonJobs.Count > 3 ? $" và {expiringSoonJobs.Count - 3} tin khác" : "")
+                    </p>
+                }
+                @if (expiringTransactions.Any())
+                {
+                    <p style="color:#e2e8f0;font-size:13px;margin:0">
+                        Có <strong>@expiringTransactions.Count</strong> gói dịch vụ sắp hết hạn:
+                        @string.Join(", ", expiringTransactions.Take(3).Select(t => $"\"{t.Package?.Name}\" ({t.ExpiredAt:dd/MM})"))
+                    </p>
+                }
+            </div>
+        </div>
+    }
+
     <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <div class="jc-kpi-grid-4">
         <div class="jc-stat-card">
             <div class="jc-stat-icon" style="background:rgba(59,130,246,.15)">
                 <span class="material-symbols-outlined" style="color:#60a5fa">work</span>
             </div>
-            <p class="jc-stat-value">@jobCount</p>
-            <p class="jc-stat-label">Tổng tin đã đăng</p>
-        </div>
-
-        <div class="jc-stat-card">
-            <div class="jc-stat-icon" style="background:rgba(16,185,129,.15)">
-                <span class="material-symbols-outlined" style="color:#34d399">wifi_tethering</span>
-            </div>
-            <p class="jc-stat-value" style="color:#34d399">@openCount</p>
-            <p class="jc-stat-label">Tin đang mở</p>
+            <p class="jc-stat-value" style="color:#60a5fa">@openCount</p>
+            <p class="jc-stat-label">Tổng số tin đang tuyển</p>
         </div>
 
         <div class="jc-stat-card">
             <div class="jc-stat-icon" style="background:rgba(139,92,246,.15)">
                 <span class="material-symbols-outlined" style="color:#a78bfa">description</span>
             </div>
-            <p class="jc-stat-value">@appCount</p>
-            <p class="jc-stat-label">Tổng đơn ứng tuyển</p>
+            <p class="jc-stat-value">@totalCvReceived</p>
+            <p class="jc-stat-label">Tổng CV nhận được</p>
+        </div>
+
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(16,185,129,.15)">
+                <span class="material-symbols-outlined" style="color:#34d399">today</span>
+            </div>
+            <p class="jc-stat-value" style="color:#34d399">@cvToday</p>
+            <p class="jc-stat-label">CV hôm nay</p>
+        </div>
+
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(14,165,233,.15)">
+                <span class="material-symbols-outlined" style="color:#38bdf8">visibility</span>
+            </div>
+            <p class="jc-stat-value">@totalViews</p>
+            <p class="jc-stat-label">Lượt xem tin</p>
+        </div>
+
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(168,85,247,.15)">
+                <span class="material-symbols-outlined" style="color:#c084fc">touch_app</span>
+            </div>
+            <p class="jc-stat-value">@totalApplies</p>
+            <p class="jc-stat-label">Lượt Apply</p>
+        </div>
+
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(234,179,8,.15)">
+                <span class="material-symbols-outlined" style="color:#facc15">percent</span>
+            </div>
+            <p class="jc-stat-value" style="color:#facc15">@applyViewRate%</p>
+            <p class="jc-stat-label">Tỷ lệ Apply/View</p>
+        </div>
+
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(107,114,128,.15)">
+                <span class="material-symbols-outlined" style="color:#9ca3af">event_busy</span>
+            </div>
+            <p class="jc-stat-value" style="color:#9ca3af">@expiredCount</p>
+            <p class="jc-stat-label">Tin hết hạn</p>
+        </div>
+
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(239,68,68,.15)">
+                <span class="material-symbols-outlined" style="color:#f87171">schedule</span>
+            </div>
+            <p class="jc-stat-value" style="color:#f87171">@expiringSoonCount</p>
+            <p class="jc-stat-label">Tin sắp hết hạn (7 ngày)</p>
         </div>
     </div>
+</div>
 
-    <!-- Job List -->
-    <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h2 style="font-size:1rem;font-weight:600;color:#e2e8f0;margin:0;display:flex;align-items:center;gap:8px">
-                <span class="material-symbols-outlined" style="font-size:18px;color:#64748b">list_alt</span>
-                Danh sách tin tuyển dụng
-            </h2>
-        </div>
+<div class="space-y-6" style="margin-top:24px">
 
-        <div class="jc-table-wrap">
-            <table class="jc-table">
-                <thead>
-                    <tr>
-                        <th>Tiêu đề</th>
-                        <th>Trạng thái</th>
-                        <th>Đơn ứng tuyển</th>
-                        <th>Hết hạn</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:1rem;font-weight:600;color:#e2e8f0;margin:0;display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#64748b">list_alt</span>
+            Danh sách tin tuyển dụng
+        </h2>
+    </div>
+
+    <div class="jc-table-wrap">
+        <table class="jc-table">
+            <thead>
+                <tr>
+                    <th>Tiêu đề</th>
+                    <th>Trạng thái</th>
+                    <th>Lượt xem</th>
+                    <th>Đơn ứng tuyển</th>
+                    <th>Tỷ lệ chuyển đổi</th>
+                    <th>Hết hạn</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var job in Model)
                     {
-                        @foreach (var job in Model)
+                        var badgeClass = job.Status switch
                         {
-                            var badgeClass = job.Status switch
-                            {
-                                "Open" => "jc-badge-success",
-                                "Pending" => "jc-badge-warning",
-                                "Rejected" => "jc-badge-danger",
-                                _ => "jc-badge-neutral"
-                            };
-                            var statusLabel = job.Status switch
-                            {
-                                "Open" => "Đang mở",
-                                "Pending" => "Chờ duyệt",
-                                "Rejected" => "Bị từ chối",
-                                "Closed" => "Đã đóng",
-                                _ => job.Status
-                            };
-                            bool isExpired = job.Deadline.HasValue && job.Deadline.Value < DateTime.Now;
+                            "Active" => "jc-badge-success",
+                            "Pending" => "jc-badge-warning",
+                            "Rejected" => "jc-badge-danger",
+                            "Banned" => "jc-badge-danger",
+                            _ => "jc-badge-neutral"
+                        };
+                        var statusLabel = job.Status switch
+                        {
+                            "Active" => "Đang mở",
+                            "Pending" => "Chờ duyệt",
+                            "Rejected" => "Bị từ chối",
+                            "Banned" => "Đã khóa",
+                            "Draft" => "Bản nháp",
+                            _ => job.Status
+                        };
+                        bool isExpired = job.Deadline.HasValue && job.Deadline.Value < DateTime.Now;
 
-                            <tr>
-                                <td>
-                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
-                                       class="jc-table-link">@job.Title</a>
-                                    @if (isExpired && job.Status == "Open")
-                                    {
-                                        <span style="margin-left:6px;font-size:11px;color:#f87171">(Hết hạn)</span>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="jc-badge @badgeClass">@statusLabel</span>
-                                </td>
-                                <td style="color:#fff;font-weight:600">
-                                    @job.Applications.Count
-                                </td>
-                                <td style="color:@(isExpired ? "#f87171" : "#94a3b8")">
-                                    @(job.Deadline?.ToString("dd/MM/yyyy") ?? "—")
-                                </td>
-                                <td>
-                                    <div style="display:flex;gap:8px">
-                                        <a asp-action="ManageApplications" asp-route-jobId="@job.JobID"
-                                           style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(59,130,246,.15);color:#60a5fa;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;transition:background .15s"
-                                           onmouseover="this.style.background='rgba(59,130,246,.25)'"
-                                           onmouseout="this.style.background='rgba(59,130,246,.15)'">
-                                            <span class="material-symbols-outlined" style="font-size:14px">people</span>
-                                            Quản lý đơn
-                                        </a>
-                                        <a asp-action="EditJob" asp-route-id="@job.JobID"
-                                           style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.06);color:#94a3b8;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;transition:background .15s"
-                                           onmouseover="this.style.background='rgba(255,255,255,.12)';this.style.color='#fff'"
-                                           onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='#94a3b8'">
-                                            <span class="material-symbols-outlined" style="font-size:14px">edit</span>
-                                            Sửa
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
                         <tr>
-                            <td colspan="5" style="text-align:center;padding:60px 16px">
-                                <span class="material-symbols-outlined" style="font-size:40px;color:#334155;display:block;margin-bottom:12px">work_off</span>
-                                <p style="color:#64748b;font-size:14px;margin:0 0 16px">Bạn chưa đăng tin tuyển dụng nào</p>
-                                <a asp-action="PostJob" class="jc-btn jc-btn-primary">
-                                    <span class="material-symbols-outlined" style="font-size:18px">add</span>
-                                    Đăng tin đầu tiên
-                                </a>
+                            <td>
+                                <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId"
+                                   class="jc-table-link">@job.Title</a>
+                                @if (isExpired && job.Status == "Active")
+                                {
+                                    <span style="margin-left:6px;font-size:11px;color:#f87171">(Hết hạn)</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="jc-badge @badgeClass">@statusLabel</span>
+                            </td>
+                            <td style="color:#94a3b8">
+                                @job.ViewCount
+                            </td>
+                            <td style="color:#fff;font-weight:600">
+                                @job.Applications.Count
+                            </td>
+                            <td style="color:#a78bfa;font-weight:600">
+                                @(job.ViewCount > 0 ? Math.Round((double)job.Applications.Count / job.ViewCount * 100, 1) : 0)%
+                            </td>
+                            <td style="color:@(isExpired ? "#f87171" : "#94a3b8")">
+                                @(job.Deadline?.ToString("dd/MM/yyyy") ?? "—")
+                            </td>
+                            <td>
+                                <div style="display:flex;gap:8px">
+                                    <a asp-action="ManageApplications" asp-route-jobId="@job.JobId"
+                                       style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(59,130,246,.15);color:#60a5fa;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;transition:background .15s"
+                                       onmouseover="this.style.background='rgba(59,130,246,.25)'"
+                                       onmouseout="this.style.background='rgba(59,130,246,.15)'">
+                                        <span class="material-symbols-outlined" style="font-size:14px">people</span>
+                                        Quản lý đơn
+                                    </a>
+                                    <a asp-action="EditJob" asp-route-id="@job.JobId"
+                                       style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.06);color:#94a3b8;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;transition:background .15s"
+                                       onmouseover="this.style.background='rgba(255,255,255,.12)';this.style.color='#fff'"
+                                       onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='#94a3b8'">
+                                        <span class="material-symbols-outlined" style="font-size:14px">edit</span>
+                                        Sửa
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="text-align:center;padding:60px 16px">
+                            <span class="material-symbols-outlined" style="font-size:40px;color:#334155;display:block;margin-bottom:12px">work_off</span>
+                            <p style="color:#64748b;font-size:14px;margin:0 0 16px">Bạn chưa đăng tin tuyển dụng nào</p>
+                            <a asp-action="PostJob" class="jc-btn jc-btn-primary">
+                                <span class="material-symbols-outlined" style="font-size:18px">add</span>
+                                Đăng tin đầu tiên
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-
 </div>
+

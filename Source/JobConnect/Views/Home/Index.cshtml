@@ -1,83 +1,38 @@
-﻿@model JobConnect.ViewModels.HomeViewModel
+﻿@using JobConnect.Extensions
+@model JobConnect.ViewModels.HomeViewModel
 @{
     ViewData["Title"] = "Trang chủ";
 }
 
-<!-- Top Navigation for Staff -->
-@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Staff"))
-{
-    <div class="fixed top-4 right-4 z-50">
-        <a href="@Url.Action("Index", "StaffDashboard")" 
-           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg transition-colors">
-            <span class="material-icons text-sm">dashboard</span>
-            Dashboard nhân viên
-        </a>
-    </div>
-}
-
 <style>
-    /* RESET & BASE - NỀN ĐEN TUYỀN */
+    /* RESET & BASE - NỀN SÁNG */
     body {
-        background-color: #000000 !important;
+        background-color: #f8fafc !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
     .ambient-shadow {
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
     }
 
     .hero-bg {
-        background: linear-gradient(135deg, #050505 0%, #0a0a0a 60%, #0f0f0f 100%);
+        background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 60%, #ffffff 100%);
         position: relative;
     }
 
     .cta-section {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #1d4ed8 100%);
-    }
-
-    /* ========== HIỆU ỨNG MƯA NÂNG CẤP ========== */
-    .rain-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
-        overflow: hidden;
-    }
-
-    .drop {
-        position: absolute;
-        background: linear-gradient(to bottom, rgba(59, 130, 246, 0.6) 0%, rgba(59, 130, 246, 0.3) 50%, rgba(59, 130, 246, 0) 100%);
-        width: 2px;
-        border-radius: 0 0 3px 3px;
-        animation: fall linear infinite;
-    }
-
-    .drop-small {
-        position: absolute;
-        background: rgba(59, 130, 246, 0.3);
-        width: 1px;
-        border-radius: 0 0 2px 2px;
-        animation: fall linear infinite;
-    }
-
-    @@keyframes fall {
-        to {
-            transform: translateY(110vh);
-        }
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 60%, #1d4ed8 100%);
     }
 
     /* ========== GLASS CARD EFFECT ========== */
     .glass-card {
-        background: rgba(10, 10, 10, 0.7);
+        background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(59, 130, 246, 0.15);
     }
 
         .glass-card:hover {
-            border-color: rgba(59, 130, 246, 0.4);
+            border-color: rgba(59, 130, 246, 0.35);
         }
 
     /* ========== CUSTOM SCROLLBAR ========== */
@@ -86,11 +41,11 @@
     }
 
     ::-webkit-scrollbar-track {
-        background: #000000;
+        background: #f1f5f9;
     }
 
     ::-webkit-scrollbar-thumb {
-        background: #1a1a1a;
+        background: #cbd5e1;
         border-radius: 4px;
     }
 
@@ -115,43 +70,42 @@
 </style>
 
 <!-- HERO SECTION -->
-<section class="hero-bg relative overflow-hidden py-16 md:py-24 border-b border-slate-800">
-    <div class="rain-container" id="rainContainer"></div>
-
+<section class="hero-bg relative overflow-hidden py-16 md:py-24 border-b border-slate-200">
     <!-- Orbs trang trí như login/register -->
     <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
-        <div class="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md border border-blue-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-blue-400 mb-6 shadow-sm">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
+        <div class="inline-flex items-center gap-2 bg-white backdrop-blur-md border border-blue-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-blue-600 mb-6 shadow-sm">
             <span class="material-symbols-outlined text-sm animate-pulse">bolt</span>
             @Model.TotalJobs.ToString("N0")+ việc làm đang tuyển
         </div>
 
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight tracking-tight">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-4 leading-tight tracking-tight">
             Kết nối sự nghiệp<br />
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">tương lai</span> của bạn
         </h1>
-        <p class="text-slate-400 text-base md:text-lg mb-10 max-w-xl font-medium">
+        <p class="text-slate-600 text-base md:text-lg mb-10 max-w-xl font-medium">
             Hàng ngàn cơ hội việc làm hấp dẫn từ những công ty hàng đầu đang chờ đón bạn.
         </p>
 
         <!-- Search Bar - Glassmorphism -->
         <form asp-controller="Job" asp-action="Index" method="get"
-              class="w-full max-w-3xl bg-black/50 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-500/30 p-2 flex flex-col md:flex-row gap-2 items-stretch relative z-20">
-            <div class="flex items-center gap-3 flex-1 px-4 py-2 md:py-0 border-b md:border-b-0 md:border-r border-slate-700">
-                <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+              class="w-full max-w-3xl bg-white backdrop-blur-md rounded-2xl shadow-2xl border border-blue-500/30 p-2 flex flex-col md:flex-row gap-2 items-stretch relative z-20">
+            <div class="flex items-center gap-3 flex-1 px-4 py-2 md:py-0 border-b md:border-b-0 md:border-r border-slate-200">
+                <span class="material-symbols-outlined text-slate-600 text-xl">search</span>
                 <input name="Keyword" type="text" placeholder="Vị trí, kỹ năng hoặc công ty..."
-                       class="w-full border-none outline-none text-sm bg-transparent placeholder-slate-500 text-slate-200 font-medium" />
+                       class="w-full border-none outline-none text-sm bg-transparent placeholder-slate-400 text-slate-700 font-medium" />
             </div>
             <div class="flex items-center gap-3 flex-1 px-4 py-2 md:py-0">
-                <span class="material-symbols-outlined text-slate-500 text-xl">location_on</span>
-                <select name="Location" class="w-full border-none outline-none text-sm bg-transparent text-slate-300 font-medium cursor-pointer">
-                    <option value="" class="bg-black text-slate-300">Tất cả địa điểm</option>
-                    <option value="Hà Nội" class="bg-black text-slate-300">Hà Nội</option>
-                    <option value="TP. Hồ Chí Minh" class="bg-black text-slate-300">TP. Hồ Chí Minh</option>
-                    <option value="Đà Nẵng" class="bg-black text-slate-300">Đà Nẵng</option>
+                <span class="material-symbols-outlined text-slate-600 text-xl">location_on</span>
+                <select name="Location" class="w-full border-none outline-none text-sm bg-transparent text-slate-600 font-medium cursor-pointer">
+                    <option value="" class="bg-white text-slate-600">Tất cả địa điểm</option>
+                    @foreach (var loc in Model.Locations)
+                    {
+                        <option value="@loc.Name" class="bg-white text-slate-600">@loc.Name</option>
+                    }
                 </select>
             </div>
             <button type="submit"
@@ -161,228 +115,312 @@
         </form>
 
         <!-- Trending tags -->
-        <div class="flex flex-wrap justify-center items-center gap-2 mt-6 text-xs text-slate-400">
-            <span class="font-bold text-slate-300">🔥 Xu hướng:</span>
+        <div class="flex flex-wrap justify-center items-center gap-2 mt-6 text-xs text-slate-600">
+            <span class="font-bold text-slate-600">🔥 Xu hướng:</span>
             @foreach (var tag in new[] { "Frontend Developer", "UI/UX Designer", "Data Analyst", "Marketing" })
             {
                 <a asp-controller="Job" asp-action="Index" asp-route-Keyword="@tag"
-                   class="bg-black/50 hover:bg-blue-600 hover:text-white px-3 py-1 rounded-lg transition-all font-medium border border-slate-700/50 backdrop-blur-sm">@tag</a>
+                   class="bg-white hover:bg-blue-600 hover:text-white px-3 py-1 rounded-lg transition-all font-medium border border-slate-200 backdrop-blur-sm">@tag</a>
             }
         </div>
 
         <!-- Stats - Glassmorphism -->
-        <div class="grid grid-cols-3 gap-4 sm:gap-12 mt-12 bg-black/40 backdrop-blur-md border border-blue-500/20 rounded-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[500px] shadow-sm">
+        <div class="grid grid-cols-3 gap-4 sm:gap-12 mt-12 bg-white backdrop-blur-md border border-blue-500/20 rounded-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[500px] shadow-sm">
             <div class="flex flex-col items-center">
-                <span class="text-xl sm:text-2xl font-black text-white">@Model.TotalJobs.ToString("N0")</span>
-                <span class="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-wider mt-0.5">Việc làm</span>
+                <span class="text-xl sm:text-2xl font-black text-slate-900">@Model.TotalJobs.ToString("N0")</span>
+                <span class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mt-0.5">Việc làm</span>
             </div>
             <div class="flex flex-col items-center border-x border-blue-500/20">
-                <span class="text-xl sm:text-2xl font-black text-white">@Model.TotalCompanies.ToString("N0")</span>
-                <span class="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-wider mt-0.5">Công ty</span>
+                <span class="text-xl sm:text-2xl font-black text-slate-900">@Model.TotalCompanies.ToString("N0")</span>
+                <span class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mt-0.5">Công ty</span>
             </div>
             <div class="flex flex-col items-center">
-                <span class="text-xl sm:text-2xl font-black text-white">@Model.TotalCandidates.ToString("N0")</span>
-                <span class="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-wider mt-0.5">Ứng viên</span>
+                <span class="text-xl sm:text-2xl font-black text-slate-900">@Model.TotalCandidates.ToString("N0")</span>
+                <span class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mt-0.5">Ứng viên</span>
             </div>
         </div>
     </div>
 </section>
 
 <!-- CATEGORIES BENTO GRID -->
-<section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+<section class="max-w-[1600px] mx-auto px-4 sm:px-6 py-16">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mb-10">
         <div>
-            <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                <span class="material-symbols-outlined text-blue-400">grid_view</span>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-600">grid_view</span>
                 Khám phá theo ngành nghề
             </h2>
-            <p class="text-slate-500 text-sm mt-1">Tìm kiếm công việc mơ ước theo lĩnh vực bạn quan tâm</p>
+            <p class="text-slate-600 text-sm mt-1">Tìm kiếm công việc mơ ước theo lĩnh vực bạn quan tâm</p>
         </div>
-        <a asp-controller="Job" asp-action="Index" class="text-blue-400 text-sm font-bold hover:text-blue-300 flex items-center gap-1 group">
+        <a asp-controller="Job" asp-action="Index" class="text-blue-600 text-sm font-bold hover:text-blue-700 flex items-center gap-1 group">
             Xem tất cả <span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
         </a>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <!-- IT -->
-        <div class="sm:col-span-2 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm rounded-2xl p-6 flex flex-col justify-between ambient-shadow hover:-translate-y-1 hover:border-blue-500/30 border border-slate-700 transition-all duration-300 min-h-[190px] group cursor-pointer">
+        <div class="sm:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-50 backdrop-blur-sm rounded-2xl p-6 flex flex-col justify-between ambient-shadow hover:-translate-y-1 hover:border-blue-500/30 border border-slate-200 transition-all duration-300 min-h-[190px] group cursor-pointer">
             <div class="flex justify-between items-start">
                 <div class="p-3 bg-blue-500/10 backdrop-blur-md rounded-xl border border-blue-500/20">
-                    <span class="material-symbols-outlined text-blue-400 text-3xl">code</span>
+                    <span class="material-symbols-outlined text-blue-600 text-3xl">code</span>
                 </div>
                 <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">Hot Job</span>
             </div>
             <div class="mt-6">
-                <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors text-white">💻 Công nghệ thông tin</h3>
-                <p class="text-slate-400 text-xs mt-1">Phát triển phần mềm, AI, Cloud, và Cyber Security.</p>
+                <h3 class="text-xl font-bold group-hover:text-blue-600 transition-colors text-slate-900">💻 Công nghệ thông tin</h3>
+                <p class="text-slate-600 text-xs mt-1">Phát triển phần mềm, AI, Cloud, và Cyber Security.</p>
             </div>
         </div>
 
         <!-- Design -->
-        <div class="bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[190px] group cursor-pointer">
+        <div class="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[190px] group cursor-pointer">
             <div>
                 <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl inline-block mb-4">
-                    <span class="material-symbols-outlined text-purple-400 text-2xl">palette</span>
+                    <span class="material-symbols-outlined text-purple-600 text-2xl">palette</span>
                 </div>
-                <h3 class="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">🎨 Thiết kế đồ họa</h3>
-                <p class="text-slate-400 text-xs">UI/UX, Graphic Design, Product Illustration.</p>
+                <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">🎨 Thiết kế đồ họa</h3>
+                <p class="text-slate-600 text-xs">UI/UX, Graphic Design, Product Illustration.</p>
             </div>
-            <span class="text-blue-400 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
+            <span class="text-blue-600 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
         </div>
 
         <!-- Marketing -->
-        <div class="bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[190px] group cursor-pointer">
+        <div class="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[190px] group cursor-pointer">
             <div>
                 <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl inline-block mb-4">
-                    <span class="material-symbols-outlined text-emerald-400 text-2xl">campaign</span>
+                    <span class="material-symbols-outlined text-emerald-600 text-2xl">campaign</span>
                 </div>
-                <h3 class="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">📢 Marketing</h3>
-                <p class="text-slate-400 text-xs">SEO, Social Media, Content Creator.</p>
+                <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">📢 Marketing</h3>
+                <p class="text-slate-600 text-xs">SEO, Social Media, Content Creator.</p>
             </div>
-            <span class="text-blue-400 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
+            <span class="text-blue-600 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
         </div>
 
         <!-- Business -->
-        <div class="sm:col-span-2 bg-gradient-to-br from-slate-800/80 to-indigo-950/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 flex flex-col justify-between ambient-shadow hover:-translate-y-1 transition-all duration-300 min-h-[170px] group cursor-pointer">
+        <div class="sm:col-span-2 bg-gradient-to-br from-slate-50 to-indigo-50 backdrop-blur-sm border border-slate-200 rounded-2xl p-6 flex flex-col justify-between ambient-shadow hover:-translate-y-1 transition-all duration-300 min-h-[170px] group cursor-pointer">
             <div>
-                <div class="p-3 bg-slate-700 rounded-xl inline-block mb-3 border border-slate-600 shadow-sm transition-transform group-hover:scale-110">
-                    <span class="material-symbols-outlined text-blue-400 text-2xl">trending_up</span>
+                <div class="p-3 bg-slate-50 rounded-xl inline-block mb-3 border border-slate-200 shadow-sm transition-transform group-hover:scale-110">
+                    <span class="material-symbols-outlined text-blue-600 text-2xl">trending_up</span>
                 </div>
-                <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">📈 Kinh doanh &amp; Bán hàng</h3>
-                <p class="text-slate-400 text-xs mt-1">Phát triển thị trường, B2B Account Executive, Sales Manager.</p>
+                <h3 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">📈 Kinh doanh &amp; Bán hàng</h3>
+                <p class="text-slate-600 text-xs mt-1">Phát triển thị trường, B2B Account Executive, Sales Manager.</p>
             </div>
-            <span class="text-indigo-400 text-xs font-bold mt-3 block">📈 Đang có nhiều lượt ứng tuyển</span>
+            <span class="text-indigo-600 text-xs font-bold mt-3 block">📈 Đang có nhiều lượt ứng tuyển</span>
         </div>
 
         <!-- Finance -->
-        <div class="bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[170px] group cursor-pointer">
+        <div class="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[170px] group cursor-pointer">
             <div>
                 <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl inline-block mb-4">
-                    <span class="material-symbols-outlined text-amber-400 text-2xl">payments</span>
+                    <span class="material-symbols-outlined text-amber-600 text-2xl">payments</span>
                 </div>
-                <h3 class="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">💰 Tài chính</h3>
-                <p class="text-slate-400 text-xs">Kế toán, Kiểm toán, Ngân hàng, Đầu tư.</p>
+                <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">💰 Tài chính</h3>
+                <p class="text-slate-600 text-xs">Kế toán, Kiểm toán, Ngân hàng, Đầu tư.</p>
             </div>
-            <span class="text-blue-400 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
+            <span class="text-blue-600 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
         </div>
 
         <!-- Education -->
-        <div class="bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[170px] group cursor-pointer">
+        <div class="bg-white backdrop-blur-sm border border-slate-200 rounded-2xl p-6 ambient-shadow hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[170px] group cursor-pointer">
             <div>
                 <div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl inline-block mb-4">
-                    <span class="material-symbols-outlined text-rose-400 text-2xl">school</span>
+                    <span class="material-symbols-outlined text-rose-600 text-2xl">school</span>
                 </div>
-                <h3 class="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">📚 Giáo dục</h3>
-                <p class="text-slate-400 text-xs">Giảng viên, Đào tạo, Tư vấn giáo dục.</p>
+                <h3 class="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">📚 Giáo dục</h3>
+                <p class="text-slate-600 text-xs">Giảng viên, Đào tạo, Tư vấn giáo dục.</p>
             </div>
-            <span class="text-blue-400 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
+            <span class="text-blue-600 text-xs font-bold mt-2 group-hover:translate-x-1 transition-transform inline-block">Khám phá ngay →</span>
         </div>
     </div>
 </section>
 
-<!-- FEATURED JOBS -->
-<section class="bg-black/30 border-y border-slate-800/50 py-16">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10">
-            <div>
-                <div class="inline-flex items-center gap-1.5 bg-rose-950/40 border border-rose-800/30 text-rose-400 px-3 py-1 rounded-full text-xs font-bold mb-2.5 backdrop-blur-sm">
-                    <span class="material-symbols-outlined text-xs animate-pulse">campaign</span>
-                    TUYỂN DỤNG GẤP
+<!-- FEATURED JOBS (TopCV style) -->
+<section class="bg-slate-50 border-y border-slate-200 py-12">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6">
+
+        <!-- Header row: title + xem tất cả + prev/next -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-600">work</span>
+                Việc làm tốt nhất
+                <span class="hidden sm:inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-600 text-[10px] font-bold px-2 py-1 rounded-full ml-1">
+                    <span class="material-symbols-outlined text-xs">bolt</span> Đề xuất bởi JobConnect AI
+                </span>
+            </h2>
+            <div class="flex items-center gap-3 shrink-0">
+                <a asp-controller="Job" asp-action="Index"
+                   class="text-blue-600 text-sm font-bold hover:underline underline-offset-2">
+                    Xem tất cả →
+                </a>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" id="featJobsPrev"
+                            class="w-8 h-8 rounded-full border border-slate-300 text-slate-500 flex items-center justify-center hover:border-blue-500 hover:text-blue-600 transition-colors">
+                        <span class="material-symbols-outlined text-base">chevron_left</span>
+                    </button>
+                    <button type="button" id="featJobsNext"
+                            class="w-8 h-8 rounded-full border border-slate-300 text-slate-500 flex items-center justify-center hover:border-blue-500 hover:text-blue-600 transition-colors">
+                        <span class="material-symbols-outlined text-base">chevron_right</span>
+                    </button>
                 </div>
-                <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                    <span class="material-symbols-outlined text-blue-400">work</span>
-                    Việc làm nổi bật hôm nay
-                </h2>
             </div>
-            <a asp-controller="Job" asp-action="Index"
-               class="bg-black/50 backdrop-blur-sm border border-slate-700 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm">
-                Xem tất cả việc làm →
-            </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Filter row: quick pills -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <div id="featJobsFilters" class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <button type="button" data-filter="all" class="feat-filter-btn shrink-0 px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white border border-blue-600">
+                    Ngẫu nhiên
+                </button>
+                <button type="button" data-filter="hanoi" class="feat-filter-btn shrink-0 px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-300 hover:border-blue-500 hover:text-blue-600 transition-colors">
+                    Hà Nội
+                </button>
+                <button type="button" data-filter="hcm" class="feat-filter-btn shrink-0 px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-300 hover:border-blue-500 hover:text-blue-600 transition-colors">
+                    Thành phố Hồ Chí Minh
+                </button>
+                <button type="button" data-filter="mienbac" class="feat-filter-btn shrink-0 px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-300 hover:border-blue-500 hover:text-blue-600 transition-colors">
+                    Miền Bắc
+                </button>
+                <button type="button" data-filter="miennam" class="feat-filter-btn shrink-0 px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-300 hover:border-blue-500 hover:text-blue-600 transition-colors">
+                    Miền Nam
+                </button>
+            </div>
+        </div>
+
+        <!-- Hint banner -->
+        <div id="featJobsHint" class="flex items-center justify-between gap-3 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium rounded-xl px-4 py-2.5 mb-5">
+            <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">lightbulb</span>
+                Gợi ý: Di chuột vào tiêu đề việc làm để xem thêm thông tin chi tiết
+            </span>
+            <button type="button" onclick="document.getElementById('featJobsHint').style.display='none'"
+                    class="text-blue-500 hover:text-blue-700">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+
+        <!-- Job grid -->
+        <div id="featJobsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @{
+                int _idx = 0;
+            }
             @foreach (var job in Model.FeaturedJobs)
             {
-                <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 ambient-shadow hover:shadow-xl hover:border-blue-500/40 transition-all flex flex-col justify-between group">
-                    <div>
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-black/50 flex items-center justify-center p-2 border border-slate-600 overflow-hidden group-hover:border-blue-500/30 transition-colors">
-                                @if (job.Employer != null && !string.IsNullOrEmpty(job.Employer.LogoURL))
-                                {
-                                    <img src="@job.Employer.LogoURL" alt="logo" class="w-full h-full object-contain" />
-                                }
-                                else
-                                {
-                                    <span class="material-symbols-outlined text-slate-500 text-xl">business</span>
-                                }
-                            </div>
-                            <button class="text-slate-600 hover:text-rose-400 transition-colors">
-                                <span class="material-symbols-outlined text-xl">bookmark_border</span>
-                            </button>
-                        </div>
+                _idx++;
+                bool isNew = (DateTime.Now - job.CreatedAt).TotalHours < 24;
+                bool isTop = _idx == 5;
+                bool isUrgent = _idx == 6;
 
-                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
-                           class="font-bold text-white group-hover:text-blue-400 transition-colors block mb-1 line-clamp-1 text-base">
-                            @job.Title
-                        </a>
-                        <p class="text-slate-400 text-xs font-medium mb-4">@(job.Employer?.CompanyName ?? "Đang cập nhật")</p>
+                string _region = "khac";
+                var _loc = (job.Location ?? "").ToLower();
+                if (_loc.Contains("hà nội") || _loc.Contains("ha noi")) { _region = "hanoi"; }
+                else if (_loc.Contains("hồ chí minh") || _loc.Contains("ho chi minh") || _loc.Contains("hcm")) { _region = "hcm"; }
+                bool _isMienBac = _loc.Contains("hà nội") || _loc.Contains("hải phòng") || _loc.Contains("bắc ninh") || _loc.Contains("quảng ninh") || _loc.Contains("thái nguyên");
+                bool _isMienNam = _loc.Contains("hồ chí minh") || _loc.Contains("cần thơ") || _loc.Contains("bình dương") || _loc.Contains("đồng nai") || _loc.Contains("vũng tàu");
 
-                        <div class="flex flex-wrap gap-1.5 mb-6">
-                            <span class="bg-black/50 text-slate-300 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700">@job.JobType</span>
-                            @if (!string.IsNullOrEmpty(job.Location))
+                <div class="feat-job-card bg-white rounded-xl p-4 border @(isTop ? "border-blue-500 ring-1 ring-blue-500/30" : "border-slate-200") hover:shadow-md hover:border-blue-400 transition-all group relative"
+                     data-region="@_region" data-mien-bac="@_isMienBac.ToString().ToLower()" data-mien-nam="@_isMienNam.ToString().ToLower()">
+
+                    @if (isTop)
+                    {
+                        <span class="absolute -top-2.5 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[11px]">favorite</span> TOP
+                        </span>
+                    }
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-11 h-11 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                            @if (job.Employer != null && !string.IsNullOrEmpty(job.Employer.LogoURL))
                             {
-                                <span class="bg-black/50 text-slate-300 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700">📍 @job.Location</span>
+                                <img src="@job.Employer.LogoURL" alt="logo" class="w-full h-full object-contain" />
                             }
-                            <span class="bg-blue-950/30 text-blue-400 border border-blue-800/30 px-2.5 py-1 rounded-lg text-[10px] font-bold">💰 @job.SalaryDisplay</span>
+                            else
+                            {
+                                <span class="material-symbols-outlined text-slate-400 text-lg">business</span>
+                            }
                         </div>
+
+                        <div class="min-w-0 flex-1">
+                            @if (isNew)
+                            {
+                                <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded mb-1">
+                                    <span class="material-symbols-outlined text-[11px]">bolt</span> TIN MỚI
+                                </span>
+                            }
+                            else if (isUrgent)
+                            {
+                                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded mb-1">
+                                    GẤP
+                                </span>
+                            }
+                            <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId"
+                               title="@job.Title"
+                               class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors block text-sm leading-snug line-clamp-2">
+                                @job.Title
+                            </a>
+                            <p class="text-slate-500 text-xs mt-1 truncate">@(job.Employer?.CompanyName ?? "Đang cập nhật")</p>
+                        </div>
+
+                        <button class="text-slate-300 hover:text-rose-500 transition-colors shrink-0">
+                            <span class="material-symbols-outlined text-xl">favorite_border</span>
+                        </button>
                     </div>
 
-                    <div class="flex justify-between items-center pt-4 border-t border-slate-700">
-                        <span class="text-xs text-slate-500 flex items-center gap-1 font-medium">
-                            <span class="material-symbols-outlined text-sm">schedule</span>
-                            @((DateTime.Now - job.CreatedAt).TotalHours < 24
-                                ? $"{(int)(DateTime.Now - job.CreatedAt).TotalHours} giờ trước"
-                                : $"{(int)(DateTime.Now - job.CreatedAt).TotalDays} ngày trước")
+                    <div class="flex flex-wrap gap-1.5 mt-3">
+                        <span class="bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[11px] font-semibold border border-slate-200">
+                            @job.FormatSalary()
                         </span>
-                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobID"
-                           class="bg-blue-600/20 text-blue-400 border border-blue-800/30 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all">
-                            Ứng tuyển →
-                        </a>
+                        @if (!string.IsNullOrEmpty(job.Location))
+                        {
+                            <span class="bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[11px] font-semibold border border-slate-200">
+                                @job.Location
+                            </span>
+                        }
                     </div>
                 </div>
             }
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-center gap-4 mt-8">
+            <button type="button" id="featJobsPrevBottom" class="w-9 h-9 rounded-full border border-slate-300 text-slate-500 flex items-center justify-center hover:border-blue-500 hover:text-blue-600 transition-colors">
+                <span class="material-symbols-outlined text-base">chevron_left</span>
+            </button>
+            <span id="featJobsPageLabel" class="text-sm font-semibold text-slate-600">1 / 1 trang</span>
+            <button type="button" id="featJobsNextBottom" class="w-9 h-9 rounded-full border border-slate-300 text-slate-500 flex items-center justify-center hover:border-blue-500 hover:text-blue-600 transition-colors">
+                <span class="material-symbols-outlined text-base">chevron_right</span>
+            </button>
         </div>
     </div>
 </section>
 
 <!-- TOP COMPANIES -->
-<section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-    <h2 class="text-2xl font-black text-center text-white tracking-tight mb-2 flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined text-blue-400">partnership</span>
+<section class="max-w-[1600px] mx-auto px-4 sm:px-6 py-16">
+    <h2 class="text-2xl font-black text-center text-slate-900 tracking-tight mb-2 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-blue-600">partnership</span>
         Đối tác Tuyển dụng Chiến lược
     </h2>
-    <p class="text-center text-slate-500 text-sm mb-10 font-medium">Những doanh nghiệp uy tín hàng đầu đồng hành cùng JobConnect</p>
+    <p class="text-center text-slate-600 text-sm mb-10 font-medium">Những doanh nghiệp uy tín hàng đầu đồng hành cùng JobConnect</p>
 
     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
         @foreach (var emp in Model.TopCompanies)
         {
-            <a asp-controller="Company" asp-action="Detail" asp-route-id="@emp.EmployerID"
-               class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center text-center ambient-shadow border border-slate-700 hover:border-blue-500/40 hover:shadow-md transition-all group min-h-[120px]">
+            <a asp-controller="Company" asp-action="Detail" asp-route-id="@emp.EmployerId"
+               class="bg-white backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center justify-center text-center ambient-shadow border border-slate-200 hover:border-blue-500/40 hover:shadow-md transition-all group min-h-[120px]">
                 @if (!string.IsNullOrEmpty(emp.LogoURL))
                 {
                     <img src="@emp.LogoURL" alt="logo" class="w-12 h-12 object-contain mb-3 group-hover:scale-110 transition-transform" />
                 }
                 else
                 {
-                    <div class="w-12 h-12 bg-slate-700/50 rounded-xl flex items-center justify-center mb-3 border border-slate-600">
-                        <span class="material-symbols-outlined text-slate-500">business</span>
+                    <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-3 border border-slate-200">
+                        <span class="material-symbols-outlined text-slate-600">business</span>
                     </div>
                 }
                 <div class="flex items-center gap-0.5 justify-center max-w-full">
-                    <p class="text-[11px] font-bold text-slate-200 truncate">@emp.CompanyName</p>
+                    <p class="text-[11px] font-bold text-slate-700 truncate">@emp.CompanyName</p>
                     @if (emp.IsVerified)
                     {
-                        <span class="material-symbols-outlined text-blue-400 text-[14px] flex-shrink-0">verified</span>
+                        <span class="material-symbols-outlined text-blue-600 text-[14px] flex-shrink-0">verified</span>
                     }
                 </div>
             </a>
@@ -391,12 +429,12 @@
 </section>
 
 <!-- CTA SECTION - GLASSMORPHISM -->
-<section class="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+<section class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-16">
     <div class="cta-section rounded-3xl p-8 md:p-14 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl">
         <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none"></div>
         <div class="absolute bottom-0 left-1/3 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 blur-xl pointer-events-none"></div>
 
-        <div class="relative z-10 text-white text-center lg:text-left max-w-xl">
+        <div class="relative z-10 text-slate-900 text-center lg:text-left max-w-xl">
             <h2 class="text-3xl md:text-4xl font-black mb-3 leading-tight tracking-tight">🚀 Sẵn sàng bứt phá sự nghiệp?</h2>
             <p class="text-blue-100 text-sm md:text-base mb-8 font-medium opacity-90">
                 Tạo hồ sơ chuyên nghiệp hoàn toàn miễn phí ngay hôm nay để lọt vào mắt xanh của hàng trăm nhà tuyển dụng lớn.
@@ -414,56 +452,118 @@
         </div>
 
         <div class="relative z-10 hidden lg:flex items-center gap-4">
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-white text-center w-32">
-                <span class="material-symbols-outlined text-3xl text-blue-300 block mb-1">work</span>
+            <div class="bg-white backdrop-blur-md border border-white/10 rounded-2xl p-5 text-slate-900 text-center w-32">
+                <span class="material-symbols-outlined text-3xl text-blue-700 block mb-1">work</span>
                 <div class="text-xl font-black">@Model.TotalJobs.ToString("N0")</div>
-                <div class="text-blue-300 text-[10px] uppercase font-bold tracking-wider mt-0.5">Việc làm</div>
+                <div class="text-blue-700 text-[10px] uppercase font-bold tracking-wider mt-0.5">Việc làm</div>
             </div>
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-white text-center w-32">
-                <span class="material-symbols-outlined text-3xl text-blue-300 block mb-1">apartment</span>
+            <div class="bg-white backdrop-blur-md border border-white/10 rounded-2xl p-5 text-slate-900 text-center w-32">
+                <span class="material-symbols-outlined text-3xl text-blue-700 block mb-1">apartment</span>
                 <div class="text-xl font-black">@Model.TotalCompanies.ToString("N0")</div>
-                <div class="text-blue-300 text-[10px] uppercase font-bold tracking-wider mt-0.5">Công ty</div>
+                <div class="text-blue-700 text-[10px] uppercase font-bold tracking-wider mt-0.5">Công ty</div>
             </div>
-            <div class="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-white text-center w-32">
-                <span class="material-symbols-outlined text-3xl text-blue-300 block mb-1">people</span>
+            <div class="bg-white backdrop-blur-md border border-white/10 rounded-2xl p-5 text-slate-900 text-center w-32">
+                <span class="material-symbols-outlined text-3xl text-blue-700 block mb-1">people</span>
                 <div class="text-xl font-black">@Model.TotalCandidates.ToString("N0")</div>
-                <div class="text-blue-300 text-[10px] uppercase font-bold tracking-wider mt-0.5">Ứng viên</div>
+                <div class="text-blue-700 text-[10px] uppercase font-bold tracking-wider mt-0.5">Ứng viên</div>
             </div>
         </div>
     </div>
 </section>
 
+
 @section Scripts {
     <script>
-        function initRain() {
-            const container = document.getElementById('rainContainer');
-            if (!container) return;
-            container.innerHTML = '';
+        (function () {
+            var PAGE_SIZE = 12; // 3 cột x 4 hàng
+            var grid = document.getElementById('featJobsGrid');
+            if (!grid) return;
 
-            // 50 giọt mưa (tăng lên cho đẹp)
-            for (let i = 0; i < 50; i++) {
-                const drop = document.createElement('div');
-                drop.classList.add('drop');
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.animationDuration = (Math.random() * 1.2 + 0.8) + 's';
-                drop.style.animationDelay = (Math.random() * 8) + 's';
-                drop.style.height = (Math.random() * 40 + 40) + 'px';
-                drop.style.opacity = Math.random() * 0.5 + 0.2;
-                container.appendChild(drop);
+            var allCards = Array.prototype.slice.call(grid.querySelectorAll('.feat-job-card'));
+            var currentFilter = 'all';
+            var currentPage = 1;
+
+            var pageLabel = document.getElementById('featJobsPageLabel');
+            var prevBtns = [document.getElementById('featJobsPrev'), document.getElementById('featJobsPrevBottom')];
+            var nextBtns = [document.getElementById('featJobsNext'), document.getElementById('featJobsNextBottom')];
+            var filterBtns = document.querySelectorAll('.feat-filter-btn');
+
+            function matchesFilter(card, filter) {
+                if (filter === 'all') return true;
+                if (filter === 'hanoi') return card.dataset.region === 'hanoi';
+                if (filter === 'hcm') return card.dataset.region === 'hcm';
+                if (filter === 'mienbac') return card.dataset.mienBac === 'true';
+                if (filter === 'miennam') return card.dataset.mienNam === 'true';
+                return true;
             }
 
-            // 80 hạt mưa nhỏ
-            for (let i = 0; i < 80; i++) {
-                const drop = document.createElement('div');
-                drop.classList.add('drop-small');
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.animationDuration = (Math.random() * 1.5 + 0.6) + 's';
-                drop.style.animationDelay = (Math.random() * 10) + 's';
-                drop.style.height = (Math.random() * 20 + 15) + 'px';
-                drop.style.opacity = Math.random() * 0.3 + 0.1;
-                container.appendChild(drop);
+            function getFilteredCards() {
+                return allCards.filter(function (c) { return matchesFilter(c, currentFilter); });
             }
-        }
-        document.addEventListener('DOMContentLoaded', initRain);
+
+            function render() {
+                var filtered = getFilteredCards();
+                var totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                var start = (currentPage - 1) * PAGE_SIZE;
+                var end = start + PAGE_SIZE;
+
+                allCards.forEach(function (c) { c.style.display = 'none'; });
+                filtered.slice(start, end).forEach(function (c) { c.style.display = ''; });
+
+                if (pageLabel) pageLabel.textContent = currentPage + ' / ' + totalPages + ' trang';
+
+                var atFirst = currentPage <= 1;
+                var atLast = currentPage >= totalPages;
+                prevBtns.forEach(function (b) { if (b) b.disabled = atFirst; if (b) b.classList.toggle('opacity-40', atFirst); });
+                nextBtns.forEach(function (b) { if (b) b.disabled = atLast; if (b) b.classList.toggle('opacity-40', atLast); });
+
+                if (filtered.length === 0 && grid) {
+                    if (!document.getElementById('featJobsEmpty')) {
+                        var empty = document.createElement('div');
+                        empty.id = 'featJobsEmpty';
+                        empty.className = 'col-span-full text-center text-slate-500 text-sm py-10';
+                        empty.textContent = 'Không có việc làm phù hợp với bộ lọc này.';
+                        grid.appendChild(empty);
+                    }
+                } else {
+                    var empty = document.getElementById('featJobsEmpty');
+                    if (empty) empty.remove();
+                }
+            }
+
+            filterBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    currentFilter = btn.dataset.filter;
+                    currentPage = 1;
+                    filterBtns.forEach(function (b) {
+                        b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'font-bold');
+                        b.classList.add('bg-white', 'text-slate-600', 'border-slate-300', 'font-semibold');
+                    });
+                    btn.classList.remove('bg-white', 'text-slate-600', 'border-slate-300', 'font-semibold');
+                    btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'font-bold');
+                    render();
+                });
+            });
+
+            prevBtns.forEach(function (b) {
+                if (!b) return;
+                b.addEventListener('click', function () {
+                    if (currentPage > 1) { currentPage--; render(); }
+                });
+            });
+            nextBtns.forEach(function (b) {
+                if (!b) return;
+                b.addEventListener('click', function () {
+                    var filtered = getFilteredCards();
+                    var totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+                    if (currentPage < totalPages) { currentPage++; render(); }
+                });
+            });
+
+            render();
+        })();
     </script>
 }

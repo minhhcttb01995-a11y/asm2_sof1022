@@ -1,0 +1,518 @@
+@using JobConnect.Models
+@model List<StatusCatalog>
+@{
+    ViewData["Title"] = "Quản lý Trạng thái";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="w-full px-6 py-8 xl:px-10">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Quản lý Trạng thái</h1>
+            <p class="text-secondary text-sm">Quản lý trạng thái cho các đối tượng trong hệ thống</p>
+        </div>
+        <button onclick="openCreateModal()" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">add</span>
+            Thêm trạng thái mới
+        </button>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl p-5 border border-outline-variant mb-6">
+        <form asp-action="Index" method="get" class="flex flex-wrap gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <select name="entityType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="">-- Tất cả loại đối tượng --</option>
+                    @foreach (var type in StatusEntityTypes.All)
+                    {
+                        <option value="@type" selected="@(ViewBag.SelectedEntityType == type)">
+                            @StatusEntityTypes.Labels[type]
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="keyword" value="@(ViewBag.Keyword ?? "")" placeholder="Tìm kiếm theo tên hoặc mã..."
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                Tìm kiếm
+            </button>
+            <a asp-action="Index" class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Đặt lại
+            </a>
+        </form>
+    </div>
+
+    <!-- Table -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-surface-container">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Loại đối tượng</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Tên hiển thị</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Màu hiển thị</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Mô tả</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Hoạt động</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="border-t border-outline-variant hover:bg-surface-container-low">
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                                    @StatusEntityTypes.Labels.GetValueOrDefault(item.EntityType, item.EntityType)
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-medium text-on-surface">@item.Name</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (!string.IsNullOrEmpty(item.ColorClass))
+                                {
+                                    <span class="px-3 py-1 @item.ColorClass rounded-full text-xs font-medium">Preview</span>
+                                }
+                                else
+                                {
+                                    <span class="text-secondary">-</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm text-secondary">@(item.Description ?? "-")</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if (item.IsActive)
+                                {
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Không hoạt động</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" onclick='openEditModal(@item.Id, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item)))'
+                                            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Sửa">
+                                        <span class="material-symbols-outlined text-base">edit</span>
+                                    </button>
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post"
+                                          class="inline" onsubmit="return confirm('Bạn có chắc muốn xóa trạng thái này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Xóa">
+                                            <span class="material-symbols-outlined text-base">delete</span>
+                                        </button>
+                                    </form>
+                                    <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="p-2 @(item.IsActive ? "text-orange-600 hover:bg-orange-50" : "text-green-600 hover:bg-green-50") rounded-lg"
+                                                title="@(item.IsActive ? "Tắt" : "Bật")">
+                                            <span class="material-symbols-outlined text-base">@(item.IsActive ? "toggle_off" : "toggle_on")</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant p-8 text-center">
+            <span class="material-symbols-outlined text-4xl text-secondary mb-3">folder_open</span>
+            <p class="text-secondary">Không tìm thấy trạng thái nào.</p>
+        </div>
+    }
+</div>
+
+<!-- Create Status Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-white z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl border border-outline-variant p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-on-surface">Thêm Trạng thái mới</h2>
+            <button onclick="closeCreateModal()" class="p-2 text-secondary hover:bg-surface-container rounded-lg">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="createForm" asp-action="Create" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Code" id="Code" />
+
+            <div>
+                <label for="EntityType" class="block text-sm font-medium text-on-surface mb-2">Loại đối tượng <span class="text-red-600">*</span></label>
+                <select id="EntityType" name="EntityType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" required>
+                    <option value="">-- Chọn loại đối tượng --</option>
+                    @foreach (var type in StatusEntityTypes.All)
+                    {
+                        <option value="@type">@StatusEntityTypes.Labels[type]</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="Name" class="block text-sm font-medium text-on-surface mb-2">Tên hiển thị <span class="text-red-600">*</span></label>
+                <input id="Name" name="Name" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" required
+                       placeholder="Ví dụ: Đang hoạt động, Chờ duyệt, Đã khóa...">
+            </div>
+
+            <div>
+                <label for="ColorClass" class="block text-sm font-medium text-on-surface mb-2">Màu hiển thị</label>
+                <select id="ColorClass" name="ColorClass" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="">-- Chọn màu --</option>
+                    <option value="bg-green-100 text-green-700">Xanh lá (Active / Đã duyệt / Đã xuất bản)</option>
+                    <option value="bg-yellow-100 text-yellow-700">Vàng (Pending / Chờ duyệt / Chờ xác thực)</option>
+                    <option value="bg-blue-100 text-blue-700">Xanh dương (Verified / Đã xác minh)</option>
+                    <option value="bg-red-100 text-red-700">Đỏ (Banned / Locked / Rejected / Đã khóa / Từ chối)</option>
+                    <option value="bg-gray-100 text-gray-700">Xám (Deleted / Đã xóa)</option>
+                    <option value="bg-purple-100 text-purple-700">Tím (Draft / Bản nháp)</option>
+                    <option value="bg-orange-100 text-orange-700">Cam</option>
+                    <option value="bg-teal-100 text-teal-700">Xanh ngọc</option>
+                    <option value="bg-pink-100 text-pink-700">Hồng</option>
+                    <option value="bg-indigo-100 text-indigo-700">Chàm</option>
+                </select>
+                <p class="text-xs text-secondary mt-1">Chọn màu hiển thị cho trạng thái này.</p>
+            </div>
+
+            <div>
+                <label for="Description" class="block text-sm font-medium text-on-surface mb-2">Mô tả</label>
+                <textarea id="Description" name="Description" rows="3" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"
+                          placeholder="Mô tả chi tiết về trạng thái này..."></textarea>
+            </div>
+
+            <div>
+                <label for="IsActive" class="block text-sm font-medium text-on-surface mb-2">Trạng thái hoạt động</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input type="hidden" name="IsActive" value="false" />
+                    <input id="IsActive" name="IsActive" class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary" type="checkbox" value="true" checked>
+                    <label for="IsActive" class="text-sm text-on-surface">Hoạt động</label>
+                </div>
+            </div>
+
+            <div>
+                <label for="BlocksLogin" class="block text-sm font-medium text-on-surface mb-2">Chặn đăng nhập</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input type="hidden" name="BlocksLogin" value="false" />
+                    <input id="BlocksLogin" name="BlocksLogin" class="w-5 h-5 text-red-600 border-outline-variant rounded focus:ring-red-500" type="checkbox" value="true">
+                    <label for="BlocksLogin" class="text-sm text-on-surface">Ứng viên / Nhà tuyển dụng / Nhân viên ở trạng thái này sẽ KHÔNG đăng nhập được</label>
+                </div>
+                <p class="text-xs text-secondary mt-1">Áp dụng cho loại đối tượng: Ứng viên, Nhà tuyển dụng, Nhân viên. Bật cho các trạng thái như "Đã khóa".</p>
+            </div>
+
+            <div>
+                <label for="ShowPublicly" class="block text-sm font-medium text-on-surface mb-2">Hiển thị công khai</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input type="hidden" name="ShowPublicly" value="false" />
+                    <input id="ShowPublicly" name="ShowPublicly" class="w-5 h-5 text-green-600 border-outline-variant rounded focus:ring-green-500" type="checkbox" value="true" checked>
+                    <label for="ShowPublicly" class="text-sm text-on-surface">Hiển thị công khai trên trang chủ / danh sách</label>
+                </div>
+                <p class="text-xs text-secondary mt-1">Áp dụng cho loại đối tượng: Nhà tuyển dụng (Công ty), Tin tuyển dụng, Blog. Tắt cho các trạng thái như "Chờ duyệt", "Đã khóa", "Đã từ chối", "Bản nháp".</p>
+            </div>
+
+            <div class="px-4 py-3 bg-blue-50 text-blue-700 rounded-xl text-sm flex items-start gap-2">
+                <span class="material-symbols-outlined text-base mt-0.5">info</span>
+                <div>
+                    <span class="font-medium">Lưu ý:</span> Trạng thái mới tạo sẽ không được đánh dấu là trạng thái hệ thống (IsSystem = false), cho phép Admin xóa hoặc chỉnh sửa sau này.
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeCreateModal()" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                    Huỷ
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                    Lưu trạng thái
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Status Modal -->
+<div id="editModal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl border border-outline-variant p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-on-surface">Sửa Trạng thái</h2>
+            <button onclick="closeEditModal()" class="p-2 text-secondary hover:bg-surface-container rounded-lg">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div id="editErrorBox" class="hidden mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            <span id="editErrorText"></span>
+        </div>
+
+        <form id="editForm" asp-action="Edit" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" id="edit_Id" />
+            <input type="hidden" name="Code" id="edit_Code" />
+
+            <div>
+                <label for="edit_EntityType" class="block text-sm font-medium text-on-surface mb-2">Loại đối tượng <span class="text-red-600">*</span></label>
+                <select id="edit_EntityType" name="EntityType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" required>
+                    @foreach (var type in StatusEntityTypes.All)
+                    {
+                        <option value="@type">@StatusEntityTypes.Labels[type]</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="edit_Name" class="block text-sm font-medium text-on-surface mb-2">Tên hiển thị <span class="text-red-600">*</span></label>
+                <input id="edit_Name" name="Name" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" required
+                       placeholder="Ví dụ: Đang hoạt động, Chờ duyệt, Đã khóa...">
+            </div>
+
+            <div>
+                <label for="edit_ColorClass" class="block text-sm font-medium text-on-surface mb-2">Màu hiển thị</label>
+                <select id="edit_ColorClass" name="ColorClass" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="">-- Chọn màu --</option>
+                    <option value="bg-green-100 text-green-700">Xanh lá (Active / Đã duyệt / Đã xuất bản)</option>
+                    <option value="bg-yellow-100 text-yellow-700">Vàng (Pending / Chờ duyệt / Chờ xác thực)</option>
+                    <option value="bg-blue-100 text-blue-700">Xanh dương (Verified / Đã xác minh)</option>
+                    <option value="bg-red-100 text-red-700">Đỏ (Banned / Locked / Rejected / Đã khóa / Từ chối)</option>
+                    <option value="bg-gray-100 text-gray-700">Xám (Deleted / Đã xóa)</option>
+                    <option value="bg-purple-100 text-purple-700">Tím (Draft / Bản nháp)</option>
+                    <option value="bg-orange-100 text-orange-700">Cam</option>
+                    <option value="bg-teal-100 text-teal-700">Xanh ngọc</option>
+                    <option value="bg-pink-100 text-pink-700">Hồng</option>
+                    <option value="bg-indigo-100 text-indigo-700">Chàm</option>
+                </select>
+                <p class="text-xs text-secondary mt-1">Chọn màu hiển thị cho trạng thái này.</p>
+            </div>
+
+            <div>
+                <label for="edit_Description" class="block text-sm font-medium text-on-surface mb-2">Mô tả</label>
+                <textarea id="edit_Description" name="Description" rows="3" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"
+                          placeholder="Mô tả chi tiết về trạng thái này..."></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-on-surface mb-2">Trạng thái hoạt động</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input type="hidden" name="IsActive" value="false" />
+                    <input id="edit_IsActive" name="IsActive" class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary" type="checkbox" value="true">
+                    <label for="edit_IsActive" class="text-sm text-on-surface">Hoạt động</label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-on-surface mb-2">Chặn đăng nhập</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input type="hidden" name="BlocksLogin" value="false" />
+                    <input id="edit_BlocksLogin" name="BlocksLogin" class="w-5 h-5 text-red-600 border-outline-variant rounded focus:ring-red-500" type="checkbox" value="true">
+                    <label for="edit_BlocksLogin" class="text-sm text-on-surface">Tài khoản đang ở trạng thái này sẽ KHÔNG đăng nhập được</label>
+                </div>
+                <p class="text-xs text-secondary mt-1">Bật tuỳ chọn này cho các trạng thái như "Đã khóa", "Đã xóa"...</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-on-surface mb-2">Hiển thị công khai</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input type="hidden" name="ShowPublicly" value="false" />
+                    <input id="edit_ShowPublicly" name="ShowPublicly" class="w-5 h-5 text-green-600 border-outline-variant rounded focus:ring-green-500" type="checkbox" value="true">
+                    <label for="edit_ShowPublicly" class="text-sm text-on-surface">Hiển thị công khai trên trang chủ / danh sách (Công ty, Tin tuyển dụng, Blog)</label>
+                </div>
+                <p class="text-xs text-secondary mt-1">Tắt cho các trạng thái như "Chờ duyệt", "Đã khóa", "Đã từ chối", "Bản nháp"...</p>
+            </div>
+
+            <div id="edit_SystemWarning" class="hidden px-4 py-3 bg-yellow-50 text-yellow-700 rounded-xl text-sm items-start gap-2">
+                <span class="material-symbols-outlined text-base mt-0.5">warning</span>
+                <div>
+                    <span class="font-medium">Cảnh báo:</span> Đây là trạng thái hệ thống mặc định. Bạn có thể chỉnh sửa thông tin nhưng không thể xóa nó.
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeEditModal()" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                    Huỷ
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                    Cập nhật trạng thái
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal(id, status) {
+        document.getElementById('edit_Id').value = status.id ?? status.Id;
+        document.getElementById('edit_Code').value = status.code ?? status.Code ?? '';
+        document.getElementById('edit_EntityType').value = status.entityType ?? status.EntityType;
+        document.getElementById('edit_Name').value = status.name ?? status.Name;
+        document.getElementById('edit_ColorClass').value = status.colorClass ?? status.ColorClass ?? '';
+        document.getElementById('edit_Description').value = status.description ?? status.Description ?? '';
+        document.getElementById('edit_IsActive').checked = status.isActive ?? status.IsActive;
+        document.getElementById('edit_BlocksLogin').checked = status.blocksLogin ?? status.BlocksLogin;
+        document.getElementById('edit_ShowPublicly').checked = status.showPublicly ?? status.ShowPublicly;
+
+        var isSystem = status.isSystem ?? status.IsSystem;
+        var warningBox = document.getElementById('edit_SystemWarning');
+        if (isSystem) {
+            warningBox.classList.remove('hidden');
+            warningBox.classList.add('flex');
+        } else {
+            warningBox.classList.add('hidden');
+            warningBox.classList.remove('flex');
+        }
+
+        document.getElementById('editErrorBox').classList.add('hidden');
+        document.getElementById('editModal').classList.remove('hidden');
+        document.getElementById('editModal').classList.add('flex');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        document.getElementById('editModal').classList.remove('flex');
+    }
+
+    document.getElementById('editModal').addEventListener('click', function (e) {
+        if (e.target === this) closeEditModal();
+    });
+
+    document.getElementById('editForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const token = document.querySelector('#editForm input[name="__RequestVerificationToken"]').value;
+        const errorBox = document.getElementById('editErrorBox');
+        const errorText = document.getElementById('editErrorText');
+
+        try {
+            const response = await fetch('/StatusCatalog/Edit', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.reload();
+            } else {
+                errorText.textContent = 'Không thể cập nhật trạng thái. Vui lòng kiểm tra lại thông tin.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
+            }
+        } catch (err) {
+            errorText.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+        }
+    });
+</script>
+
+<script>
+    function openCreateModal() {
+        document.getElementById('createModal').classList.remove('hidden');
+        document.getElementById('createModal').classList.add('flex');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.add('hidden');
+        document.getElementById('createModal').classList.remove('flex');
+        document.getElementById('createForm').reset();
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('createModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCreateModal();
+    });
+
+    // Handle form submission via AJAX
+    document.getElementById('createForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Auto-generate Code from Name
+        const name = document.getElementById('Name').value;
+        const code = generateCodeFromName(name);
+        document.getElementById('Code').value = code;
+
+        const formData = new FormData(this);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        const response = await fetch('/StatusCatalog/Create', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': token
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            closeCreateModal();
+            location.reload();
+        } else {
+            alert('Không thể thêm trạng thái. Vui lòng kiểm tra lại thông tin.');
+        }
+    });
+
+    function generateCodeFromName(name) {
+        if (!name) return '';
+
+        const vietnameseMap = {
+            'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
+            'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
+            'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
+            'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
+            'ê': 'e', 'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
+            'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
+            'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
+            'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
+            'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
+            'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
+            'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
+            'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y',
+            'đ': 'd',
+            'À': 'A', 'Á': 'A', 'Ả': 'A', 'Ã': 'A', 'Ạ': 'A',
+            'Ă': 'A', 'Ằ': 'A', 'Ắ': 'A', 'Ẳ': 'A', 'Ẵ': 'A', 'Ặ': 'A',
+            'Â': 'A', 'Ầ': 'A', 'Ấ': 'A', 'Ẩ': 'A', 'Ẫ': 'A', 'Ậ': 'A',
+            'È': 'E', 'É': 'E', 'Ẻ': 'E', 'Ẽ': 'E', 'Ẹ': 'E',
+            'Ê': 'E', 'Ề': 'E', 'Ế': 'E', 'Ể': 'E', 'Ễ': 'E', 'Ệ': 'E',
+            'Ì': 'I', 'Í': 'I', 'Ỉ': 'I', 'Ĩ': 'I', 'Ị': 'I',
+            'Ò': 'O', 'Ó': 'O', 'Ỏ': 'O', 'Õ': 'O', 'Ọ': 'O',
+            'Ô': 'O', 'Ồ': 'O', 'Ố': 'O', 'Ổ': 'O', 'Ỗ': 'O', 'Ộ': 'O',
+            'Ơ': 'O', 'Ờ': 'O', 'Ớ': 'O', 'Ở': 'O', 'Ỡ': 'O', 'Ợ': 'O',
+            'Ù': 'U', 'Ú': 'U', 'Ủ': 'U', 'Ũ': 'U', 'Ụ': 'U',
+            'Ư': 'U', 'Ừ': 'U', 'Ứ': 'U', 'Ử': 'U', 'Ữ': 'U', 'Ự': 'U',
+            'Ỳ': 'Y', 'Ý': 'Y', 'Ỷ': 'Y', 'Ỹ': 'Y', 'Ỵ': 'Y',
+            'Đ': 'D'
+        };
+
+        let result = '';
+        for (let c of name) {
+            if (vietnameseMap[c]) {
+                result += vietnameseMap[c];
+            } else if (/[a-zA-Z0-9]/.test(c)) {
+                result += c;
+            } else if (/\s/.test(c)) {
+                result += '_';
+            }
+        }
+
+        return result.toUpperCase();
+    }
+</script>

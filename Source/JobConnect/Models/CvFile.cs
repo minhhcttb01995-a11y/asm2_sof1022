@@ -1,33 +1,25 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class CvFile
+public partial class CvFile
 {
-    [Key]
-    public int CvID { get; set; }                    // ← Quan trọng: khớp với CVID trong Application
+    public int Cvid { get; set; }
 
-    [Required]
-    public int ProfileID { get; set; }               // ← Khớp với ProfileID trong Application
+    public int ProfileId { get; set; }
 
-    [Required]
-    [MaxLength(200)]
-    public string FileName { get; set; } = string.Empty;
+    public string FileName { get; set; } = null!;
 
-    [Required]
-    [MaxLength(500)]
-    public string FilePath { get; set; } = string.Empty;
+    public string FilePath { get; set; } = null!;
 
     public long? FileSize { get; set; }
 
-    public bool IsDefault { get; set; } = false;
+    public bool IsDefault { get; set; }
 
-    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
-
-    // Navigation
-    [ForeignKey(nameof(ProfileID))]
-    public virtual CandidateProfile? Profile { get; set; }
+    public DateTime UploadedAt { get; set; }
 
     public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
+
+    public virtual CandidateProfile Profile { get; set; } = null!;
 }

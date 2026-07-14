@@ -21,9 +21,9 @@
         <div class="glass-card rounded-2xl p-8">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-4">
-                    <span class="material-icons text-red-400 text-3xl">report</span>
+                    <span class="material-icons text-red-600 text-3xl">report</span>
                 </div>
-                <h1 class="text-3xl font-bold text-white mb-2">Gửi báo cáo</h1>
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">Gửi báo cáo</h1>
                 <p class="text-gray-400">Báo cáo vi phạm hoặc nội dung không phù hợp</p>
             </div>
 
@@ -36,7 +36,7 @@
                 <!-- Report Type -->
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Loại báo cáo</label>
-                    <select name="reportType" required class="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <select name="reportType" required class="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:border-blue-500 transition-colors">
                         <option value="">-- Chọn loại báo cáo --</option>
                         @if (ViewBag.CompanyId != null)
                         {
@@ -57,7 +57,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Lý do báo cáo *</label>
                     <input type="text" name="reason" required maxlength="500"
-                           class="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                           class="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
                            placeholder="Ví dụ: Công ty không tồn tại, Tin tuyển dụng giả mạo..." />
                 </div>
 
@@ -65,16 +65,16 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Mô tả chi tiết</label>
                     <textarea name="description" rows="4" maxlength="2000"
-                              class="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                              class="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                               placeholder="Cung cấp thêm thông tin chi tiết về vấn đề bạn muốn báo cáo..."></textarea>
                 </div>
 
                 <!-- Warning -->
                 <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
                     <div class="flex items-start gap-3">
-                        <span class="material-icons text-yellow-400 text-xl">warning</span>
+                        <span class="material-icons text-yellow-600 text-xl">warning</span>
                         <div>
-                            <p class="text-yellow-400 font-medium text-sm">Lưu ý quan trọng</p>
+                            <p class="text-yellow-600 font-medium text-sm">Lưu ý quan trọng</p>
                             <p class="text-gray-400 text-xs mt-1">Báo cáo sai lệch hoặc spam có thể dẫn đến hạn chế tài khoản của bạn. Vui lòng chỉ báo cáo khi thực sự cần thiết.</p>
                         </div>
                     </div>
@@ -83,7 +83,7 @@
                 <!-- Buttons -->
                 <div class="flex gap-4">
                     <a href="@Url.Action("Index", "Home")" 
-                       class="flex-1 bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium transition-colors text-center">
+                       class="flex-1 bg-slate-50 hover:bg-slate-600 text-slate-900 px-6 py-3 rounded-lg font-medium transition-colors text-center">
                         Hủy bỏ
                     </a>
                     <button type="submit" 
@@ -96,7 +96,7 @@
             @if (!ViewData.ModelState.IsValid)
             {
                 <div class="mt-4 bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                    <p class="text-red-400 text-sm">
+                    <p class="text-red-600 text-sm">
                         @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                         {
                             @error.ErrorMessage<br />

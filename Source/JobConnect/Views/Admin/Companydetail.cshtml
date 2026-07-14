@@ -3,13 +3,13 @@
 @{
     ViewData["Title"] = "Chi tiết công ty";
     Layout = "_LayoutAdmin";
-    int openJobs = Model.JobPosts.Count(j => j.Status == "Open");
+    int openJobs = Model.JobPosts.Count(j => j.Status == "Active");
     int pendingJobs = Model.JobPosts.Count(j => j.Status == "Pending");
-    int closedJobs = Model.JobPosts.Count(j => j.Status == "Closed" || j.Status == "Rejected");
+    int closedJobs = Model.JobPosts.Count(j => j.Status == "Banned" || j.Status == "Rejected");
 }
 
 @* ── Modal xóa ── *@
-<div id="modalDelete" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+<div id="modalDelete" class="fixed inset-0 z-50 hidden items-center justify-center bg-white backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background:#fef2f2">
@@ -26,7 +26,7 @@
         </p>
         <form asp-action="DeleteCompany" method="post">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="id" value="@Model.EmployerID" />
+            <input type="hidden" name="id" value="@Model.EmployerId" />
             <div class="flex gap-3">
                 <button type="button" onclick="document.getElementById('modalDelete').classList.add('hidden');document.getElementById('modalDelete').classList.remove('flex')"
                         class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
@@ -58,7 +58,7 @@
     @* ── Flash ── *@
     @if (TempData["Success"] != null)
     {
-        <div class="px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">
+        <div class="px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">
             <span class="material-symbols-outlined text-base">check_circle</span> @TempData["Success"]
         </div>
     }
@@ -153,7 +153,7 @@
                 {
                     <form asp-action="ApproveCompany" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.EmployerID" />
+                        <input type="hidden" name="id" value="@Model.EmployerId" />
                         <button type="submit" class="mgmt-btn" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0">
                             <span class="material-symbols-outlined text-base">verified</span>
                             Duyệt xác minh công ty
@@ -164,7 +164,7 @@
                 {
                     <form asp-action="SuspendCompany" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.EmployerID" />
+                        <input type="hidden" name="id" value="@Model.EmployerId" />
                         <button type="submit" class="mgmt-btn" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">
                             <span class="material-symbols-outlined text-base">unpublished</span>
                             Từ chối / Hủy xác minh
@@ -175,12 +175,12 @@
                 @* Khoá / Mở khoá *@
                 <form asp-action="LockCompany" method="post">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.EmployerID" />
-                    <input type="hidden" name="returnUrl" value="@Url.Action("CompanyDetail", new { id = Model.EmployerID })" />
+                    <input type="hidden" name="id" value="@Model.EmployerId" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("CompanyDetail", new { id = Model.EmployerId })" />
                     <button type="submit" class="mgmt-btn"
                             style="@(Model.IsLocked
-                                                            ? "background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe"
-                                                            : "background:#fefce8;color:#ca8a04;border:1px solid #fde68a")">
+                                                                                        ? "background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe"
+                                                                                        : "background:#fefce8;color:#ca8a04;border:1px solid #fde68a")">
                         <span class="material-symbols-outlined text-base">@(Model.IsLocked ? "lock_open" : "lock")</span>
                         @(Model.IsLocked ? "Mở khoá công ty" : "Khoá công ty")
                     </button>
@@ -196,12 +196,12 @@
                 <div class="pt-3 mt-1" style="border-top:1px solid #f1f5f9">
                     <p class="text-xs font-semibold uppercase tracking-wide mb-2.5" style="color:#94a3b8">🛠 Hỗ trợ trực tiếp</p>
                     <div class="space-y-2">
-                        <a asp-action="PostJobForEmployer" asp-route-id="@Model.EmployerID" class="mgmt-btn"
+                        <a asp-action="PostJobForEmployer" asp-route-id="@Model.EmployerId" class="mgmt-btn"
                            style="background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe">
                             <span class="material-symbols-outlined text-base">post_add</span>
                             Đăng tin hộ NTD
                         </a>
-                        <a asp-action="EmployerApplications" asp-route-id="@Model.EmployerID" class="mgmt-btn"
+                        <a asp-action="EmployerApplications" asp-route-id="@Model.EmployerId" class="mgmt-btn"
                            style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe">
                             <span class="material-symbols-outlined text-base">folder_shared</span>
                             Xem đơn & hỗ trợ CV
@@ -229,6 +229,9 @@
                                 <p class="text-sm font-medium" style="color:#1e293b">@(string.IsNullOrEmpty(value) ? "—" : value)</p>
                             </div>
                         }
+                    }
+                    @{
+                        InfoRow("Mã công ty", Model.CompanyCode);
                     }
                     @{
                         InfoRow("Tên công ty", Model.CompanyName);
@@ -282,7 +285,7 @@
                         Tin tuyển dụng
                         <span class="px-2 py-0.5 rounded-full text-xs font-bold" style="background:#eff6ff;color:#3b82f6">@Model.JobPosts.Count</span>
                     </h3>
-                    <a asp-action="PostJobForEmployer" asp-route-id="@Model.EmployerID"
+                    <a asp-action="PostJobForEmployer" asp-route-id="@Model.EmployerId"
                        class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                        style="background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe">
                         <span class="material-symbols-outlined text-sm">add</span> Đăng tin hộ
@@ -303,10 +306,10 @@
                         {
                             var (jobBg, jobColor, jobLabel) = job.Status switch
                             {
-                                "Open" => ("#f0fdf4", "#16a34a", "Đang mở"),
+                                "Active" => ("#f0fdf4", "#16a34a", "Đang mở"),
                                 "Pending" => ("#fefce8", "#a16207", "Chờ duyệt"),
                                 "Rejected" => ("#fef2f2", "#dc2626", "Từ chối"),
-                                "Closed" => ("#f8fafc", "#94a3b8", "Đã đóng"),
+                                "Banned" => ("#fef2f2", "#dc2626", "Đã khóa"),
                                 "Draft" => ("#f8fafc", "#94a3b8", "Nháp"),
                                 _ => ("#f8fafc", "#94a3b8", job.Status)
                             };

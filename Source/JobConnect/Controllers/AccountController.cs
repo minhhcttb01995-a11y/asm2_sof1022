@@ -17,13 +17,40 @@ public class AccountController : Controller
     private readonly IAuthService _auth;
     private readonly AppDbContext _db;
     private readonly IEmailService _emailSvc;
+    private readonly ICodeGeneratorService _codeGen;
 
-    public AccountController(IAuthService auth, AppDbContext db, IEmailService emailSvc)
+    public AccountController(IAuthService auth, AppDbContext db, IEmailService emailSvc, ICodeGeneratorService codeGen)
     {
         _auth = auth;
         _db = db;
 
         _emailSvc = emailSvc;
+        _codeGen = codeGen;
+    }
+
+    /// <summary>
+    /// Request được gọi bằng fetch/AJAX từ modal đăng nhập/đăng ký (không phải điều hướng cả trang).
+    /// </summary>
+    private bool IsAjaxRequest() => Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
+    /// <summary>
+    /// Kiểm tra trạng thái hiện tại của user (theo StatusCatalog động do Admin quản lý)
+    /// có bị đánh dấu "Chặn đăng nhập" (BlocksLogin = true) hay không.
+    /// </summary>
+    private async Task<bool> IsStatusBlockingLoginAsync(string? role, string? status)
+    {
+        if (string.IsNullOrEmpty(status)) return false;
+
+        var entityType = role switch
+        {
+            "Candidate" => StatusEntityTypes.Candidate,
+            "Employer" => StatusEntityTypes.Employer,
+            "Staff" => StatusEntityTypes.Staff,
+            _ => "User"
+        };
+
+        return await _db.StatusCatalogs.AnyAsync(s =>
+            s.EntityType == entityType && s.Code == status && s.BlocksLogin);
     }
 
     // GET /Account/Login
@@ -31,9 +58,17 @@ public class AccountController : Controller
     public IActionResult Login(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
+        {
+            if (IsAjaxRequest())
+                return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
             return RedirectToAction("Index", "Home");
+        }
 
         ViewBag.ReturnUrl = returnUrl;
+
+        if (IsAjaxRequest())
+            return PartialView("_LoginModalPartial", new LoginViewModel());
+
         return View();
     }
 
@@ -42,8 +77,15 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
+        ViewBag.ReturnUrl = returnUrl;
+
         if (!ModelState.IsValid)
         {
+            if (IsAjaxRequest())
+            {
+                Response.StatusCode = 400;
+                return PartialView("_LoginModalPartial", model);
+            }
             return View(model);
         }
 
@@ -54,40 +96,25 @@ public class AccountController : Controller
             if (user == null)
             {
                 ModelState.AddModelError("", "Email hoặc mật khẩu không đúng.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_LoginModalPartial", model);
+                }
                 return View(model);
             }
 
-            // Kiểm tra trạng thái tài khoản (Status: Active | Banned | Pending)
-            if (user.Status != "Active")
+            // Kiểm tra trạng thái tài khoản - chặn đăng nhập nếu trạng thái hiện tại
+            // được Admin đánh dấu BlocksLogin = true trong danh mục Trạng thái (StatusCatalog)
+            if (await IsStatusBlockingLoginAsync(user.Role, user.Status))
             {
-                var msg = user.Status == "Banned"
-                    ? "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên."
-                    : "Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email xác thực.";
-                ModelState.AddModelError("", msg);
+                ModelState.AddModelError("", "Tài khoản của bạn đang ở trạng thái không được phép đăng nhập. Vui lòng liên hệ quản trị viên.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_LoginModalPartial", model);
+                }
                 return View(model);
-            }
-
-            // Kiểm tra nếu không đăng nhập > 24h → yêu cầu xác thực email
-            // Admin và Staff được bỏ qua bước xác thực OTP
-            var isPrivilegedRole = user.Role == "Admin" || user.Role == "Staff";
-            var needReVerify = !isPrivilegedRole && user.LastLoginAt.HasValue && (DateTime.Now - user.LastLoginAt.Value).TotalHours >= 24;
-            if (needReVerify)
-            {
-                var otp = new Random().Next(100000, 999999).ToString();
-                user.OtpCode = otp;
-                user.OtpExpiry = DateTime.Now.AddMinutes(10);
-                await _db.SaveChangesAsync();
-
-                var html = BuildOtpEmail(user.FullName ?? user.Email, otp, "xác thực đăng nhập", 10);
-                try { await _emailSvc.SendAsync(user.Email, "🔐 Xác thực đăng nhập JobConnect", html); }
-                catch { /* log */ }
-
-                TempData["OtpEmail"] = user.Email;
-                TempData["OtpPurpose"] = "login";
-                TempData["RememberMe"] = model.RememberMe.ToString();
-                TempData["ReturnUrl"] = returnUrl;
-                TempData["Info"] = "Phiên đăng nhập mới sau 24h — vui lòng xác thực email.";
-                return RedirectToAction("VerifyEmailOtp");
             }
 
             // Cập nhật LastLoginAt
@@ -96,11 +123,11 @@ public class AccountController : Controller
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role ?? "Candidate"),
-                new Claim("AvatarURL", user.AvatarURL ?? "/img/default-avatar.png")
+                new Claim("AvatarURL", user.AvatarUrl ?? "")
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -113,20 +140,35 @@ public class AccountController : Controller
                     ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddHours(8)
                 });
 
+            string redirectUrl;
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-
-            return user.Role switch
             {
-                "Admin" => RedirectToAction("Index", "Admin"),
-                "Staff" => RedirectToAction("Index", "StaffDashboard"),
-                "Employer" => RedirectToAction("Dashboard", "Employer"),
-                _ => RedirectToAction("Index", "Home")
-            };
+                redirectUrl = returnUrl;
+            }
+            else
+            {
+                redirectUrl = user.Role switch
+                {
+                    "Admin" => Url.Action("Index", "Admin")!,
+                    "Staff" => Url.Action("Index", "StaffDashboard")!,
+                    "Employer" => Url.Action("Dashboard", "Employer")!,
+                    _ => Url.Action("Index", "Home")!
+                };
+            }
+
+            if (IsAjaxRequest())
+                return Json(new { success = true, redirectUrl });
+
+            return Redirect(redirectUrl);
         }
         catch (Exception ex)
         {
             ModelState.AddModelError("", $"Lỗi đăng nhập: {ex.Message}");
+            if (IsAjaxRequest())
+            {
+                Response.StatusCode = 400;
+                return PartialView("_LoginModalPartial", model);
+            }
             return View(model);
         }
     }
@@ -135,6 +177,8 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Register()
     {
+        if (IsAjaxRequest())
+            return PartialView("_RegisterModalPartial", new RegisterViewModel());
         return View();
     }
 
@@ -144,19 +188,36 @@ public class AccountController : Controller
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid)
+        {
+            if (IsAjaxRequest())
+            {
+                Response.StatusCode = 400;
+                return PartialView("_RegisterModalPartial", model);
+            }
             return View(model);
+        }
 
         try
         {
             if (await _auth.EmailExistsAsync(model.Email))
             {
                 ModelState.AddModelError("Email", "Email này đã được sử dụng.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterModalPartial", model);
+                }
                 return View(model);
             }
 
             if (model.Password != model.ConfirmPassword)
             {
                 ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterModalPartial", model);
+                }
                 return View(model);
             }
 
@@ -182,21 +243,40 @@ public class AccountController : Controller
                     TempData["OtpEmail"] = newUser.Email;
                     TempData["OtpPurpose"] = "register";
                     TempData["Success"] = "Đăng ký thành công! Kiểm tra email để lấy mã xác thực.";
+
+                    if (IsAjaxRequest())
+                        return Json(new { success = true, redirectUrl = Url.Action("VerifyEmailOtp") });
+
                     return RedirectToAction("VerifyEmailOtp");
                 }
 
                 ModelState.AddModelError("", "Có lỗi khi tạo tài khoản. Vui lòng thử lại.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterModalPartial", model);
+                }
                 return View(model);
             }
             else
             {
                 ModelState.AddModelError("", "Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterModalPartial", model);
+                }
                 return View(model);
             }
         }
         catch (Exception ex)
         {
             ModelState.AddModelError("", $"Lỗi: {ex.Message}");
+            if (IsAjaxRequest())
+            {
+                Response.StatusCode = 400;
+                return PartialView("_RegisterModalPartial", model);
+            }
             return View(model);
         }
     }
@@ -205,6 +285,8 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult RegisterEmployer()
     {
+        if (IsAjaxRequest())
+            return PartialView("_RegisterEmployerModalPartial", new RegisterEmployerViewModel());
         return View();
     }
 
@@ -214,19 +296,36 @@ public class AccountController : Controller
     public async Task<IActionResult> RegisterEmployer(RegisterEmployerViewModel model)
     {
         if (!ModelState.IsValid)
+        {
+            if (IsAjaxRequest())
+            {
+                Response.StatusCode = 400;
+                return PartialView("_RegisterEmployerModalPartial", model);
+            }
             return View(model);
+        }
 
         try
         {
             if (await _auth.EmailExistsAsync(model.Email))
             {
                 ModelState.AddModelError("Email", "Email này đã được sử dụng.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterEmployerModalPartial", model);
+                }
                 return View(model);
             }
 
             if (model.Password != model.ConfirmPassword)
             {
                 ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterEmployerModalPartial", model);
+                }
                 return View(model);
             }
 
@@ -250,21 +349,40 @@ public class AccountController : Controller
                     TempData["OtpEmail"] = newUser.Email;
                     TempData["OtpPurpose"] = "register";
                     TempData["Success"] = "Đăng ký thành công! Kiểm tra email để lấy mã xác thực.";
+
+                    if (IsAjaxRequest())
+                        return Json(new { success = true, redirectUrl = Url.Action("VerifyEmailOtp") });
+
                     return RedirectToAction("VerifyEmailOtp");
                 }
 
                 ModelState.AddModelError("", "Có lỗi khi tạo tài khoản. Vui lòng thử lại.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterEmployerModalPartial", model);
+                }
                 return View(model);
             }
             else
             {
                 ModelState.AddModelError("", "Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.");
+                if (IsAjaxRequest())
+                {
+                    Response.StatusCode = 400;
+                    return PartialView("_RegisterEmployerModalPartial", model);
+                }
                 return View(model);
             }
         }
         catch (Exception ex)
         {
             ModelState.AddModelError("", $"Lỗi: {ex.Message}");
+            if (IsAjaxRequest())
+            {
+                Response.StatusCode = 400;
+                return PartialView("_RegisterEmployerModalPartial", model);
+            }
             return View(model);
         }
     }
@@ -340,11 +458,23 @@ public class AccountController : Controller
             return RedirectToAction("Settings");
         }
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
+        // Không đổi ngay — yêu cầu xác thực OTP gửi tới email trước khi áp dụng
+        var otp = new Random().Next(100000, 999999).ToString();
+        user.OtpCode = otp;
+        user.OtpExpiry = DateTime.Now.AddMinutes(10);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Đã đổi mật khẩu thành công.";
-        return RedirectToAction("Settings");
+        var html = BuildOtpEmail(user.FullName ?? user.Email, otp, "đổi mật khẩu", 10);
+        try { await _emailSvc.SendAsync(user.Email, "🔐 Xác thực đổi mật khẩu - JobConnect", html); }
+        catch { /* log nếu cần */ }
+
+        TempData["OtpEmail"] = user.Email;
+        TempData["OtpPurpose"] = "change_password";
+        TempData["PendingNewPasswordHash"] = BCrypt.Net.BCrypt.HashPassword(NewPassword);
+        TempData["OtpReturnController"] = "Account";
+        TempData["OtpReturnAction"] = "Settings";
+        TempData["Success"] = "Đã gửi mã OTP xác thực đến email của bạn. Vui lòng nhập mã để hoàn tất đổi mật khẩu.";
+        return RedirectToAction("VerifyEmailOtp");
     }
 
     // POST /Account/ChangeEmail
@@ -379,24 +509,29 @@ public class AccountController : Controller
             return RedirectToAction("Settings");
         }
 
-        if (await _db.Users.AnyAsync(u => u.Email == NewEmail && u.UserID != uid))
+        if (await _db.Users.AnyAsync(u => u.Email == NewEmail && u.UserId != uid))
         {
             TempData["Error"] = "Email này đã được sử dụng.";
             return RedirectToAction("Settings");
         }
 
-        user.Email = NewEmail;
+        // Không đổi ngay — gửi OTP tới EMAIL MỚI để xác nhận quyền sở hữu trước khi áp dụng
+        var otp = new Random().Next(100000, 999999).ToString();
+        user.OtpCode = otp;
+        user.OtpExpiry = DateTime.Now.AddMinutes(10);
         await _db.SaveChangesAsync();
 
-        var identity = (ClaimsIdentity)User.Identity!;
-        var emailClaim = identity.FindFirst(ClaimTypes.Email);
-        if (emailClaim != null)
-            identity.RemoveClaim(emailClaim);
-        identity.AddClaim(new Claim(ClaimTypes.Email, NewEmail));
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+        var html = BuildOtpEmail(user.FullName ?? user.Email, otp, "đổi email", 10);
+        try { await _emailSvc.SendAsync(NewEmail, "🔐 Xác thực đổi email - JobConnect", html); }
+        catch { /* log nếu cần */ }
 
-        TempData["Success"] = "Đã cập nhật email thành công.";
-        return RedirectToAction("Settings");
+        TempData["OtpEmail"] = user.Email; // dùng email hiện tại để tra cứu user
+        TempData["OtpPurpose"] = "change_email";
+        TempData["PendingNewEmail"] = NewEmail;
+        TempData["OtpReturnController"] = "Account";
+        TempData["OtpReturnAction"] = "Settings";
+        TempData["Success"] = $"Đã gửi mã OTP xác thực đến {NewEmail}. Vui lòng nhập mã để hoàn tất đổi email.";
+        return RedirectToAction("VerifyEmailOtp");
     }
 
     // POST /Account/DeleteAccount
@@ -431,12 +566,22 @@ public class AccountController : Controller
             return RedirectToAction("Settings");
         }
 
-        _db.Users.Remove(user);
+        // Không xóa ngay — yêu cầu xác thực OTP gửi tới email trước khi xóa vĩnh viễn
+        var otp = new Random().Next(100000, 999999).ToString();
+        user.OtpCode = otp;
+        user.OtpExpiry = DateTime.Now.AddMinutes(10);
         await _db.SaveChangesAsync();
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        TempData["Success"] = "Tài khoản đã được xóa thành công.";
-        return RedirectToAction("Index", "Home");
+        var html = BuildOtpEmail(user.FullName ?? user.Email, otp, "xóa tài khoản", 10);
+        try { await _emailSvc.SendAsync(user.Email, "🔐 Xác thực xóa tài khoản - JobConnect", html); }
+        catch { /* log nếu cần */ }
+
+        TempData["OtpEmail"] = user.Email;
+        TempData["OtpPurpose"] = "delete_account";
+        TempData["OtpReturnController"] = "Account";
+        TempData["OtpReturnAction"] = "Settings";
+        TempData["Success"] = "Đã gửi mã OTP xác thực đến email của bạn. Vui lòng nhập mã để xác nhận xóa tài khoản.";
+        return RedirectToAction("VerifyEmailOtp");
     }
 
     // ================= GOOGLE LOGIN =================
@@ -487,7 +632,7 @@ public class AccountController : Controller
                 FullName = name ?? email,
                 Role = "Candidate",
                 Status = "Active",
-                AvatarURL = "/img/default-avatar.png",
+                AvatarUrl = null,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
                 CreatedAt = DateTime.Now
             };
@@ -495,31 +640,35 @@ public class AccountController : Controller
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
+            // Mã người dùng: tự tăng theo UserId
+            user.UserCode = _codeGen.GenerateUserCode("Candidate", user.UserId);
+            await _db.SaveChangesAsync();
+
             // Khởi tạo Profile đi kèm
             var profile = new CandidateProfile
             {
-                UserID = user.UserID
+                UserId = user.UserId
             };
 
             _db.CandidateProfiles.Add(profile);
             await _db.SaveChangesAsync();
         }
 
-        // Kiểm tra nếu tài khoản bị khóa
-        if (user.Status == "Banned")
+        // Kiểm tra nếu tài khoản đang ở trạng thái bị chặn đăng nhập
+        if (await IsStatusBlockingLoginAsync(user.Role, user.Status))
         {
-            TempData["Error"] = "Tài khoản liên kết với Google này đã bị khóa.";
+            TempData["Error"] = "Tài khoản liên kết với Google này đang ở trạng thái không được phép đăng nhập.";
             return RedirectToAction("Login");
         }
 
         // 4. Thiết lập Session Cookie chính thức cho ứng dụng (Cookie Scheme)
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role ?? "Candidate"),
-            new Claim("AvatarURL", user.AvatarURL ?? "/img/default-avatar.png")
+            new Claim("AvatarURL", user.AvatarUrl ?? "")
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -712,6 +861,10 @@ public class AccountController : Controller
         TempData.Keep("OtpPurpose");
         TempData.Keep("RememberMe");
         TempData.Keep("ReturnUrl");
+        TempData.Keep("PendingNewPasswordHash");
+        TempData.Keep("PendingNewEmail");
+        TempData.Keep("OtpReturnController");
+        TempData.Keep("OtpReturnAction");
         ViewBag.Email = email;
         ViewBag.Purpose = TempData.Peek("OtpPurpose")?.ToString() ?? "register";
         return View();
@@ -731,18 +884,80 @@ public class AccountController : Controller
         if (user.OtpExpiry == null || user.OtpExpiry < DateTime.Now)
         {
             ViewBag.OtpError = "Mã OTP đã hết hạn. Vui lòng gửi lại.";
+            TempData.Keep("OtpEmail"); TempData.Keep("OtpPurpose");
+            TempData.Keep("PendingNewPasswordHash"); TempData.Keep("PendingNewEmail");
+            TempData.Keep("OtpReturnController"); TempData.Keep("OtpReturnAction");
             return View();
         }
 
         if (user.OtpCode?.Trim() != otp.Trim())
         {
             ViewBag.OtpError = "Mã OTP không đúng. Vui lòng kiểm tra lại.";
+            TempData.Keep("OtpEmail"); TempData.Keep("OtpPurpose");
+            TempData.Keep("PendingNewPasswordHash"); TempData.Keep("PendingNewEmail");
+            TempData.Keep("OtpReturnController"); TempData.Keep("OtpReturnAction");
             return View();
         }
 
         // Xác thực thành công → clear OTP
         user.OtpCode = null;
         user.OtpExpiry = null;
+
+        // ===== Các hành động bảo mật tài khoản: đổi mật khẩu / đổi email / xóa tài khoản =====
+        if (purpose is "change_password" or "change_email" or "delete_account")
+        {
+            var retController = TempData["OtpReturnController"]?.ToString() ?? "Account";
+            var retAction = TempData["OtpReturnAction"]?.ToString() ?? "Settings";
+
+            if (purpose == "change_password")
+            {
+                var pendingHash = TempData["PendingNewPasswordHash"]?.ToString();
+                if (!string.IsNullOrEmpty(pendingHash))
+                {
+                    user.PasswordHash = pendingHash;
+                    user.UpdatedAt = DateTime.Now;
+                }
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "✅ Đổi mật khẩu thành công.";
+            }
+            else if (purpose == "change_email")
+            {
+                var pendingEmail = TempData["PendingNewEmail"]?.ToString();
+                if (!string.IsNullOrEmpty(pendingEmail))
+                {
+                    user.Email = pendingEmail;
+                    user.UpdatedAt = DateTime.Now;
+                    await _db.SaveChangesAsync();
+
+                    if (User.Identity?.IsAuthenticated == true &&
+                        User.FindFirstValue(ClaimTypes.NameIdentifier) == user.UserId.ToString())
+                    {
+                        var identity = (ClaimsIdentity)User.Identity!;
+                        var emailClaim = identity.FindFirst(ClaimTypes.Email);
+                        if (emailClaim != null) identity.RemoveClaim(emailClaim);
+                        identity.AddClaim(new Claim(ClaimTypes.Email, pendingEmail));
+                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                    }
+                }
+                else
+                {
+                    await _db.SaveChangesAsync();
+                }
+                TempData["Success"] = "✅ Đổi email thành công.";
+            }
+            else // delete_account
+            {
+                await _db.SaveChangesAsync();
+                _db.Users.Remove(user);
+                await _db.SaveChangesAsync();
+                if (User.Identity?.IsAuthenticated == true)
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                TempData["Success"] = "Tài khoản đã được xóa thành công.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            return RedirectToAction(retAction, retController);
+        }
 
         if (purpose == "register")
             user.Status = "Active";
@@ -757,15 +972,15 @@ public class AccountController : Controller
         // Đăng nhập luôn
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Name,           user.FullName ?? user.Email),
             new Claim(ClaimTypes.Email,          user.Email),
             new Claim(ClaimTypes.Role,           user.Role ?? "Candidate"),
-            new Claim("AvatarURL",               user.AvatarURL ?? "/img/default-avatar.png")
+            new Claim("AvatarURL",               user.AvatarUrl ?? "")
         };
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var loginIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(identity),
+            new ClaimsPrincipal(loginIdentity),
             new AuthenticationProperties
             {
                 IsPersistent = rememberMe,
@@ -801,14 +1016,30 @@ public class AccountController : Controller
         user.OtpExpiry = DateTime.Now.AddMinutes(10);
         await _db.SaveChangesAsync();
 
-        var purposeLabel = purpose == "login" ? "xác thực đăng nhập" : "xác thực tài khoản";
+        var purposeLabel = purpose switch
+        {
+            "login" => "xác thực đăng nhập",
+            "change_password" => "đổi mật khẩu",
+            "change_email" => "đổi email",
+            "delete_account" => "xóa tài khoản",
+            _ => "xác thực tài khoản"
+        };
+
+        // Với đổi email, OTP phải gửi tới email MỚI (đang chờ xác nhận), không phải email hiện tại
+        var pendingEmail = TempData.Peek("PendingNewEmail")?.ToString();
+        var sendTo = (purpose == "change_email" && !string.IsNullOrEmpty(pendingEmail)) ? pendingEmail : user.Email;
+
         var html = BuildOtpEmail(user.FullName ?? user.Email, otp, purposeLabel, 10);
-        try { await _emailSvc.SendAsync(user.Email, "🔐 Gửi lại mã OTP - JobConnect", html); }
+        try { await _emailSvc.SendAsync(sendTo, "🔐 Gửi lại mã OTP - JobConnect", html); }
         catch { /* log */ }
 
         TempData["OtpEmail"] = email;
         TempData["OtpPurpose"] = purpose;
-        TempData["Success"] = "Đã gửi lại mã OTP mới về email của bạn.";
+        TempData.Keep("PendingNewPasswordHash");
+        TempData.Keep("PendingNewEmail");
+        TempData.Keep("OtpReturnController");
+        TempData.Keep("OtpReturnAction");
+        TempData["Success"] = $"Đã gửi lại mã OTP mới về {sendTo}.";
         return RedirectToAction("VerifyEmailOtp");
     }
 

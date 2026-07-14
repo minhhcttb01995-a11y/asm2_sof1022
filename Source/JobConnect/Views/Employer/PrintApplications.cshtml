@@ -1,0 +1,77 @@
+@using JobConnect.Models
+@model List<Application>
+@{
+    Layout = null;
+    var job = ViewBag.Job as JobPost;
+    var employer = ViewBag.Employer as Employer;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Danh sách ứng viên - @job?.Title</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #111; padding: 32px; }
+        h1 { font-size: 20px; margin: 0 0 4px; }
+        .sub { color: #555; font-size: 13px; margin: 0 0 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; vertical-align: top; }
+        th { background: #f1f5f9; }
+        .toolbar { margin-bottom: 20px; }
+        .toolbar button {
+            padding: 8px 16px; background: #2563eb; color: #fff; border: none;
+            border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        @@media print {
+            .toolbar { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="window.print()">In / Lưu thành PDF</button>
+    </div>
+
+    <h1>Danh sách ứng viên</h1>
+    <p class="sub">
+        Vị trí: <strong>@job?.Title</strong> &nbsp;•&nbsp;
+        Công ty: <strong>@(employer?.CompanyName)</strong> &nbsp;•&nbsp;
+        Ngày xuất: @DateTime.Now.ToString("dd/MM/yyyy HH:mm") &nbsp;•&nbsp;
+        Tổng số: @Model.Count ứng viên
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:24px">#</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>SĐT</th>
+                <th>Kinh nghiệm</th>
+                <th>Lương mong muốn</th>
+                <th>Ngày nộp</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int i = 1; }
+            @foreach (var a in Model)
+            {
+                var u = a.CandidateProfile?.User;
+                <tr>
+                    <td>@(i++)</td>
+                    <td>@u?.FullName</td>
+                    <td>@u?.Email</td>
+                    <td>@a.CandidateProfile?.Phone</td>
+                    <td>@a.CandidateProfile?.ExperienceYears năm</td>
+                    <td>@(a.CandidateProfile?.DesiredSalary?.ToString("N0") ?? "—") VNĐ</td>
+                    <td>@a.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@a.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

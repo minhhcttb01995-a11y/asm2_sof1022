@@ -66,7 +66,7 @@
             {
                 @foreach (var report in Model)
                 {
-                    var (statusClass, statusLabel) = StatusInfo(report.Status);
+                    var (statusClass, statusLabel) = StatusInfo((ReportStatus)report.Status);
                     var targetName = report.ReportedEntityName
                         ?? report.JobPost?.Title
                         ?? report.Company?.CompanyName
@@ -76,7 +76,7 @@
                         <td class="px-6 py-4">
                             <span class="font-mono text-xs text-gray-400">#@report.Id</span>
                         </td>
-                        <td class="px-6 py-4 text-gray-300">@TypeLabel(report.ReportType)</td>
+                        <td class="px-6 py-4 text-gray-300">@TypeLabel((ReportType)report.ReportType)</td>
                         <td class="px-6 py-4">
                             <p class="font-medium">@targetName</p>
                         </td>
@@ -90,7 +90,7 @@
                         <td class="px-6 py-4 text-gray-400">@report.CreatedAt.ToString("dd/MM/yyyy")</td>
                         <td class="px-6 py-4 text-center">
                             <a href="@Url.Action("ReportDetail", "StaffDashboard", new { id = report.Id })"
-                               class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors inline-flex"
+                               class="p-2 bg-blue-500/20 text-blue-600 rounded-lg hover:bg-blue-500/30 transition-colors inline-flex"
                                title="Xem chi tiết">
                                 <span class="material-icons text-sm">visibility</span>
                             </a>

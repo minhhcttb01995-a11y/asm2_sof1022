@@ -1,0 +1,125 @@
+@using JobConnect.Models
+@using JobConnect.ViewModels
+@model List<JobStatRow>
+@{
+    ViewData["Title"] = "Thống kê hiệu quả tin đăng";
+    Layout = "_LayoutEmployer";
+
+    var employer = ViewBag.Employer as Employer;
+    int totalViews = Model.Sum(s => s.ViewCount);
+    int totalApplies = Model.Sum(s => s.ApplyCount);
+    double avgConversion = totalViews > 0 ? Math.Round((double)totalApplies / totalViews * 100, 1) : 0;
+}
+
+<div class="space-y-6">
+
+    <div class="jc-page-header">
+        <div>
+            <h1 class="jc-page-title">Thống kê hiệu quả tin đăng</h1>
+            <p class="jc-page-subtitle">
+                <span class="material-symbols-outlined" style="font-size:14px">apartment</span>
+                @(employer?.CompanyName ?? "Công ty của bạn")
+            </p>
+        </div>
+    </div>
+
+    <div class="jc-kpi-grid-3">
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(59,130,246,.15)">
+                <span class="material-symbols-outlined" style="color:#60a5fa">visibility</span>
+            </div>
+            <p class="jc-stat-value" style="color:#60a5fa">@totalViews</p>
+            <p class="jc-stat-label">Tổng lượt xem</p>
+        </div>
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(139,92,246,.15)">
+                <span class="material-symbols-outlined" style="color:#a78bfa">description</span>
+            </div>
+            <p class="jc-stat-value" style="color:#a78bfa">@totalApplies</p>
+            <p class="jc-stat-label">Tổng lượt ứng tuyển</p>
+        </div>
+        <div class="jc-stat-card">
+            <div class="jc-stat-icon" style="background:rgba(16,185,129,.15)">
+                <span class="material-symbols-outlined" style="color:#34d399">trending_up</span>
+            </div>
+            <p class="jc-stat-value" style="color:#34d399">@avgConversion%</p>
+            <p class="jc-stat-label">Tỷ lệ chuyển đổi trung bình</p>
+        </div>
+    </div>
+
+    <div class="jc-table-wrap">
+        <table class="jc-table">
+            <thead>
+                <tr>
+                    <th>Tiêu đề tin</th>
+                    <th>Trạng thái</th>
+                    <th>Lượt xem</th>
+                    <th>Lượt ứng tuyển</th>
+                    <th>Tỷ lệ chuyển đổi (view → apply)</th>
+                    <th>Hết hạn</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var s in Model)
+                    {
+                        var badgeClass = s.Status switch
+                        {
+                            "Active" => "jc-badge-success",
+                            "Pending" => "jc-badge-warning",
+                            "Rejected" => "jc-badge-danger",
+                            "Banned" => "jc-badge-danger",
+                            _ => "jc-badge-neutral"
+                        };
+                        var statusLabel = s.Status switch
+                        {
+                            "Active" => "Đang mở",
+                            "Pending" => "Chờ duyệt",
+                            "Rejected" => "Bị từ chối",
+                            "Banned" => "Đã khóa",
+                            "Draft" => "Bản nháp",
+                            _ => s.Status
+                        };
+                        var barColor = s.ConversionRate >= 10 ? "#34d399" : s.ConversionRate >= 3 ? "#facc15" : "#f87171";
+
+                        <tr>
+                            <td>
+                                <a asp-controller="Job" asp-action="Detail" asp-route-id="@s.JobId" class="jc-table-link">@s.Title</a>
+                            </td>
+                            <td><span class="jc-badge @badgeClass">@statusLabel</span></td>
+                            <td style="color:#94a3b8">@s.ViewCount</td>
+                            <td style="color:#fff;font-weight:600">@s.ApplyCount</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <div style="width:80px;height:6px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden">
+                                        <div style="width:@(Math.Min(s.ConversionRate, 100))%;height:100%;background:@barColor"></div>
+                                    </div>
+                                    <span style="color:@barColor;font-weight:600;font-size:13px">@s.ConversionRate%</span>
+                                </div>
+                            </td>
+                            <td style="color:#94a3b8">@(s.Deadline?.ToString("dd/MM/yyyy") ?? "—")</td>
+                            <td>
+                                <a asp-action="ManageApplications" asp-route-jobId="@s.JobId"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(59,130,246,.15);color:#60a5fa;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none">
+                                    <span class="material-symbols-outlined" style="font-size:14px">people</span>
+                                    Xem đơn
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="text-align:center;padding:60px 16px">
+                            <span class="material-symbols-outlined" style="font-size:40px;color:#334155;display:block;margin-bottom:12px">query_stats</span>
+                            <p style="color:#64748b;font-size:14px;margin:0">Chưa có dữ liệu thống kê. Hãy đăng tin tuyển dụng để bắt đầu.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

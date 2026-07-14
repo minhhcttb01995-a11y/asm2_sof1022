@@ -9,24 +9,35 @@ public class JobService : IJobService
 {
     private readonly AppDbContext _db;
     private readonly IFileService _fileSvc;
+    private readonly IStatusCatalogService _statusSvc;
+    private readonly ICodeGeneratorService _codeGen;
 
-    public JobService(AppDbContext db, IFileService fileSvc)
+    public JobService(AppDbContext db, IFileService fileSvc, IStatusCatalogService statusSvc, ICodeGeneratorService codeGen)
     {
         _db = db;
         _fileSvc = fileSvc;
+        _statusSvc = statusSvc;
+        _codeGen = codeGen;
     }
 
-    public async Task<List<JobPost>> SearchAsync(JobSearchViewModel f)
+    public async Task<(List<JobPost> Items, int TotalCount)> SearchAsync(JobSearchViewModel f)
     {
+        var visibleJobStatuses = await _statusSvc.GetPublicVisibleCodesAsync(StatusEntityTypes.JobPost);
+        var visibleEmployerStatuses = await _statusSvc.GetPublicVisibleCodesAsync(StatusEntityTypes.Employer);
+
         var q = _db.JobPosts
             .Include(j => j.Employer)
             .Include(j => j.Category)
-            .Where(j => j.Status == "Open")
+            .Where(j => visibleJobStatuses.Contains(j.Status) && visibleEmployerStatuses.Contains(j.Employer.Status))
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(f.Keyword))
-            q = q.Where(j => j.Title.Contains(f.Keyword) ||
-                              (j.Description != null && j.Description.Contains(f.Keyword)));
+        {
+            var kw = f.Keyword.Trim();
+            q = q.Where(j => j.Title.Contains(kw) ||
+                              (j.Description != null && j.Description.Contains(kw)) ||
+                              (j.Employer.CompanyName != null && j.Employer.CompanyName.Contains(kw)));
+        }
 
         if (!string.IsNullOrWhiteSpace(f.Location))
             q = q.Where(j => j.Location != null && j.Location.Contains(f.Location));
@@ -37,33 +48,63 @@ public class JobService : IJobService
         if (!string.IsNullOrWhiteSpace(f.ExperienceLevel))
             q = q.Where(j => j.ExperienceLevel == f.ExperienceLevel);
 
-        if (f.SalaryMin.HasValue)
-            q = q.Where(j => j.SalaryMax >= f.SalaryMin || j.SalaryNegotiable == true);
+        if (f.Category != null && f.Category.Count > 0)
+            q = q.Where(j => j.CategoryId != null && f.Category.Contains(j.CategoryId.Value));
 
         q = f.SortBy switch
         {
-            "newest" => q.OrderByDescending(j => j.CreatedAt),
             "salary" => q.OrderByDescending(j => j.SalaryMax),
             "popular" => q.OrderByDescending(j => j.ViewCount),
             _ => q.OrderByDescending(j => j.IsFeatured).ThenByDescending(j => j.CreatedAt)
         };
 
-        return await q.Skip((f.Page - 1) * f.PageSize).Take(f.PageSize).ToListAsync();
+        // Mức lương lọc theo khoảng (nhiều điều kiện OR) - xử lý sau khi lấy dữ liệu
+        // vì logic khoảng lương không thể dịch gọn sang SQL với danh sách khoảng chọn tuỳ ý.
+        var all = await q.ToListAsync();
+
+        if (f.Salary != null && f.Salary.Count > 0)
+        {
+            all = all.Where(j => f.Salary.Any(bucket => MatchesSalaryBucket(j, bucket))).ToList();
+        }
+
+        var totalCount = all.Count;
+        var pageItems = all.Skip((f.Page - 1) * f.PageSize).Take(f.PageSize).ToList();
+
+        return (pageItems, totalCount);
     }
 
-    public async Task<bool> ToggleApplyAsync(int jobId, int profileId, int? cvId, string? coverLetter)
+    private static bool MatchesSalaryBucket(JobPost j, string bucket)
     {
-        var existing = await _db.Applications.FirstOrDefaultAsync(a => a.ProfileID == profileId && a.JobID == jobId && a.Status != "Rejected");
+        if (j.SalaryNegotiable) return false;
+
+        decimal? min = j.SalaryMin;
+        decimal? max = j.SalaryMax;
+        decimal effMin = min ?? max ?? 0;
+        decimal effMax = max ?? min ?? 0;
+
+        return bucket switch
+        {
+            "<10" => effMax < 10_000_000m,
+            "10-20" => effMin <= 20_000_000m && effMax >= 10_000_000m,
+            "20-50" => effMin <= 50_000_000m && effMax >= 20_000_000m,
+            ">50" => effMax > 50_000_000m || effMin > 50_000_000m,
+            _ => false
+        };
+    }
+
+    public async Task<ApplyToggleResult> ToggleApplyAsync(int jobId, int profileId, int? cvId, string? coverLetter)
+    {
+        var existing = await _db.Applications.FirstOrDefaultAsync(a => a.ProfileId == profileId && a.JobId == jobId && a.Status != "Rejected");
         if (existing != null)
         {
             _db.Applications.Remove(existing);
             await _db.SaveChangesAsync();
-            return false;
+            return ApplyToggleResult.Withdrawn;
         }
 
         // Remove any existing rejected application to allow re-applying
         var rejectedApp = await _db.Applications
-            .FirstOrDefaultAsync(a => a.ProfileID == profileId && a.JobID == jobId && a.Status == "Rejected");
+            .FirstOrDefaultAsync(a => a.ProfileId == profileId && a.JobId == jobId && a.Status == "Rejected");
         if (rejectedApp != null)
         {
             _db.Applications.Remove(rejectedApp);
@@ -71,25 +112,26 @@ public class JobService : IJobService
 
         _db.Applications.Add(new Application
         {
-            JobID = jobId,
-            ProfileID = profileId,
-            CVID = cvId,
+            JobId = jobId,
+            ProfileId = profileId,
+            Cvid = cvId,
             CoverLetter = coverLetter,
+            Status = "Pending",
             AppliedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
 
-        var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobID == jobId);
+        var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobId == jobId);
         _db.Notifications.Add(new Notification
         {
-            UserID = job.Employer?.UserID ?? 0,
+            UserId = job.Employer?.UserId ?? 0,
             Title = $"Có ứng viên mới cho tin \"{job.Title}\"",
             Type = "Application",
-            RelatedID = jobId,
+            RelatedId = jobId,
             CreatedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
-        return true;
+        return ApplyToggleResult.Applied;
     }
 
     public async Task<JobPost?> GetByIdAsync(int id)
@@ -98,7 +140,7 @@ public class JobService : IJobService
             .Include(j => j.Employer).ThenInclude(e => e.User)
             .Include(j => j.Category)
             .Include(j => j.Applications)
-            .FirstOrDefaultAsync(j => j.JobID == id);
+            .FirstOrDefaultAsync(j => j.JobId == id);
 
         if (job != null)
         {
@@ -109,7 +151,7 @@ public class JobService : IJobService
     }
 
     public async Task<bool> HasAppliedAsync(int profileId, int jobId)
-        => await _db.Applications.AnyAsync(a => a.ProfileID == profileId && a.JobID == jobId && a.Status != "Rejected");
+        => await _db.Applications.AnyAsync(a => a.ProfileId == profileId && a.JobId == jobId && a.Status != "Rejected");
 
     public async Task<bool> ApplyAsync(int jobId, int profileId, int? cvId, string? coverLetter)
     {
@@ -118,7 +160,7 @@ public class JobService : IJobService
 
         // Remove any existing rejected application to allow re-applying
         var rejectedApp = await _db.Applications
-            .FirstOrDefaultAsync(a => a.ProfileID == profileId && a.JobID == jobId && a.Status == "Rejected");
+            .FirstOrDefaultAsync(a => a.ProfileId == profileId && a.JobId == jobId && a.Status == "Rejected");
         if (rejectedApp != null)
         {
             _db.Applications.Remove(rejectedApp);
@@ -126,21 +168,22 @@ public class JobService : IJobService
 
         _db.Applications.Add(new Application
         {
-            JobID = jobId,
-            ProfileID = profileId,
-            CVID = cvId,
+            JobId = jobId,
+            ProfileId = profileId,
+            Cvid = cvId,
             CoverLetter = coverLetter,
+            Status = "Pending",
             AppliedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
 
-        var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobID == jobId);
+        var job = await _db.JobPosts.Include(j => j.Employer).FirstAsync(j => j.JobId == jobId);
         _db.Notifications.Add(new Notification
         {
-            UserID = job.Employer?.UserID ?? 0,
+            UserId = job.Employer?.UserId ?? 0,
             Title = $"Có ứng viên mới cho tin \"{job.Title}\"",
             Type = "Application",
-            RelatedID = jobId,
+            RelatedId = jobId,
             CreatedAt = DateTime.Now
         });
         await _db.SaveChangesAsync();
@@ -149,14 +192,14 @@ public class JobService : IJobService
 
     public async Task<bool> ToggleSaveAsync(int userId, int jobId)
     {
-        var saved = await _db.SavedJobs.FirstOrDefaultAsync(s => s.UserID == userId && s.JobID == jobId);
+        var saved = await _db.SavedJobs.FirstOrDefaultAsync(s => s.UserId == userId && s.JobId == jobId);
         if (saved != null)
         {
             _db.SavedJobs.Remove(saved);
             await _db.SaveChangesAsync();
             return false;
         }
-        _db.SavedJobs.Add(new SavedJob { UserID = userId, JobID = jobId });
+        _db.SavedJobs.Add(new SavedJob { UserId = userId, JobId = jobId });
         await _db.SaveChangesAsync();
         return true;
     }
@@ -164,7 +207,7 @@ public class JobService : IJobService
     public async Task<List<JobPost>> GetByEmployerAsync(int employerId)
         => await _db.JobPosts
                     .Include(j => j.Applications)
-                    .Where(j => j.EmployerID == employerId)
+                    .Where(j => j.EmployerId == employerId)
                     .OrderByDescending(j => j.CreatedAt)
                     .ToListAsync();
 
@@ -172,6 +215,7 @@ public class JobService : IJobService
     {
         job.Status = "Pending";
         job.CreatedAt = DateTime.Now;
+        job.JobCode = await _codeGen.GenerateJobCodeAsync();
         _db.JobPosts.Add(job);
         await _db.SaveChangesAsync();
         return job;

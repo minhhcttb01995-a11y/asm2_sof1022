@@ -224,6 +224,7 @@
             }
     </style>
     @await RenderSectionAsync("Styles", required: false)
+    <partial name="_ResponsiveAndSkeleton" />
 </head>
 <body class="antialiased">
     <div class="jc-dashboard">
@@ -244,14 +245,16 @@
                         var navItems = new[] {
                             (Icon:"dashboard",  Label:"Dashboard",      Path:"/Admin/Dashboard"),
                             (Icon:"group",      Label:"Người dùng",     Path:"/Admin/Users"),
-                            (Icon:"restore_from_trash", Label:"Đã xóa", Path:"/Admin/DeletedUsers"),
                             (Icon:"badge",      Label:"Nhân viên",      Path:"/Staff"),
                             (Icon:"work",       Label:"Tin tuyển dụng", Path:"/Admin/Jobs"),
                             (Icon:"apartment",  Label:"Công ty",        Path:"/Admin/Companies"),
+                            (Icon:"local_fire_department", Label:"Tin/Cty Hot", Path:"/Admin/Hot"),
                             (Icon:"psychology", Label:"Kỹ năng",        Path:"/Admin/Skills"),
+                            (Icon:"tune",       Label:"Trạng thái",     Path:"/StatusCatalog"),
                             (Icon:"folder",     Label:"Danh mục",       Path:"/Admin/Categories"),
                             (Icon:"article",    Label:"Blog",           Path:"/Admin/Blog"),
                             (Icon:"bar_chart",  Label:"Báo cáo",        Path:"/Admin/Reports"),
+                            (Icon:"chat",       Label:"Tin nhắn",       Path:"/Chat"),
                         };
                     }
                     @foreach (var item in navItems)

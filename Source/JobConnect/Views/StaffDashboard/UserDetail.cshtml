@@ -12,7 +12,7 @@
         <div class="flex-1">
             <div class="flex items-center gap-3 mb-2">
                 <h2 class="text-2xl font-bold">@Model.FullName</h2>
-                <span class="px-3 py-1 rounded-full text-xs font-medium @(Model.Role == "Admin" ? "bg-purple-500/20 text-purple-400" : Model.Role == "Employer" ? "bg-blue-500/20 text-blue-400" : Model.Role == "Staff" ? "bg-orange-500/20 text-orange-400" : "bg-gray-500/20 text-gray-400")">
+                <span class="px-3 py-1 rounded-full text-xs font-medium @(Model.Role == "Admin" ? "bg-purple-500/20 text-purple-600" : Model.Role == "Employer" ? "bg-blue-500/20 text-blue-600" : Model.Role == "Staff" ? "bg-orange-500/20 text-orange-600" : "bg-gray-500/20 text-gray-400")">
                     @Model.Role
                 </span>
             </div>
@@ -72,10 +72,10 @@
                     {
                         <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                             <div class="flex items-center gap-3">
-                                <span class="material-icons text-blue-400">description</span>
+                                <span class="material-icons text-blue-600">description</span>
                                 <span class="text-sm">@cv.FileName</span>
                             </div>
-                            <a href="@cv.FilePath" target="_blank" class="text-blue-400 text-sm hover:underline">Tải xuống</a>
+                            <a href="@cv.FilePath" target="_blank" class="text-blue-600 text-sm hover:underline">Tải xuống</a>
                         </div>
                     }
                 </div>
@@ -161,7 +161,7 @@
                                 <p class="text-sm font-medium">@job.Title</p>
                                 <p class="text-xs text-gray-400">@job.CreatedAt.ToString("dd/MM/yyyy")</p>
                             </div>
-                            <span class="px-2 py-1 rounded text-xs @(job.Status == "Open" ? "badge-open" : job.Status == "Rejected" ? "badge-rejected" : job.Status == "Closed" ? "badge-closed" : "badge-pending")">
+                            <span class="px-2 py-1 rounded text-xs @(job.Status == "Active" ? "badge-open" : job.Status == "Rejected" ? "badge-rejected" : job.Status == "Banned" ? "badge-banned" : job.Status == "Pending" ? "badge-pending" : "badge-draft")">
                                 @job.Status
                             </span>
                         </div>
@@ -182,7 +182,7 @@
     {
         <form asp-action="ToggleUserStatus" method="post" class="inline">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="userId" value="@Model.UserID" />
+            <input type="hidden" name="userId" value="@Model.UserId" />
             <button type="submit" 
                     class="px-6 py-2 @(Model.Status == "Active" ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600") rounded-lg text-sm font-medium transition-colors">
                 @(Model.Status == "Active" ? "Khóa tài khoản" : "Mở khóa tài khoản")

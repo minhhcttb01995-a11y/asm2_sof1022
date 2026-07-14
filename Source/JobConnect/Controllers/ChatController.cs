@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,12 @@ namespace JobConnect.Controllers;
 public class ChatController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly IAntiforgery _antiforgery;
 
-    public ChatController(AppDbContext db)
+    public ChatController(AppDbContext db, IAntiforgery antiforgery)
     {
         _db = db;
+        _antiforgery = antiforgery;
     }
 
     private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -24,7 +27,7 @@ public class ChatController : Controller
     public async Task<IActionResult> Index()
     {
         var conversations = await _db.Messages
-            .Where(m => m.SenderID == UserId || m.ReceiverID == UserId)
+            .Where(m => m.SenderId == UserId || m.ReceiverId == UserId)
             .Include(m => m.Sender)
             .Include(m => m.Receiver)
             .Include(m => m.Job)
@@ -33,13 +36,13 @@ public class ChatController : Controller
 
         // Group by conversation (sender-receiver pair)
         var groupedConversations = conversations
-            .GroupBy(m => m.SenderID == UserId ? m.ReceiverID : m.SenderID)
+            .GroupBy(m => m.SenderId == UserId ? m.ReceiverId : m.SenderId)
             .Select(g => new
             {
                 OtherUserId = g.Key,
-                OtherUser = g.First().SenderID == UserId ? g.First().Receiver : g.First().Sender,
+                OtherUser = g.First().SenderId == UserId ? g.First().Receiver : g.First().Sender,
                 LastMessage = g.OrderByDescending(m => m.CreatedAt).First(),
-                UnreadCount = g.Count(m => m.ReceiverID == UserId && !m.IsRead)
+                UnreadCount = g.Count(m => m.ReceiverId == UserId && !m.IsRead)
             })
             .OrderByDescending(c => c.LastMessage.CreatedAt)
             .ToList();
@@ -70,8 +73,8 @@ public class ChatController : Controller
 
         // Get messages between current user and other user
         var messages = await _db.Messages
-            .Where(m => (m.SenderID == UserId && m.ReceiverID == userId) ||
-                       (m.SenderID == userId && m.ReceiverID == UserId))
+            .Where(m => (m.SenderId == UserId && m.ReceiverId == userId) ||
+                       (m.SenderId == userId && m.ReceiverId == UserId))
             .Include(m => m.Sender)
             .Include(m => m.Receiver)
             .Include(m => m.Job)
@@ -79,7 +82,7 @@ public class ChatController : Controller
             .ToListAsync();
 
         // Mark received messages as read
-        var unreadMessages = messages.Where(m => m.ReceiverID == UserId && !m.IsRead).ToList();
+        var unreadMessages = messages.Where(m => m.ReceiverId == UserId && !m.IsRead).ToList();
         foreach (var msg in unreadMessages)
         {
             msg.IsRead = true;
@@ -97,13 +100,13 @@ public class ChatController : Controller
     public async Task<IActionResult> GetMessagesJson(int userId, int afterId = 0)
     {
         var messages = await _db.Messages
-            .Where(m => ((m.SenderID == UserId && m.ReceiverID == userId) ||
-                        (m.SenderID == userId && m.ReceiverID == UserId)) &&
-                        m.MessageID > afterId)
+            .Where(m => ((m.SenderId == UserId && m.ReceiverId == userId) ||
+                        (m.SenderId == userId && m.ReceiverId == UserId)) &&
+                        m.MessageId > afterId)
             .OrderBy(m => m.CreatedAt)
             .ToListAsync();
 
-        var unread = messages.Where(m => m.ReceiverID == UserId && !m.IsRead).ToList();
+        var unread = messages.Where(m => m.ReceiverId == UserId && !m.IsRead).ToList();
         if (unread.Count > 0)
         {
             foreach (var msg in unread) msg.IsRead = true;
@@ -112,45 +115,96 @@ public class ChatController : Controller
 
         var result = messages.Select(m => new
         {
-            id = m.MessageID,
+            id = m.MessageId,
             content = m.Content,
             createdAt = m.CreatedAt.ToString("HH:mm"),
-            isOwn = m.SenderID == UserId
+            isOwn = m.SenderId == UserId
         });
 
         return Json(new { success = true, messages = result });
     }
 
     // POST /Chat/Send - Send a message
+    // Lưu ý: validate token thủ công bên trong try/catch (không dùng attribute trực tiếp)
+    // để lỗi token/DB luôn trả về JSON, tránh JS phía client bị crash khi parse HTML lỗi.
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Send(int receiverId, string content, int? jobId = null)
     {
-        if (string.IsNullOrWhiteSpace(content))
+        try
         {
-            return Json(new { success = false, message = "Nội dung tin nhắn không được để trống" });
+            try
+            {
+                await _antiforgery.ValidateRequestAsync(HttpContext);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Json(new { success = false, message = "Phiên làm việc đã hết hạn, vui lòng tải lại trang và thử lại." });
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return Json(new { success = false, message = "Nội dung tin nhắn không được để trống" });
+            }
+
+            var receiver = await _db.Users.FindAsync(receiverId);
+            if (receiver == null)
+            {
+                return Json(new { success = false, message = "Người nhận không tồn tại" });
+            }
+
+            var message = new Message
+            {
+                SenderId = UserId,
+                ReceiverId = receiverId,
+                Content = content,
+                JobId = jobId,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+
+            _db.Messages.Add(message);
+            await _db.SaveChangesAsync();
+
+            return Json(new { success = true, messageId = message.MessageId });
+        }
+        catch (Exception ex)
+        {
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            return Json(new { success = false, message = "Có lỗi xảy ra ở server: " + detail });
+        }
+    }
+
+    // GET /Chat/Contacts - Admin: browse Staff only to start a new chat
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Contacts(string? search)
+    {
+        var query = _db.Users
+            .Include(u => u.Staff)
+            .Where(u => u.UserId != UserId && u.Role == "Staff" && u.DeletedAt == null);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.Trim().ToLower();
+            query = query.Where(u => u.FullName.ToLower().Contains(s) || u.Email.ToLower().Contains(s));
         }
 
-        var receiver = await _db.Users.FindAsync(receiverId);
-        if (receiver == null)
+        var users = await query.OrderBy(u => u.FullName).ToListAsync();
+
+        ViewBag.Search = search;
+        return View(users);
+    }
+
+    // GET /Chat/StartWithUser/{userId} - Start (or open) a conversation with any user
+    public async Task<IActionResult> StartWithUser(int userId)
+    {
+        var target = await _db.Users.FindAsync(userId);
+        if (target == null)
         {
-            return Json(new { success = false, message = "Người nhận không tồn tại" });
+            TempData["Error"] = "Người dùng không tồn tại";
+            return RedirectToAction("Index");
         }
 
-        var message = new Message
-        {
-            SenderID = UserId,
-            ReceiverID = receiverId,
-            Content = content,
-            JobID = jobId,
-            CreatedAt = DateTime.Now,
-            IsRead = false
-        };
-
-        _db.Messages.Add(message);
-        await _db.SaveChangesAsync();
-
-        return Json(new { success = true, messageId = message.MessageID });
+        return RedirectToAction("Conversation", new { userId });
     }
 
     // GET /Chat/StartConversation/{staffId} - Start a new conversation with staff
@@ -158,7 +212,7 @@ public class ChatController : Controller
     {
         var staff = await _db.Users
             .Include(u => u.Staff)
-            .FirstOrDefaultAsync(u => u.UserID == staffId && u.Role == "Staff");
+            .FirstOrDefaultAsync(u => u.UserId == staffId && u.Role == "Staff");
 
         if (staff == null)
         {
@@ -168,8 +222,8 @@ public class ChatController : Controller
 
         // Check if conversation already exists
         var existingMessage = await _db.Messages
-            .Where(m => (m.SenderID == UserId && m.ReceiverID == staffId) ||
-                       (m.SenderID == staffId && m.ReceiverID == UserId))
+            .Where(m => (m.SenderId == UserId && m.ReceiverId == staffId) ||
+                       (m.SenderId == staffId && m.ReceiverId == UserId))
             .FirstOrDefaultAsync();
 
         if (existingMessage != null)
@@ -180,10 +234,10 @@ public class ChatController : Controller
         // Create first message
         var message = new Message
         {
-            SenderID = UserId,
-            ReceiverID = staffId,
+            SenderId = UserId,
+            ReceiverId = staffId,
             Content = $"Xin chào, tôi cần hỗ trợ{(jobId.HasValue ? " về tin tuyển dụng" : "")}.",
-            JobID = jobId,
+            JobId = jobId,
             CreatedAt = DateTime.Now,
             IsRead = false
         };
@@ -199,7 +253,7 @@ public class ChatController : Controller
     public async Task<IActionResult> StaffConversations()
     {
         var conversations = await _db.Messages
-            .Where(m => m.SenderID == UserId || m.ReceiverID == UserId)
+            .Where(m => m.SenderId == UserId || m.ReceiverId == UserId)
             .Include(m => m.Sender)
             .Include(m => m.Receiver)
             .Include(m => m.Job)
@@ -207,13 +261,13 @@ public class ChatController : Controller
             .ToListAsync();
 
         var groupedConversations = conversations
-            .GroupBy(m => m.SenderID == UserId ? m.ReceiverID : m.SenderID)
+            .GroupBy(m => m.SenderId == UserId ? m.ReceiverId : m.SenderId)
             .Select(g => new
             {
                 OtherUserId = g.Key,
-                OtherUser = g.First().SenderID == UserId ? g.First().Receiver : g.First().Sender,
+                OtherUser = g.First().SenderId == UserId ? g.First().Receiver : g.First().Sender,
                 LastMessage = g.OrderByDescending(m => m.CreatedAt).First(),
-                UnreadCount = g.Count(m => m.ReceiverID == UserId && !m.IsRead)
+                UnreadCount = g.Count(m => m.ReceiverId == UserId && !m.IsRead)
             })
             .OrderByDescending(c => c.LastMessage.CreatedAt)
             .ToList();

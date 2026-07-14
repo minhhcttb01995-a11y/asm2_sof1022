@@ -20,7 +20,7 @@ public class CandidateController : Controller
         _fileService = fileService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int CurrentUserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
     #region Profile & CV Manager
 
@@ -30,7 +30,7 @@ public class CandidateController : Controller
         var profile = await _db.CandidateProfiles
             .Include(p => p.User)
             .Include(p => p.CvFiles)
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         return View(profile ?? new CandidateProfile());
     }
@@ -40,14 +40,14 @@ public class CandidateController : Controller
     {
         var profile = await _db.CandidateProfiles
             .Include(p => p.CvFiles)
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         if (profile == null)
         {
             // Tạo profile trống nếu chưa có
             profile = new CandidateProfile
             {
-                UserID = CurrentUserId
+                UserId = CurrentUserId
             };
         }
 
@@ -71,11 +71,11 @@ public class CandidateController : Controller
     {
         var profile = await _db.CandidateProfiles
             .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         if (profile == null)
         {
-            profile = new CandidateProfile { UserID = CurrentUserId };
+            profile = new CandidateProfile { UserId = CurrentUserId };
             _db.CandidateProfiles.Add(profile);
         }
 
@@ -145,16 +145,16 @@ public class CandidateController : Controller
         try
         {
             var profile = await _db.CandidateProfiles
-                .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+                .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
             if (profile == null)
             {
-                profile = new CandidateProfile { UserID = CurrentUserId };
+                profile = new CandidateProfile { UserId = CurrentUserId };
                 _db.CandidateProfiles.Add(profile);
                 await _db.SaveChangesAsync();
             }
 
-            var uploadedCv = await _fileService.UploadCvAsync(cvFile, profile.ProfileID);
+            var uploadedCv = await _fileService.UploadCvAsync(cvFile, profile.ProfileId);
 
             TempData["Success"] = "Upload CV thành công!";
         }
@@ -202,14 +202,14 @@ public class CandidateController : Controller
     public async Task<IActionResult> Applications()
     {
         var profile = await _db.CandidateProfiles
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         if (profile == null)
             return View(new List<Application>());
 
         var applications = await _db.Applications
             .Include(a => a.Job!).ThenInclude(j => j.Employer)
-            .Where(a => a.ProfileID == profile.ProfileID)
+            .Where(a => a.ProfileId == profile.ProfileId)
             .OrderByDescending(a => a.AppliedAt)
             .ToListAsync();
 
@@ -220,12 +220,24 @@ public class CandidateController : Controller
     public async Task<IActionResult> SavedJobs()
     {
         var saved = await _db.SavedJobs
-            .Include(s => s.JobPost).ThenInclude(j => j.Employer)
-            .Where(s => s.UserID == CurrentUserId)
+            .Include(s => s.Job).ThenInclude(j => j.Employer)
+            .Where(s => s.UserId == CurrentUserId)
             .OrderByDescending(s => s.SavedAt)
             .ToListAsync();
 
         return View(saved);
+    }
+
+    [Route("Candidate/FollowedCompanies")]
+    public async Task<IActionResult> FollowedCompanies()
+    {
+        var followed = await _db.CompanyFollows
+            .Include(f => f.Employer)
+            .Where(f => f.UserId == CurrentUserId)
+            .OrderByDescending(f => f.CreatedAt)
+            .ToListAsync();
+
+        return View(followed);
     }
 
     #endregion
@@ -236,14 +248,14 @@ public class CandidateController : Controller
     public async Task<IActionResult> Skills()
     {
         var profile = await _db.CandidateProfiles
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         List<CandidateSkill> candidateSkills = new();
         if (profile != null)
         {
             candidateSkills = await _db.CandidateSkills
                 .Include(cs => cs.Skill)
-                .Where(cs => cs.ProfileID == profile.ProfileID)
+                .Where(cs => cs.ProfileId == profile.ProfileId)
                 .OrderBy(cs => cs.Skill.Name)
                 .ToListAsync();
         }
@@ -268,7 +280,7 @@ public class CandidateController : Controller
     public async Task<IActionResult> AddSkill(int skillId, string proficiency, decimal yearsOfExp, DateTime? lastUsed)
     {
         var profile = await _db.CandidateProfiles
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         if (profile == null)
         {
@@ -277,7 +289,7 @@ public class CandidateController : Controller
         }
 
         var exists = await _db.CandidateSkills
-            .AnyAsync(cs => cs.ProfileID == profile.ProfileID && cs.SkillID == skillId);
+            .AnyAsync(cs => cs.ProfileId == profile.ProfileId && cs.SkillId == skillId);
 
         if (exists)
         {
@@ -290,8 +302,8 @@ public class CandidateController : Controller
 
         _db.CandidateSkills.Add(new CandidateSkill
         {
-            ProfileID = profile.ProfileID,
-            SkillID = skillId,
+            ProfileId = profile.ProfileId,
+            SkillId = skillId,
             ProficiencyLevel = level,
             YearsOfExperience = yearsOfExp,
             LastUsedDate = lastUsed,
@@ -308,12 +320,12 @@ public class CandidateController : Controller
     public async Task<IActionResult> RemoveSkill(int skillId)
     {
         var profile = await _db.CandidateProfiles
-            .FirstOrDefaultAsync(p => p.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
 
         if (profile != null)
         {
             var cs = await _db.CandidateSkills
-                .FirstOrDefaultAsync(x => x.ProfileID == profile.ProfileID && x.SkillID == skillId);
+                .FirstOrDefaultAsync(x => x.ProfileId == profile.ProfileId && x.SkillId == skillId);
 
             if (cs != null)
             {
@@ -334,7 +346,7 @@ public class CandidateController : Controller
     public async Task<IActionResult> Notifications()
     {
         var notifications = await _db.Notifications
-            .Where(n => n.UserID == CurrentUserId)
+            .Where(n => n.UserId == CurrentUserId)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
 
@@ -354,7 +366,7 @@ public class CandidateController : Controller
     public async Task<IActionResult> MarkRead(int notifId)
     {
         var notif = await _db.Notifications
-            .FirstOrDefaultAsync(n => n.NotifID == notifId && n.UserID == CurrentUserId);
+            .FirstOrDefaultAsync(n => n.NotifId == notifId && n.UserId == CurrentUserId);
 
         if (notif != null)
         {

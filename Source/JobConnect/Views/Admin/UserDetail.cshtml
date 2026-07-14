@@ -6,16 +6,28 @@
 
     var isCandidate = Model.Role == "Candidate";
     var isEmployer = Model.Role == "Employer";
-    var isBanned = Model.Status != "Active";
 
     var roleCls = Model.Role == "Admin" ? "bg-purple-100 text-purple-700" :
                     Model.Role == "Employer" ? "bg-blue-100 text-blue-700" :
                                               "bg-gray-100 text-gray-600";
     var roleLabel = Model.Role == "Admin" ? "Admin" :
                     Model.Role == "Employer" ? "Nhà tuyển dụng" : "Ứng viên";
+
+    // Get status info from StatusCatalog
+    List<StatusCatalog>? statuses = null;
+    if (Model.Role == "Candidate" && ViewBag.CandidateStatuses != null)
+        statuses = ViewBag.CandidateStatuses as List<StatusCatalog>;
+    else if (Model.Role == "Employer" && ViewBag.EmployerStatuses != null)
+        statuses = ViewBag.EmployerStatuses as List<StatusCatalog>;
+    else if (Model.Role == "Staff" && ViewBag.StaffStatuses != null)
+        statuses = ViewBag.StaffStatuses as List<StatusCatalog>;
+
+    var statusInfo = statuses?.FirstOrDefault(s => s.Code == Model.Status);
+    var statusName = statusInfo?.Name ?? Model.Status;
+    var statusColor = statusInfo?.ColorClass ?? "bg-gray-100 text-gray-700";
 }
 
-<div class="max-w-5xl mx-auto px-6 py-8">
+<div class="max-w-[1300px] mx-auto px-6 py-8">
     <!-- Header -->
     <div class="flex items-center gap-4 mb-6">
         <a asp-action="Users" class="text-secondary hover:text-primary flex items-center gap-1">
@@ -26,10 +38,19 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+        <div id="userDetailSuccessBanner" class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity duration-500">
             <span class="material-symbols-outlined text-base">check_circle</span>
             @TempData["Success"]
         </div>
+        <script>
+            setTimeout(function () {
+                var el = document.getElementById('userDetailSuccessBanner');
+                if (el) {
+                    el.style.opacity = '0';
+                    setTimeout(function () { el.remove(); }, 500);
+                }
+            }, 3000);
+        </script>
     }
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -52,9 +73,8 @@
                 <p class="text-sm text-secondary mb-3">@Model.Email</p>
                 <div class="flex justify-center gap-2 flex-wrap">
                     <span class="px-3 py-1 rounded-full text-xs font-medium @roleCls">@roleLabel</span>
-                    <span class="px-3 py-1 rounded-full text-xs font-medium
-                        @(isBanned ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700")">
-                        @(isBanned ? "Đã khoá" : "Hoạt động")
+                    <span class="px-3 py-1 rounded-full text-xs font-medium @statusColor">
+                        @statusName
                     </span>
                 </div>
             </div>
@@ -64,8 +84,20 @@
                 <h3 class="font-semibold text-on-surface text-sm">Thông tin tài khoản</h3>
                 <div class="text-sm space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-secondary">ID</span>
-                        <span class="font-medium">#@Model.UserID</span>
+                        <span class="text-secondary">Mã người dùng</span>
+                        <span class="font-medium">@(Model.UserCode ?? $"#{Model.UserId}")</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-secondary">Họ tên</span>
+                        <span class="font-medium">@Model.FullName</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-secondary">Email</span>
+                        <span class="font-medium">@Model.Email</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-secondary">Điện thoại</span>
+                        <span class="font-medium">@(Model.PhoneNumber ?? "—")</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-secondary">Ngày tạo</span>
@@ -78,13 +110,6 @@
                             <span class="font-medium">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy")</span>
                         </div>
                     }
-                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
-                    {
-                        <div class="flex justify-between">
-                            <span class="text-secondary">Điện thoại</span>
-                            <span class="font-medium">@Model.PhoneNumber</span>
-                        </div>
-                    }
                 </div>
             </div>
 
@@ -93,22 +118,46 @@
             {
                 <div class="bg-white rounded-2xl border border-outline-variant p-5 space-y-3">
                     <h3 class="font-semibold text-on-surface text-sm">Thao tác</h3>
-                    <form asp-action="BanUser" method="post">
+                    @if (isCandidate && Model.CandidateProfile != null)
+                    {
+                        <a asp-action="EditCandidateProfile" asp-route-id="@Model.CandidateProfile.ProfileId"
+                           class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors">
+                            <span class="material-symbols-outlined text-base">edit</span>
+                            Chỉnh sửa thông tin
+                        </a>
+                    }
+                    <form asp-action="ChangeUserStatus" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="userId" value="@Model.UserID" />
-                        <input type="hidden" name="returnUrl" value="@Url.Action("UserDetail", new { id = Model.UserID })" />
-                        <button type="submit"
-                                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors
-                            @(isBanned ? "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
-                                           : "bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200")">
-                            <span class="material-symbols-outlined text-base">@(isBanned ? "lock_open" : "lock")</span>
-                            @(isBanned ? "Mở khoá tài khoản" : "Khoá tài khoản")
-                        </button>
+                        <input type="hidden" name="userId" value="@Model.UserId" />
+                        <select name="newStatus" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-outline-variant outline-none focus:border-primary" onchange="this.form.submit()">
+                            <option value="" disabled selected>Đổi trạng thái</option>
+                            @if (Model.Role == "Candidate")
+                            {
+                                @foreach (var status in ViewBag.CandidateStatuses as List<StatusCatalog>)
+                                {
+                                    <option value="@status.Code" selected="@(Model.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                }
+                            }
+                            else if (Model.Role == "Employer")
+                            {
+                                @foreach (var status in ViewBag.EmployerStatuses as List<StatusCatalog>)
+                                {
+                                    <option value="@status.Code" selected="@(Model.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                }
+                            }
+                            else if (Model.Role == "Staff")
+                            {
+                                @foreach (var status in ViewBag.StaffStatuses as List<StatusCatalog>)
+                                {
+                                    <option value="@status.Code" selected="@(Model.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                }
+                            }
+                        </select>
                     </form>
                     <form asp-action="DeleteUser" method="post"
                           onsubmit="return confirm('Bạn có chắc muốn XÓA tài khoản này? Hành động không thể hoàn tác!')">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="userId" value="@Model.UserID" />
+                        <input type="hidden" name="userId" value="@Model.UserId" />
                         <button type="submit"
                                 class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
                             <span class="material-symbols-outlined text-base">delete</span>
@@ -196,9 +245,11 @@
                                     _ => "bg-yellow-100 text-yellow-700"
                                 };
                                 <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
-                                    <div>
-                                        <p class="text-sm font-medium">@(app.Job?.Title ?? "Vị trí không xác định")</p>
-                                        <p class="text-xs text-secondary">@app.AppliedAt.ToString("dd/MM/yyyy")</p>
+                                    <div class="flex-1">
+                                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@app.JobId" target="_blank" class="text-sm font-medium hover:text-primary">
+                                            @(app.Job?.Title ?? "Vị trí không xác định")
+                                        </a>
+                                        <p class="text-xs text-secondary">@app.AppliedAt.ToString("dd/MM/yyyy") • @(app.Job?.Employer?.CompanyName ?? "")</p>
                                     </div>
                                     <span class="px-2.5 py-1 rounded-full text-xs font-medium @appCls">@app.Status</span>
                                 </div>
@@ -223,7 +274,17 @@
                                         <span class="material-symbols-outlined text-secondary text-base">picture_as_pdf</span>
                                         <span class="text-sm">@(cv.FileName ?? "CV")</span>
                                     </div>
-                                    <span class="text-xs text-secondary">@cv.UploadedAt.ToString("dd/MM/yyyy")</span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs text-secondary">@cv.UploadedAt.ToString("dd/MM/yyyy")</span>
+                                        @if (!string.IsNullOrEmpty(cv.FilePath))
+                                        {
+                                            <a href="@cv.FilePath" target="_blank" download="@cv.FileName"
+                                               class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors">
+                                                <span class="material-symbols-outlined text-sm">download</span>
+                                                Tải xuống
+                                            </a>
+                                        }
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -295,9 +356,10 @@
                         <div class="space-y-2">
                             @foreach (var job in emp.JobPosts.OrderByDescending(j => j.CreatedAt).Take(10))
                             {
-                                var jobCls = job.Status == "Open" ? "bg-green-100 text-green-700" :
+                                var jobCls = job.Status == "Active" ? "bg-green-100 text-green-700" :
                                              job.Status == "Rejected" ? "bg-red-100 text-red-700" :
                                              job.Status == "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                             job.Status == "Banned" ? "bg-red-100 text-red-700" :
                                                                         "bg-gray-100 text-gray-500";
                                 <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
                                     <div>

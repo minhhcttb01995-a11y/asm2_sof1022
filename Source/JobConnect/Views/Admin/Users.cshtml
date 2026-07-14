@@ -14,8 +14,9 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form asp-action="CreateUser" method="post" class="space-y-4">
+        <form id="createUserForm" asp-action="CreateUser" method="post" class="space-y-4">
             @Html.AntiForgeryToken()
+            <div id="createUserError" class="hidden px-4 py-2.5 bg-red-100 text-red-700 rounded-xl text-sm font-medium"></div>
             <div>
                 <label class="block text-sm font-medium text-on-surface mb-1">Họ tên</label>
                 <input name="fullName" required type="text" placeholder="Nguyễn Văn A"
@@ -36,8 +37,6 @@
                 <select name="role" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
                     <option value="Candidate">Ứng viên</option>
                     <option value="Employer">Nhà tuyển dụng</option>
-                    <option value="Staff">Nhân viên</option>
-                    <option value="Admin">Admin</option>
                 </select>
             </div>
             <div class="flex gap-3 pt-2">
@@ -45,7 +44,7 @@
                         class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
                     Huỷ
                 </button>
-                <button type="submit"
+                <button type="submit" id="createUserSubmitBtn"
                         class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
                     Tạo tài khoản
                 </button>
@@ -62,8 +61,8 @@
                 <span class="material-symbols-outlined text-red-600">delete</span>
             </div>
             <div>
-                <h2 class="text-base font-bold text-on-surface">Xác nhận xóa</h2>
-                <p class="text-sm text-secondary">Tài khoản sẽ được chuyển vào mục "Đã xóa" và có thể khôi phục sau.</p>
+                <h2 class="text-base font-bold text-on-surface">Xác nhận xóa vĩnh viễn</h2>
+                <p class="text-sm text-secondary">Tài khoản sẽ bị xóa hoàn toàn khỏi hệ thống và KHÔNG THỂ khôi phục.</p>
             </div>
         </div>
         <p class="text-sm text-secondary mb-5">Bạn có chắc muốn xóa tài khoản <strong id="deleteUserName"></strong>?</p>
@@ -84,15 +83,10 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="w-full px-6 py-8 xl:px-10">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-on-surface">Quản lý người dùng</h1>
         <div class="flex items-center gap-3">
-            <a asp-action="DeletedUsers"
-               class="flex items-center gap-2 px-4 py-2.5 border border-outline-variant text-secondary rounded-xl text-sm font-semibold hover:bg-surface-container">
-                <span class="material-symbols-outlined text-base">restore_from_trash</span>
-                Đã xóa
-            </a>
             <button onclick="openModal()"
                     class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
                 <span class="material-symbols-outlined text-base">person_add</span>
@@ -103,7 +97,7 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
             <span class="material-symbols-outlined text-base">check_circle</span>
             @TempData["Success"]
         </div>
@@ -118,7 +112,7 @@
 
     <!-- Search & Filter -->
     <form method="get" class="flex gap-3 mb-6">
-        <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên, email hoặc ID..."
+        <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên, email hoặc mã người dùng..."
                class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
         <select name="role" class="px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
             <option value="">Tất cả vai trò</option>
@@ -135,7 +129,7 @@
         <table class="w-full text-sm">
             <thead class="bg-surface-container-low border-b border-outline-variant">
                 <tr>
-                    <th class="text-left px-4 py-3 font-semibold text-xs">ID</th>
+                    <th class="text-left px-4 py-3 font-semibold text-xs">Mã</th>
                     <th class="text-left px-5 py-3 font-semibold">Người dùng</th>
                     <th class="text-left px-5 py-3 font-semibold">Vai trò</th>
                     <th class="text-left px-5 py-3 font-semibold">Trạng thái</th>
@@ -153,11 +147,26 @@
                     var roleLabel = user.Role == "Admin" ? "Admin" :
                                     user.Role == "Staff" ? "Nhân viên" :
                                     user.Role == "Employer" ? "Nhà tuyển dụng" : "Ứng viên";
+
+                    // Get status info from StatusCatalog
+                    List<StatusCatalog>? statuses = null;
+                    if (user.Role == "Candidate" && ViewBag.CandidateStatuses != null)
+                        statuses = ViewBag.CandidateStatuses as List<StatusCatalog>;
+                    else if (user.Role == "Employer" && ViewBag.EmployerStatuses != null)
+                        statuses = ViewBag.EmployerStatuses as List<StatusCatalog>;
+                    else if (user.Role == "Staff" && ViewBag.StaffStatuses != null)
+                        statuses = ViewBag.StaffStatuses as List<StatusCatalog>;
+
+                    var statusInfo = statuses?.FirstOrDefault(s => s.Code == user.Status);
+                    var statusName = statusInfo?.Name ?? user.Status;
+                    var statusColor = statusInfo?.ColorClass ?? "bg-gray-100 text-gray-700";
+
+                    // Determine if user is banned (status is not Active)
                     var isBanned = user.Status != "Active";
 
                     <tr class="hover:bg-surface-container-low transition-colors">
                         <td class="px-4 py-3">
-                            <span class="font-mono text-xs text-secondary bg-surface-container px-2 py-1 rounded-lg select-all">@user.UserID</span>
+                            <span class="font-mono text-xs text-secondary bg-surface-container px-2 py-1 rounded-lg select-all">@(user.UserCode ?? user.UserId.ToString())</span>
                         </td>
                         <!-- Tên + Email -->
                         <td class="px-5 py-3">
@@ -184,9 +193,8 @@
                         </td>
                         <!-- Trạng thái -->
                         <td class="px-5 py-3">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-medium
-                                @(isBanned ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700")">
-                                @(isBanned ? "Đã khoá" : "Hoạt động")
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium @statusColor">
+                                @statusName
                             </span>
                         </td>
                         <!-- Ngày tạo -->
@@ -195,7 +203,7 @@
                         <td class="px-5 py-3">
                             <div class="flex items-center justify-center gap-2">
                                 <!-- Xem chi tiết -->
-                                <a asp-action="UserDetail" asp-route-id="@user.UserID"
+                                <a asp-action="UserDetail" asp-route-id="@user.UserId"
                                    class="flex items-center gap-1 px-3 py-1.5 bg-surface-container text-secondary hover:text-primary hover:bg-surface-container-high rounded-lg text-xs font-medium transition-colors">
                                     <span class="material-symbols-outlined text-sm">visibility</span>
                                     Xem
@@ -203,21 +211,38 @@
 
                                 @if (user.Role != "Admin")
                                 {
-                                    <!-- Khóa / Mở khóa -->
-                                    <form asp-action="BanUser" method="post" class="inline">
+                                    <!-- Thay đổi trạng thái -->
+                                    <form asp-action="ChangeUserStatus" method="post" class="inline">
                                         @Html.AntiForgeryToken()
-                                        <input type="hidden" name="userId" value="@user.UserID" />
-                                        <button type="submit"
-                                                class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                                            @(isBanned ? "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
-                                                               : "bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200")">
-                                            <span class="material-symbols-outlined text-sm">@(isBanned ? "lock_open" : "lock")</span>
-                                            @(isBanned ? "Mở khoá" : "Khoá")
-                                        </button>
+                                        <input type="hidden" name="userId" value="@user.UserId" />
+                                        <select name="newStatus" class="px-2 py-1.5 rounded-lg text-xs font-medium border border-outline-variant outline-none focus:border-primary" onchange="changeUserStatus(this, @user.UserId)">
+                                            <option value="" disabled selected>Trạng thái</option>
+                                            @if (user.Role == "Candidate")
+                                            {
+                                                @foreach (var status in ViewBag.CandidateStatuses as List<StatusCatalog>)
+                                                {
+                                                    <option value="@status.Code" selected="@(user.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                                }
+                                            }
+                                            else if (user.Role == "Employer")
+                                            {
+                                                @foreach (var status in ViewBag.EmployerStatuses as List<StatusCatalog>)
+                                                {
+                                                    <option value="@status.Code" selected="@(user.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                                }
+                                            }
+                                            else if (user.Role == "Staff")
+                                            {
+                                                @foreach (var status in ViewBag.StaffStatuses as List<StatusCatalog>)
+                                                {
+                                                    <option value="@status.Code" selected="@(user.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                                }
+                                            }
+                                        </select>
                                     </form>
 
                                     <!-- Xóa -->
-                                    <button onclick="openDeleteModal(@user.UserID, '@user.FullName.Replace("'", "\\'")' )"
+                                    <button onclick="openDeleteModal(@user.UserId, '@user.FullName.Replace("'", "\\'")' )"
                                             class="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-medium transition-colors">
                                         <span class="material-symbols-outlined text-sm">delete</span>
                                         Xóa
@@ -249,6 +274,7 @@
 
 <script>
     function openModal() {
+        document.getElementById('createUserError').classList.add('hidden');
         document.getElementById('modalCreate').classList.remove('hidden');
         document.getElementById('modalCreate').classList.add('flex');
     }
@@ -256,6 +282,42 @@
         document.getElementById('modalCreate').classList.add('hidden');
         document.getElementById('modalCreate').classList.remove('flex');
     }
+
+    // Submit form Tạo tài khoản bằng AJAX để hiển thị lỗi (VD: trùng email)
+    // ngay trong modal thay vì chuyển hẳn sang trang khác.
+    document.getElementById('createUserForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const errorBox = document.getElementById('createUserError');
+        const submitBtn = document.getElementById('createUserSubmitBtn');
+        errorBox.classList.add('hidden');
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Đang xử lý...';
+
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                errorBox.textContent = data.message || 'Có lỗi xảy ra, vui lòng thử lại.';
+                errorBox.classList.remove('hidden');
+            }
+        } catch (err) {
+            errorBox.textContent = 'Không thể kết nối máy chủ, vui lòng thử lại.';
+            errorBox.classList.remove('hidden');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+
     function openDeleteModal(userId, userName) {
         document.getElementById('deleteUserId').value = userId;
         document.getElementById('deleteUserName').textContent = userName;
@@ -266,6 +328,36 @@
         document.getElementById('modalDelete').classList.add('hidden');
         document.getElementById('modalDelete').classList.remove('flex');
     }
+
+    function changeUserStatus(selectElement, userId) {
+        const newStatus = selectElement.value;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch('/Admin/ChangeUserStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `userId=${userId}&newStatus=${newStatus}&__RequestVerificationToken=${token}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to show updated status
+                location.reload();
+            } else {
+                alert(data.message || 'Không thể thay đổi trạng thái');
+                selectElement.value = selectElement.getAttribute('data-original-value');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi thay đổi trạng thái');
+            selectElement.value = selectElement.getAttribute('data-original-value');
+        });
+    }
+
     // Đóng modal khi click nền
     document.getElementById('modalCreate').addEventListener('click', function (e) {
         if (e.target === this) closeModal();

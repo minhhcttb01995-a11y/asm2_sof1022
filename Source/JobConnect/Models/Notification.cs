@@ -1,17 +1,25 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class Notification
+public partial class Notification
 {
-    [Key]
-    public int NotifID { get; set; }
-    public int UserID { get; set; }
-    public string Title { get; set; } = string.Empty;
+    public int NotifId { get; set; }
+
+    public int UserId { get; set; }
+
+    public string Title { get; set; } = null!;
+
     public string? Content { get; set; }
-    public string Type { get; set; } = "System"; // Application | System | Payment
-    public bool IsRead { get; set; } = false;
-    public int? RelatedID { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public User User { get; set; } = null!;
+
+    public string Type { get; set; } = null!;
+
+    public bool IsRead { get; set; }
+
+    public int? RelatedId { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public virtual User User { get; set; } = null!;
 }

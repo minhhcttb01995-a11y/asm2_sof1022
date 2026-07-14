@@ -84,7 +84,7 @@
     <h3 class="text-lg font-semibold mb-4">Thông tin nhà tuyển dụng</h3>
     <div class="flex items-center gap-4">
         <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-            <span class="material-icons text-blue-400">business</span>
+            <span class="material-icons text-blue-600">business</span>
         </div>
         <div>
             <p class="font-medium">@Model.Employer?.CompanyName</p>
@@ -102,7 +102,7 @@
     </a>
     <form asp-action="ApproveJob" method="post" class="inline">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="jobId" value="@Model.JobID" />
+        <input type="hidden" name="jobId" value="@Model.JobId" />
         <button type="submit" 
                 class="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg text-sm font-medium transition-colors">
             Duyệt tin
@@ -115,7 +115,7 @@
     </button>
     <form asp-action="HideJob" method="post" class="inline">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="jobId" value="@Model.JobID" />
+        <input type="hidden" name="jobId" value="@Model.JobId" />
         <button type="submit" 
                 class="px-6 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">
             Ẩn tin
@@ -127,7 +127,7 @@
 <div x-data="{ showModal: false, reason: '' }" 
      x-show="showModal" 
      x-transition.opacity
-     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+     class="fixed inset-0 bg-white flex items-center justify-center z-50"
      style="display: none;">
     <div class="glass-card rounded-xl p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-semibold mb-4">Từ chối tin tuyển dụng</h3>
@@ -143,7 +143,7 @@
             </button>
             <form asp-action="RejectJob" method="post" class="flex-1">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="jobId" value="@Model.JobID" />
+                <input type="hidden" name="jobId" value="@Model.JobId" />
                 <input type="hidden" name="reason" x-bind:value="reason" />
                 <button type="submit" 
                         class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium transition-colors">

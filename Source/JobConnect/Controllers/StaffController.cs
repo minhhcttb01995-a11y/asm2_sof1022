@@ -1,6 +1,8 @@
 using JobConnect.Data;
 using JobConnect.Models;
+using JobConnect.Services;
 using JobConnect.ViewModels.Staff;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,17 +15,21 @@ public class StaffController : Controller
 {
     private readonly AppDbContext _context;
     private readonly ILogger<StaffController> _logger;
+    private readonly ICodeGeneratorService _codeGen;
+    private readonly IAntiforgery _antiforgery;
 
-    public StaffController(AppDbContext context, ILogger<StaffController> logger)
+    public StaffController(AppDbContext context, ILogger<StaffController> logger, ICodeGeneratorService codeGen, IAntiforgery antiforgery)
     {
         _context = context;
         _logger = logger;
+        _codeGen = codeGen;
+        _antiforgery = antiforgery;
     }
 
     // GET: Staff
     public async Task<IActionResult> Index(
         string? searchTerm,
-        StaffStatus? statusFilter,
+        string? statusFilter,
         string? departmentFilter,
         string? sortBy = "CreatedAt",
         bool sortDescending = true,
@@ -31,8 +37,8 @@ public class StaffController : Controller
         int pageSize = 10)
     {
         var query = _context.Staff
-            .Include(s => s.User)
-            .Where(s => s.Status != StaffStatus.Deleted) // Ẩn nhân viên đã xóa mềm
+            .Include(s => s.ApplicationUser)
+            .Where(s => s.Status != "Deleted") // Ẩn nhân viên đã xóa mềm
             .AsQueryable();
 
         // Search
@@ -46,9 +52,9 @@ public class StaffController : Controller
         }
 
         // Filter by status
-        if (statusFilter.HasValue)
+        if (!string.IsNullOrEmpty(statusFilter))
         {
-            query = query.Where(s => s.Status == statusFilter.Value);
+            query = query.Where(s => s.Status == statusFilter);
         }
 
         // Filter by department
@@ -80,6 +86,7 @@ public class StaffController : Controller
                 Id = s.Id,
                 ApplicationUserId = s.ApplicationUserId,
                 EmployeeCode = s.EmployeeCode,
+                CCCD = s.CCCD,
                 FullName = s.FullName,
                 Email = s.Email,
                 Avatar = s.Avatar,
@@ -113,14 +120,77 @@ public class StaffController : Controller
             .Distinct()
             .ToListAsync();
 
+        // Danh sách trạng thái do Admin quản lý (StatusCatalog) để hiển thị dropdown như trang Người dùng
+        ViewBag.StaffStatuses = await _context.StatusCatalogs
+            .Where(s => s.EntityType == StatusEntityTypes.Staff && s.IsActive)
+            .OrderBy(s => s.Id)
+            .ToListAsync();
+
         return View(viewModel);
+    }
+
+    // POST: Staff/ChangeStatus — Đổi trạng thái nhân viên theo StatusCatalog (AJAX, giống trang Người dùng)
+    // Lưu ý: validate token thủ công trong try/catch (không dùng [ValidateAntiForgeryToken]
+    // trực tiếp) để luôn trả JSON, tránh JS phía client bị crash khi parse HTML lỗi.
+    [HttpPost]
+    public async Task<IActionResult> ChangeStatus(int id, string newStatus)
+    {
+        try
+        {
+            try { await _antiforgery.ValidateRequestAsync(HttpContext); }
+            catch (AntiforgeryValidationException) { return Json(new { success = false, message = "Phiên làm việc đã hết hạn, vui lòng tải lại trang." }); }
+
+            var staff = await _context.Staff
+                .Include(s => s.ApplicationUser)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (staff == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy nhân viên" });
+            }
+
+            // Không cho tự đổi trạng thái của chính mình
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(currentUserId, out var uid) && staff.ApplicationUserId == uid)
+            {
+                return Json(new { success = false, message = "Bạn không thể tự đổi trạng thái của chính mình" });
+            }
+
+            // Kiểm tra trạng thái có tồn tại trong danh mục StatusCatalog không
+            var status = await _context.StatusCatalogs
+                .FirstOrDefaultAsync(s => s.EntityType == StatusEntityTypes.Staff && s.Code == newStatus && s.IsActive);
+
+            if (status == null)
+            {
+                return Json(new { success = false, message = "Trạng thái không hợp lệ!" });
+            }
+
+            staff.Status = newStatus;
+            staff.UpdatedAt = DateTime.UtcNow;
+
+            // Đồng bộ trạng thái đăng nhập của tài khoản liên kết
+            if (staff.ApplicationUser != null)
+            {
+                staff.ApplicationUser.Status = status.BlocksLogin ? "Banned" : "Active";
+            }
+
+            await _context.SaveChangesAsync();
+
+            await LogActivityAsync("Changed Staff Status", $"Đổi trạng thái của {staff.FullName} thành {status.Name}");
+
+            return Json(new { success = true, message = $"Đã cập nhật trạng thái thành: {status.Name}" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Có lỗi xảy ra ở server: " + (ex.InnerException?.Message ?? ex.Message) });
+        }
     }
 
     // GET: Staff/Details/5
     public async Task<IActionResult> Details(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .Include(s => s.ActivityLogs.OrderByDescending(al => al.CreatedAt).Take(10))
             .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -133,9 +203,11 @@ public class StaffController : Controller
         {
             Id = staff.Id,
             EmployeeCode = staff.EmployeeCode,
+            CCCD = staff.CCCD ?? string.Empty,
             FullName = staff.FullName,
             Email = staff.Email,
             Phone = staff.Phone,
+            Gender = staff.Gender,
             Avatar = staff.Avatar,
             Position = staff.Position,
             Department = staff.Department,
@@ -143,7 +215,7 @@ public class StaffController : Controller
             Status = staff.Status,
             CreatedAt = staff.CreatedAt,
             UpdatedAt = staff.UpdatedAt,
-            LastLoginAt = staff.User?.LastLoginAt,
+            LastLoginAt = staff.ApplicationUser?.LastLoginAt,
             RecentActivities = staff.ActivityLogs.Select(al => new ActivityLogViewModel
             {
                 Id = al.Id,
@@ -170,7 +242,9 @@ public class StaffController : Controller
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            TempData["Error"] = "Vui lòng kiểm tra lại thông tin đã nhập.";
+            TempData["OpenCreateModal"] = true;
+            return RedirectToAction(nameof(Index));
         }
 
         // Check if email already exists
@@ -179,12 +253,24 @@ public class StaffController : Controller
 
         if (existingUser != null)
         {
-            ModelState.AddModelError("Email", "Email đã tồn tại trong hệ thống");
-            return View(model);
+            TempData["Error"] = "Email đã tồn tại trong hệ thống";
+            TempData["OpenCreateModal"] = true;
+            return RedirectToAction(nameof(Index));
         }
 
-        // Generate employee code
-        var employeeCode = await GenerateEmployeeCodeAsync();
+        // Check if CCCD already exists
+        var existingCccd = await _context.Staff
+            .FirstOrDefaultAsync(s => s.CCCD == model.CCCD);
+
+        if (existingCccd != null)
+        {
+            TempData["Error"] = "Số CCCD đã tồn tại trong hệ thống";
+            TempData["OpenCreateModal"] = true;
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Generate employee code (ngẫu nhiên, không dấu gạch - vd: NV5H2K8P)
+        var employeeCode = await _codeGen.GenerateStaffCodeAsync();
 
         // Create user
         var user = new User
@@ -192,6 +278,8 @@ public class StaffController : Controller
             Email = model.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
             Role = "Staff",
+            FullName = model.FullName,
+            PhoneNumber = model.Phone,
             Status = "Active",
             CreatedAt = DateTime.UtcNow
         };
@@ -199,17 +287,24 @@ public class StaffController : Controller
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        // Mã người dùng: tự tăng theo UserId
+        user.UserCode = _codeGen.GenerateUserCode("Staff", user.UserId);
+        await _context.SaveChangesAsync();
+
         // Create staff
         var staff = new Staff
         {
-            ApplicationUserId = user.UserID,
+            ApplicationUserId = user.UserId,
             EmployeeCode = employeeCode,
+            CCCD = model.CCCD,
             FullName = model.FullName,
             Email = model.Email,
             Phone = model.Phone,
+            Gender = model.Gender,
             Position = model.Position,
             Department = model.Department,
-            Status = StaffStatus.Active,
+
+            Status = "Active",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -227,7 +322,7 @@ public class StaffController : Controller
     public async Task<IActionResult> Edit(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null)
@@ -240,9 +335,11 @@ public class StaffController : Controller
             Id = staff.Id,
             ApplicationUserId = staff.ApplicationUserId.ToString(),
             EmployeeCode = staff.EmployeeCode,
+            CCCD = staff.CCCD ?? string.Empty,
             FullName = staff.FullName,
             Email = staff.Email,
             Phone = staff.Phone,
+            Gender = staff.Gender,
             Avatar = staff.Avatar,
             Position = staff.Position,
             Department = staff.Department,
@@ -269,7 +366,7 @@ public class StaffController : Controller
         }
 
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null)
@@ -277,19 +374,35 @@ public class StaffController : Controller
             return NotFound();
         }
 
+        // Check if CCCD already exists on another staff
+        if (staff.CCCD != model.CCCD)
+        {
+            var cccdExists = await _context.Staff
+                .AnyAsync(s => s.CCCD == model.CCCD && s.Id != staff.Id);
+
+            if (cccdExists)
+            {
+                ModelState.AddModelError("CCCD", "Số CCCD đã tồn tại trong hệ thống");
+                return View(model);
+            }
+        }
+
         // Update staff
         staff.FullName = model.FullName;
+        staff.CCCD = model.CCCD;
         staff.Phone = model.Phone;
+        staff.Gender = model.Gender;
         staff.Position = model.Position;
         staff.Department = model.Department;
+
         staff.Status = model.Status;
         staff.UpdatedAt = DateTime.UtcNow;
 
         // Update user email if changed
-        if (staff.User != null && staff.User.Email != model.Email)
+        if (staff.ApplicationUser != null && staff.ApplicationUser.Email != model.Email)
         {
             var emailExists = await _context.Users
-                .AnyAsync(u => u.Email == model.Email && u.UserID != staff.ApplicationUserId);
+                .AnyAsync(u => u.Email == model.Email && u.UserId != staff.ApplicationUserId);
 
             if (emailExists)
             {
@@ -297,7 +410,7 @@ public class StaffController : Controller
                 return View(model);
             }
 
-            staff.User.Email = model.Email;
+            staff.ApplicationUser.Email = model.Email;
         }
 
         staff.Email = model.Email;
@@ -316,7 +429,7 @@ public class StaffController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null)
@@ -333,7 +446,7 @@ public class StaffController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .Include(s => s.ActivityLogs)
             .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -353,13 +466,13 @@ public class StaffController : Controller
         var staffName = staff.FullName;
 
         // Soft delete: chuyển trạng thái thành Deleted, không xóa khỏi DB
-        staff.Status = StaffStatus.Deleted;
+        staff.Status = "Deleted";
         staff.UpdatedAt = DateTime.UtcNow;
 
         // Khóa tài khoản user liên kết
-        if (staff.User != null)
+        if (staff.ApplicationUser != null)
         {
-            staff.User.Status = "Banned";
+            staff.ApplicationUser.Status = "Banned";
         }
 
         await _context.SaveChangesAsync();
@@ -377,7 +490,7 @@ public class StaffController : Controller
     public async Task<IActionResult> Lock(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null)
@@ -393,12 +506,12 @@ public class StaffController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        staff.Status = StaffStatus.Locked;
+        staff.Status = "Locked";
         staff.UpdatedAt = DateTime.UtcNow;
 
-        if (staff.User != null)
+        if (staff.ApplicationUser != null)
         {
-            staff.User.Status = "Banned";
+            staff.ApplicationUser.Status = "Banned";
         }
 
         await _context.SaveChangesAsync();
@@ -416,7 +529,7 @@ public class StaffController : Controller
     public async Task<IActionResult> Unlock(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null)
@@ -424,12 +537,12 @@ public class StaffController : Controller
             return NotFound();
         }
 
-        staff.Status = StaffStatus.Active;
+        staff.Status = "Active";
         staff.UpdatedAt = DateTime.UtcNow;
 
-        if (staff.User != null)
+        if (staff.ApplicationUser != null)
         {
-            staff.User.Status = "Active";
+            staff.ApplicationUser.Status = "Active";
         }
 
         await _context.SaveChangesAsync();
@@ -449,8 +562,8 @@ public class StaffController : Controller
         int pageSize = 10)
     {
         var query = _context.Staff
-            .Include(s => s.User)
-            .Where(s => s.Status == StaffStatus.Deleted)
+            .Include(s => s.ApplicationUser)
+            .Where(s => s.Status == "Deleted")
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(searchTerm))
@@ -502,7 +615,7 @@ public class StaffController : Controller
         };
 
         ViewBag.Departments = await _context.Staff
-            .Where(s => s.Status == StaffStatus.Deleted && !string.IsNullOrEmpty(s.Department))
+            .Where(s => s.Status == "Deleted" && !string.IsNullOrEmpty(s.Department))
             .Select(s => s.Department)
             .Distinct()
             .ToListAsync();
@@ -516,8 +629,8 @@ public class StaffController : Controller
     public async Task<IActionResult> Restore(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
-            .FirstOrDefaultAsync(s => s.Id == id && s.Status == StaffStatus.Deleted);
+            .Include(s => s.ApplicationUser)
+            .FirstOrDefaultAsync(s => s.Id == id && s.Status == "Deleted");
 
         if (staff == null)
         {
@@ -525,12 +638,12 @@ public class StaffController : Controller
             return RedirectToAction(nameof(Deleted));
         }
 
-        staff.Status = StaffStatus.Active;
+        staff.Status = "Active";
         staff.UpdatedAt = DateTime.UtcNow;
 
-        if (staff.User != null)
+        if (staff.ApplicationUser != null)
         {
-            staff.User.Status = "Active";
+            staff.ApplicationUser.Status = "Active";
         }
 
         await _context.SaveChangesAsync();
@@ -544,7 +657,7 @@ public class StaffController : Controller
     public async Task<IActionResult> ResetPassword(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null)
@@ -571,15 +684,15 @@ public class StaffController : Controller
         }
 
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
-        if (staff == null || staff.User == null)
+        if (staff == null || staff.ApplicationUser == null)
         {
             return NotFound();
         }
 
-        staff.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        staff.ApplicationUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
         await _context.SaveChangesAsync();
 
         // Log activity
@@ -662,7 +775,7 @@ public class StaffController : Controller
     public async Task<IActionResult> SetRole(int id)
     {
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null) return NotFound();
@@ -672,7 +785,7 @@ public class StaffController : Controller
 
         ViewBag.StaffId = id;
         ViewBag.StaffName = staff.FullName;
-        ViewBag.CurrentRole = staff.User?.Role ?? "Staff";
+        ViewBag.CurrentRole = staff.ApplicationUser?.Role ?? "Staff";
         ViewBag.AvailableRoles = availableRoles;
 
         return View();
@@ -691,7 +804,7 @@ public class StaffController : Controller
         }
 
         var staff = await _context.Staff
-            .Include(s => s.User)
+            .Include(s => s.ApplicationUser)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (staff == null) return NotFound();
@@ -704,10 +817,10 @@ public class StaffController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        if (staff.User != null)
+        if (staff.ApplicationUser != null)
         {
-            var oldRole = staff.User.Role;
-            staff.User.Role = role;
+            var oldRole = staff.ApplicationUser.Role;
+            staff.ApplicationUser.Role = role;
             staff.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 

@@ -1,47 +1,33 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-/// <summary>
-/// Represents a skill that can be assigned to candidates
-/// </summary>
-public class Skill
+public partial class Skill
 {
-    [Key]
-    public int SkillID { get; set; }
+    public int SkillId { get; set; }
 
-    [Required]
-    [StringLength(100)]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = null!;
 
-    [StringLength(500)]
     public string? Description { get; set; }
 
-    [Required]
-    [StringLength(50)]
-    public SkillCategory Category { get; set; } = SkillCategory.Programming;
+    public int? CategoryId { get; set; }
 
-    [Required]
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
-    // Navigation properties
     public virtual ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
-}
 
-/// <summary>
-/// Skill categories for classification
-/// </summary>
-public enum SkillCategory
-{
-    Programming,
-    Design,
-    Marketing,
-    SoftSkills,
-    Language,
-    Management,
-    Other
+    public virtual Category? Category { get; set; }
+
+    // Compatibility alias for views/controllers expecting SkillID
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int SkillID
+    {
+        get => SkillId;
+        set => SkillId = value;
+    }
 }

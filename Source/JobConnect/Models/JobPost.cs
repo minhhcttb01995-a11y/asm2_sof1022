@@ -1,37 +1,68 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class JobPost
+public partial class JobPost
 {
-    [Key]
-    public int JobID { get; set; }
-    public int EmployerID { get; set; }
-    public int? CategoryID { get; set; }
-    public string Title { get; set; } = string.Empty;
+    public int JobId { get; set; }
+
+    /// <summary>Mã tin tuyển dụng - ngẫu nhiên, không trùng (VD: TD4B8X1C).</summary>
+    public string? JobCode { get; set; }
+
+    public int EmployerId { get; set; }
+
+    public int? CategoryId { get; set; }
+
+    public string Title { get; set; } = null!;
+
     public string? Description { get; set; }
+
     public string? Requirements { get; set; }
+
     public string? Benefits { get; set; }
+
     public decimal? SalaryMin { get; set; }
+
     public decimal? SalaryMax { get; set; }
-    public bool SalaryNegotiable { get; set; } = false;
-    public string JobType { get; set; } = "FullTime"; // FullTime | PartTime | Contract | Intern | Remote
+
+    public bool SalaryNegotiable { get; set; }
+
+    public string JobType { get; set; } = null!;
+
     public string? Location { get; set; }
-    public string? ExperienceLevel { get; set; } // Fresher | Junior | Middle | Senior | Manager
+
+    public string? ExperienceLevel { get; set; }
+
     public DateTime? Deadline { get; set; }
-    public string Status { get; set; } = "Pending"; // Draft | Pending | Open | Closed | Rejected
-    public int ViewCount { get; set; } = 0;
-    public bool IsFeatured { get; set; } = false;
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public string Status { get; set; } = null!;
+
+    public int ViewCount { get; set; }
+
+    public bool IsFeatured { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
-    public Employer Employer { get; set; } = null!;
-    public Category? Category { get; set; }
-    public ICollection<Application> Applications { get; set; } = new List<Application>();
-    public ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();
-    // Helper property
-    public string SalaryDisplay =>
-        SalaryNegotiable ? "Thương lượng" :
-        SalaryMin.HasValue && SalaryMax.HasValue
-            ? $"{SalaryMin:N0} – {SalaryMax:N0} VND"
-            : SalaryMin.HasValue ? $"Từ {SalaryMin:N0} VND" : "Thỏa thuận";
+
+    public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
+
+    public virtual Category? Category { get; set; }
+
+    // Compatibility alias for CategoryID
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int? CategoryID
+    {
+        get => CategoryId;
+        set => CategoryId = value;
+    }
+
+    public virtual Employer Employer { get; set; } = null!;
+
+    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
+
+    public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
+
+    public virtual ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();
 }

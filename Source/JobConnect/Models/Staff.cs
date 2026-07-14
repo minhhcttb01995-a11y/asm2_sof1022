@@ -1,60 +1,47 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class Staff
+public partial class Staff
 {
-    [Key]
     public int Id { get; set; }
 
-    [Required]
     public int ApplicationUserId { get; set; }
 
-    [Required]
-    [StringLength(20)]
-    public string EmployeeCode { get; set; } = string.Empty;
+    public string EmployeeCode { get; set; } = null!;
 
-    [Required]
-    [StringLength(100)]
-    public string FullName { get; set; } = string.Empty;
+    public string? CCCD { get; set; }
 
-    [Required]
-    [StringLength(100)]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-    [StringLength(20)]
+    public string Email { get; set; } = null!;
+
     public string? Phone { get; set; }
 
-    [StringLength(500)]
     public string? Avatar { get; set; }
 
-    [Required]
-    [StringLength(100)]
-    public string Position { get; set; } = string.Empty;
+    public string Position { get; set; } = null!;
 
-    [Required]
-    [StringLength(100)]
-    public string Department { get; set; } = string.Empty;
+    public string? Gender { get; set; }
 
-    [Required]
-    public StaffStatus Status { get; set; } = StaffStatus.Active;
+    public string Department { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string Status { get; set; } = "Active";
+
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    // Navigation property
-    [ForeignKey(nameof(ApplicationUserId))]
-    public virtual User? User { get; set; }
-
     public virtual ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
-}
 
-public enum StaffStatus
-{
-    Active = 1,
-    Locked = 2,
-    Deleted = 3
+    public virtual User ApplicationUser { get; set; } = null!;
+
+    public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
+
+    public virtual ICollection<SupportTicket> SupportTickets { get; set; } = new List<SupportTicket>();
+
+    // Alias để tương thích với code gọi staff.User
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public User User => ApplicationUser;
 }

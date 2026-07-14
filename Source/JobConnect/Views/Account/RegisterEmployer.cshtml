@@ -18,8 +18,8 @@
         extend: {
         colors: {
         primary: '#3b82f6',
-        dark: '#000000',
-        card: '#0a0a0a',
+        dark: '#f8fafc',
+        card: '#ffffff',
         }
         }
         }
@@ -34,52 +34,18 @@
 
         body {
         font-family: 'Inter', sans-serif;
-        background: #000000;
+        background: #f1f5f9;
         min-height: 100vh;
         position: relative;
         overflow-x: hidden;
         }
 
-        /* HIỆU ỨNG MƯA */
-        .rain-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
-        overflow: hidden;
-        }
-
-        .drop {
-        position: absolute;
-        background: linear-gradient(to bottom, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0.2) 50%, rgba(59, 130, 246, 0) 100%);
-        width: 2px;
-        border-radius: 0 0 3px 3px;
-        animation: fall linear infinite;
-        }
-
-        .drop-small {
-        position: absolute;
-        background: rgba(59, 130, 246, 0.25);
-        width: 1px;
-        border-radius: 0 0 2px 2px;
-        animation: fall linear infinite;
-        }
-
-        @@keyframes fall {
-        to {
-        transform: translateY(110vh);
-        }
-        }
-
-        /* GLASS CARD */
+                                        /* GLASS CARD */
         .glass-card {
-        background: rgba(10, 10, 10, 0.85);
+        background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(20px);
         border: 1px solid rgba(59, 130, 246, 0.2);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.1) inset;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(59, 130, 246, 0.08) inset;
         }
 
         .glass-card:hover {
@@ -90,13 +56,13 @@
         .input-field {
         width: 100%;
         padding: 0.875rem 1rem;
-        background: #000000;
-        border: 1.5px solid #1a1a1a;
+        background: #f1f5f9;
+        border: 1.5px solid #e2e8f0;
         border-radius: 0.75rem;
         font-size: 0.875rem;
         outline: none;
         transition: all 0.2s ease;
-        color: #ffffff;
+        color: #0f172a;
         }
 
         .input-field:focus {
@@ -173,11 +139,11 @@
         }
 
         ::-webkit-scrollbar-track {
-        background: #000000;
+        background: #f1f5f9;
         }
 
         ::-webkit-scrollbar-thumb {
-        background: #1a1a1a;
+        background: #cbd5e1;
         border-radius: 4px;
         }
 
@@ -194,29 +160,27 @@
     <div class="orb orb-3"></div>
 
     <!-- Container hiệu ứng mưa -->
-    <div class="rain-container" id="rainContainer"></div>
-
     <!-- Logo + tagline -->
     <div class="relative z-10 text-center mb-6 pt-8">
         <a href="/" class="inline-flex items-center gap-2 text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
             <span class="material-symbols-outlined text-4xl text-blue-500">bolt</span>
             JobConnect
         </a>
-        <p class="text-slate-500 text-sm mt-2 max-w-xs mx-auto">Đăng ký tài khoản nhà tuyển dụng để đăng tin tuyển dụng</p>
+        <p class="text-slate-600 text-sm mt-2 max-w-xs mx-auto">Đăng ký tài khoản nhà tuyển dụng để đăng tin tuyển dụng</p>
     </div>
 
     <!-- Card chính -->
     <div class="relative z-10 w-full max-w-lg mx-auto px-4 pb-8">
         <div class="glass-card rounded-2xl p-8 transition-all duration-300">
             <div class="text-center mb-6">
-                <h1 class="text-xl font-bold text-white">🏢 Đăng ký Nhà tuyển dụng</h1>
-                <p class="text-slate-500 text-sm mt-1">Tuyển dụng nhân tài hiệu quả cùng JobConnect</p>
+                <h1 class="text-xl font-bold text-slate-900">🏢 Đăng ký Nhà tuyển dụng</h1>
+                <p class="text-slate-600 text-sm mt-1">Tuyển dụng nhân tài hiệu quả cùng JobConnect</p>
             </div>
 
             <form asp-action="RegisterEmployer" method="post" class="space-y-4">
                 @Html.AntiForgeryToken()
 
-                <div asp-validation-summary="All" class="text-rose-400 text-sm bg-rose-950/30 border border-rose-800/50 p-3 rounded-xl backdrop-blur-sm"></div>
+                <div asp-validation-summary="All" class="text-rose-600 text-sm bg-rose-50 border border-rose-200 p-3 rounded-xl backdrop-blur-sm"></div>
 
                 <!-- Thông tin liên hệ -->
                 <div class="section-title">
@@ -228,10 +192,10 @@
                     <div>
                         <label class="label">
                             <span class="material-symbols-outlined text-sm align-middle mr-1">badge</span>
-                            Họ tên <span class="text-rose-400">*</span>
+                            Họ tên <span class="text-rose-600">*</span>
                         </label>
                         <input asp-for="ContactName" placeholder="Nguyễn Văn A" class="input-field" />
-                        <span asp-validation-for="ContactName" class="text-rose-400 text-xs mt-1 block"></span>
+                        <span asp-validation-for="ContactName" class="text-rose-600 text-xs mt-1 block"></span>
                     </div>
                     <div>
                         <label class="label">
@@ -239,47 +203,47 @@
                             Số điện thoại
                         </label>
                         <input asp-for="PhoneNumber" type="tel" placeholder="0901 234 567" class="input-field" />
-                        <span asp-validation-for="PhoneNumber" class="text-rose-400 text-xs mt-1 block"></span>
+                        <span asp-validation-for="PhoneNumber" class="text-rose-600 text-xs mt-1 block"></span>
                     </div>
                 </div>
 
                 <div>
                     <label class="label">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">mail</span>
-                        Email <span class="text-rose-400">*</span>
+                        Email <span class="text-rose-600">*</span>
                     </label>
                     <input asp-for="Email" type="email" placeholder="contact@company.com" class="input-field" />
-                    <span asp-validation-for="Email" class="text-rose-400 text-xs mt-1 block"></span>
+                    <span asp-validation-for="Email" class="text-rose-600 text-xs mt-1 block"></span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="label">
                             <span class="material-symbols-outlined text-sm align-middle mr-1">lock</span>
-                            Mật khẩu <span class="text-rose-400">*</span>
+                            Mật khẩu <span class="text-rose-600">*</span>
                         </label>
                         <div class="relative">
                             <input asp-for="Password" type="password" id="passwordInput" placeholder="Ít nhất 8 ký tự" class="input-field" style="padding-right: 2.75rem" />
                             <button type="button" onclick="togglePwd('passwordInput', 'eyeIcon')"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors">
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600 transition-colors">
                                 <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon">visibility_off</span>
                             </button>
                         </div>
-                        <span asp-validation-for="Password" class="text-rose-400 text-xs mt-1 block"></span>
+                        <span asp-validation-for="Password" class="text-rose-600 text-xs mt-1 block"></span>
                     </div>
                     <div>
                         <label class="label">
                             <span class="material-symbols-outlined text-sm align-middle mr-1">verified</span>
-                            Xác nhận <span class="text-rose-400">*</span>
+                            Xác nhận <span class="text-rose-600">*</span>
                         </label>
                         <div class="relative">
                             <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput" placeholder="Nhập lại mật khẩu" class="input-field" style="padding-right: 2.75rem" />
                             <button type="button" onclick="togglePwd('confirmPasswordInput', 'eyeIcon2')"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors">
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600 transition-colors">
                                 <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon2">visibility_off</span>
                             </button>
                         </div>
-                        <span asp-validation-for="ConfirmPassword" class="text-rose-400 text-xs mt-1 block"></span>
+                        <span asp-validation-for="ConfirmPassword" class="text-rose-600 text-xs mt-1 block"></span>
                     </div>
                 </div>
 
@@ -292,10 +256,10 @@
                 <div>
                     <label class="label">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">apartment</span>
-                        Tên công ty <span class="text-rose-400">*</span>
+                        Tên công ty <span class="text-rose-600">*</span>
                     </label>
                     <input asp-for="CompanyName" placeholder="Công ty TNHH ABC" class="input-field" />
-                    <span asp-validation-for="CompanyName" class="text-rose-400 text-xs mt-1 block"></span>
+                    <span asp-validation-for="CompanyName" class="text-rose-600 text-xs mt-1 block"></span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -305,7 +269,7 @@
                             Mã số thuế
                         </label>
                         <input asp-for="TaxCode" placeholder="0123456789" class="input-field" />
-                        <span asp-validation-for="TaxCode" class="text-rose-400 text-xs mt-1 block"></span>
+                        <span asp-validation-for="TaxCode" class="text-rose-600 text-xs mt-1 block"></span>
                     </div>
                     <div>
                         <label class="label">
@@ -313,7 +277,7 @@
                             Ngành nghề
                         </label>
                         <input asp-for="Industry" placeholder="Công nghệ thông tin" class="input-field" />
-                        <span asp-validation-for="Industry" class="text-rose-400 text-xs mt-1 block"></span>
+                        <span asp-validation-for="Industry" class="text-rose-600 text-xs mt-1 block"></span>
                     </div>
                 </div>
 
@@ -323,7 +287,7 @@
                         Địa chỉ
                     </label>
                     <input asp-for="Address" placeholder="Tầng 10, Tòa nhà ABC, Hà Nội" class="input-field" />
-                    <span asp-validation-for="Address" class="text-rose-400 text-xs mt-1 block"></span>
+                    <span asp-validation-for="Address" class="text-rose-600 text-xs mt-1 block"></span>
                 </div>
 
                 <div>
@@ -332,7 +296,7 @@
                         Website
                     </label>
                     <input asp-for="Website" type="url" placeholder="https://company.com" class="input-field" />
-                    <span asp-validation-for="Website" class="text-rose-400 text-xs mt-1 block"></span>
+                    <span asp-validation-for="Website" class="text-rose-600 text-xs mt-1 block"></span>
                 </div>
 
                 <!-- Submit -->
@@ -345,20 +309,20 @@
 
             <!-- Divider -->
             <div class="flex items-center gap-3 my-6">
-                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
-                <span class="text-xs text-slate-500 font-medium">HOẶC</span>
-                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+                <span class="text-xs text-slate-600 font-medium">HOẶC</span>
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
             </div>
 
             <!-- Footer links -->
             <div class="text-center">
-                <p class="text-sm text-slate-500">
+                <p class="text-sm text-slate-600">
                     Đã có tài khoản?
-                    <a asp-controller="Account" asp-action="Login" class="text-blue-400 font-bold hover:text-blue-300 transition-colors">Đăng nhập ngay</a>
+                    <a asp-controller="Account" asp-action="Login" class="text-blue-600 font-bold hover:text-blue-700 transition-colors">Đăng nhập ngay</a>
                 </p>
                 <p class="text-xs text-slate-600 mt-3">
                     Bạn là ứng viên?
-                    <a asp-controller="Account" asp-action="Register" class="text-blue-400 hover:text-blue-300 transition-colors">Đăng ký tài khoản ứng viên</a>
+                    <a asp-controller="Account" asp-action="Register" class="text-blue-600 hover:text-blue-700 transition-colors">Đăng ký tài khoản ứng viên</a>
                 </p>
             </div>
         </div>
@@ -367,9 +331,9 @@
         <div class="text-center mt-6">
             <div class="flex gap-4 text-xs text-slate-600 justify-center">
                 <span>© 2024 JobConnect.</span>
-                <a href="#" class="hover:text-blue-400 transition-colors">Điều khoản</a>
-                <a href="#" class="hover:text-blue-400 transition-colors">Bảo mật</a>
-                <a href="#" class="hover:text-blue-400 transition-colors">Liên hệ</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Điều khoản</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Bảo mật</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Liên hệ</a>
             </div>
         </div>
     </div>
@@ -389,37 +353,6 @@
         }
 
         // Hiệu ứng mưa
-        function initRain() {
-        const container = document.getElementById('rainContainer');
-        if (!container) return;
-        container.innerHTML = '';
-
-        // Giọt mưa to
-        for (let i = 0; i < 40; i++) {
-        const drop = document.createElement('div');
-        drop.classList.add('drop');
-        drop.style.left = Math.random() * 100 + '%';
-        drop.style.animationDuration = (Math.random() * 1.2 + 0.8) + 's';
-        drop.style.animationDelay = (Math.random() * 8) + 's';
-        drop.style.height = (Math.random() * 40 + 40) + 'px';
-        drop.style.opacity = Math.random() * 0.4 + 0.15;
-        container.appendChild(drop);
-        }
-
-        // Hạt mưa nhỏ
-        for (let i = 0; i < 60; i++) {
-        const drop = document.createElement('div');
-        drop.classList.add('drop-small');
-        drop.style.left = Math.random() * 100 + '%';
-        drop.style.animationDuration = (Math.random() * 1.5 + 0.6) + 's';
-        drop.style.animationDelay = (Math.random() * 10) + 's';
-        drop.style.height = (Math.random() * 20 + 15) + 'px';
-        drop.style.opacity = Math.random() * 0.25 + 0.1;
-        container.appendChild(drop);
-        }
-        }
-
-        document.addEventListener('DOMContentLoaded', initRain);
-    </script>
+                </script>
 </body>
 </html>

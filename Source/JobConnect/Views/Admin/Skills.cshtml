@@ -4,22 +4,22 @@
     Layout = "_LayoutAdmin";
 }
 
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="w-full px-6 py-8 xl:px-10">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-on-surface">Quản lý Kỹ năng</h1>
             <p class="text-secondary text-sm">Quản lý danh sách kỹ năng cho ứng viên</p>
         </div>
-        <a asp-action="SkillCreate" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+        <button type="button" onclick="openCreateSkillModal()" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
             <span class="material-symbols-outlined text-base">add</span>
             Thêm kỹ năng mới
-        </a>
+        </button>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
             <span class="material-symbols-outlined text-base">check_circle</span>
             @TempData["Success"]
         </div>
@@ -59,7 +59,7 @@
                     }
                 </select>
             </div>
-            <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+            <button type="submit" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
                 Lọc
             </button>
             <a asp-action="Skills" class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
@@ -111,20 +111,20 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a asp-action="SkillEdit" asp-route-id="@skill.SkillID" 
+                                    <a asp-action="SkillEdit" asp-route-id="@skill.SkillID"
                                        class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Sửa">
                                         <span class="material-symbols-outlined text-sm">edit</span>
                                     </a>
-                                    <form asp-action="SkillToggle" asp-route-id="@skill.SkillID" method="post" 
+                                    <form asp-action="SkillToggle" asp-route-id="@skill.SkillID" method="post"
                                           onsubmit="return confirm('Bạn có chắc muốn thay đổi trạng thái kỹ năng này?')"
                                           class="inline">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="p-2 @(skill.IsActive ? "text-orange-600 hover:bg-orange-50" : "text-green-600 hover:bg-green-50") rounded-lg" 
+                                        <button type="submit" class="p-2 @(skill.IsActive ? "text-orange-600 hover:bg-orange-50" : "text-green-600 hover:bg-green-50") rounded-lg"
                                                 title="@(skill.IsActive ? "Khóa" : "Kích hoạt")">
                                             <span class="material-symbols-outlined text-sm">@(skill.IsActive ? "lock" : "lock_open")</span>
                                         </button>
                                     </form>
-                                    <form asp-action="SkillDelete" asp-route-id="@skill.SkillID" method="post" 
+                                    <form asp-action="SkillDelete" asp-route-id="@skill.SkillID" method="post"
                                           onsubmit="return confirm('Bạn có chắc muốn xóa kỹ năng này?')"
                                           class="inline">
                                         @Html.AntiForgeryToken()
@@ -147,7 +147,7 @@
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
                     <a asp-action="Skills" asp-route-page="@i" asp-route-category="@ViewBag.CategoryFilter" asp-route-keyword="@ViewBag.KeywordFilter"
-                       class="px-4 py-2 rounded-lg text-sm font-medium @(i == ViewBag.CurrentPage ? "bg-primary text-white" : "bg-white border border-outline-variant text-secondary hover:bg-surface-container")">
+                       class="px-4 py-2 rounded-lg text-sm font-medium @(i == ViewBag.CurrentPage ? "bg-primary text-slate-900" : "bg-white border border-outline-variant text-secondary hover:bg-surface-container")">
                         @i
                     </a>
                 }
@@ -159,9 +159,117 @@
         <div class="bg-white rounded-2xl p-12 text-center border border-outline-variant">
             <span class="material-symbols-outlined text-6xl text-secondary mb-4">psychology</span>
             <p class="text-lg text-secondary">Không tìm thấy kỹ năng nào</p>
-            <a asp-action="SkillCreate" class="inline-block mt-4 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+            <button type="button" onclick="openCreateSkillModal()" class="inline-block mt-4 px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
                 Thêm kỹ năng đầu tiên
-            </a>
+            </button>
         </div>
     }
 </div>
+
+<!-- Create Skill Modal -->
+<div id="createSkillModal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl border border-outline-variant p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-on-surface">Thêm Kỹ năng mới</h2>
+            <button type="button" onclick="closeCreateSkillModal()" class="p-2 text-secondary hover:bg-surface-container rounded-lg">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div id="createSkillError" class="hidden mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            <span id="createSkillErrorText"></span>
+        </div>
+
+        <form id="createSkillForm" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+
+            <div>
+                <label for="skillName" class="block text-sm font-medium text-on-surface mb-1">Tên kỹ năng <span class="text-red-500">*</span></label>
+                <input id="skillName" name="Name" required type="text" placeholder="Ví dụ: C#, UI/UX Design, Digital Marketing"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+
+            <div>
+                <label for="skillCategory" class="block text-sm font-medium text-on-surface mb-1">Danh mục <span class="text-red-500">*</span></label>
+                <select id="skillCategory" name="Category" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    @if (ViewBag.Categories != null)
+                    {
+                        foreach (SkillCategory cat in ViewBag.Categories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="skillDescription" class="block text-sm font-medium text-on-surface mb-1">Mô tả</label>
+                <textarea id="skillDescription" name="Description" rows="4" placeholder="Mô tả ngắn về kỹ năng này..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"></textarea>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="hidden" name="IsActive" value="false" />
+                <input id="skillIsActive" name="IsActive" type="checkbox" value="true" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" />
+                <label for="skillIsActive" class="text-sm font-medium text-on-surface">Kích hoạt ngay</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeCreateSkillModal()" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container text-center whitespace-nowrap">
+                    Huỷ
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 whitespace-nowrap">
+                    Tạo kỹ năng
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCreateSkillModal() {
+        document.getElementById('createSkillModal').classList.remove('hidden');
+        document.getElementById('createSkillModal').classList.add('flex');
+    }
+
+    function closeCreateSkillModal() {
+        document.getElementById('createSkillModal').classList.add('hidden');
+        document.getElementById('createSkillModal').classList.remove('flex');
+        document.getElementById('createSkillForm').reset();
+        document.getElementById('createSkillError').classList.add('hidden');
+    }
+
+    document.getElementById('createSkillModal').addEventListener('click', function (e) {
+        if (e.target === this) closeCreateSkillModal();
+    });
+
+    document.getElementById('createSkillForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const token = document.querySelector('#createSkillForm input[name="__RequestVerificationToken"]').value;
+        const errorBox = document.getElementById('createSkillError');
+        const errorText = document.getElementById('createSkillErrorText');
+
+        try {
+            const response = await fetch('@Url.Action("SkillCreate", "Admin")', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.reload();
+            } else {
+                errorText.textContent = 'Không thể thêm kỹ năng. Vui lòng kiểm tra lại thông tin.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
+            }
+        } catch (err) {
+            errorText.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+        }
+    });
+</script>

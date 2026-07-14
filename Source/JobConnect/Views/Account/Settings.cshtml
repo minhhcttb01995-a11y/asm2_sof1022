@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Cài đặt tài khoản";
     Layout = "_Layout";
@@ -6,11 +6,11 @@
 
 <style>
     body {
-        background-color: #000 !important;
+        background-color: #f8fafc !important;
     }
 
     .settings-bg {
-        background: linear-gradient(135deg, #050505 0%, #0a0a0a 60%, #0f0f0f 100%);
+        background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 60%, #ffffff 100%);
         min-height: 100vh;
         position: relative;
         overflow: hidden;
@@ -21,7 +21,7 @@
         position: absolute;
         width: 500px;
         height: 500px;
-        background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(37,99,235,0.10) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
     }
@@ -30,86 +30,62 @@
         position: absolute;
         width: 400px;
         height: 400px;
-        background: radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
     }
 
-    /* Rain effect */
-    .rain-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
-        overflow: hidden;
-    }
-
-    .drop {
-        position: absolute;
-        background: linear-gradient(to bottom, rgba(59,130,246,0.5) 0%, rgba(59,130,246,0.2) 50%, rgba(59,130,246,0) 100%);
-        width: 2px;
-        border-radius: 0 0 3px 3px;
-        animation: fall linear infinite;
-    }
-
-    @@keyframes fall {
-        to {
-            transform: translateY(110vh);
-        }
-    }
-
     /* Glass card */
     .glass-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.85);
+        border: 1px solid rgba(15,23,42,0.08);
+        box-shadow: 0 8px 24px rgba(15,23,42,0.06);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
     }
 
     /* Tab pill */
     .tab-active {
-        background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
         color: #fff;
-        box-shadow: 0 4px 15px rgba(37,99,235,0.35);
+        box-shadow: 0 4px 15px rgba(37,99,235,0.25);
     }
 
     .tab-inactive {
-        color: rgba(255,255,255,0.45);
+        color: rgba(15,23,42,0.55);
     }
 
         .tab-inactive:hover {
-            color: rgba(255,255,255,0.75);
-            background: rgba(255,255,255,0.05);
+            color: rgba(15,23,42,0.85);
+            background: rgba(15,23,42,0.04);
         }
 
     /* Input */
     .dark-input {
         width: 100%;
         padding: 11px 16px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: #ffffff;
+        border: 1px solid rgba(15,23,42,0.12);
         border-radius: 12px;
-        color: #fff;
+        color: #0f172a;
         font-size: 14px;
         outline: none;
         transition: all 0.2s;
     }
 
         .dark-input::placeholder {
-            color: rgba(255,255,255,0.3);
+            color: rgba(15,23,42,0.35);
         }
 
         .dark-input:focus {
             border-color: rgba(59,130,246,0.6);
-            background: rgba(59,130,246,0.07);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            background: rgba(59,130,246,0.05);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
         }
 
         .dark-input[readonly] {
-            color: rgba(255,255,255,0.35);
+            color: rgba(15,23,42,0.45);
+            background: rgba(15,23,42,0.03);
             cursor: not-allowed;
         }
 
@@ -117,7 +93,7 @@
     .btn-primary {
         width: 100%;
         padding: 12px;
-        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
         border: none;
         border-radius: 12px;
         color: #fff;
@@ -125,12 +101,12 @@
         font-size: 14px;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: 0 4px 15px rgba(37,99,235,0.35);
+        box-shadow: 0 4px 15px rgba(37,99,235,0.25);
     }
 
         .btn-primary:hover {
-            opacity: 0.9;
-            box-shadow: 0 6px 20px rgba(37,99,235,0.5);
+            opacity: 0.92;
+            box-shadow: 0 6px 20px rgba(37,99,235,0.35);
             transform: translateY(-1px);
         }
 
@@ -145,20 +121,20 @@
         font-size: 14px;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: 0 4px 15px rgba(220,38,38,0.3);
+        box-shadow: 0 4px 15px rgba(220,38,38,0.25);
     }
 
         .btn-danger:hover {
-            opacity: 0.9;
+            opacity: 0.92;
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(220,38,38,0.45);
+            box-shadow: 0 6px 20px rgba(220,38,38,0.35);
         }
 
     label.field-label {
         display: block;
         font-size: 13px;
         font-weight: 500;
-        color: rgba(255,255,255,0.5);
+        color: rgba(15,23,42,0.55);
         margin-bottom: 6px;
     }
 </style>
@@ -168,32 +144,29 @@
     <div class="glow-blue" style="top:-100px;left:-100px;"></div>
     <div class="glow-purple" style="bottom:0;right:-80px;"></div>
 
-    <!-- Rain -->
-    <div class="rain-container" id="rain"></div>
-
     <div class="relative z-10 max-w-lg mx-auto">
 
         <!-- Header -->
         <div class="text-center mb-10">
             <div class="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-4"
-                 style="background:rgba(37,99,235,0.15);border:1px solid rgba(59,130,246,0.25);">
-                <span class="material-symbols-outlined text-blue-400 text-2xl">settings</span>
+                 style="background:rgba(37,99,235,0.10);border:1px solid rgba(59,130,246,0.20);">
+                <span class="material-symbols-outlined text-blue-600 text-2xl">settings</span>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Cài đặt tài khoản</h1>
-            <p class="text-sm" style="color:rgba(255,255,255,0.4);">Quản lý bảo mật và thông tin đăng nhập</p>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Cài đặt tài khoản</h1>
+            <p class="text-sm" style="color:rgba(15,23,42,0.5);">Quản lý bảo mật và thông tin đăng nhập</p>
         </div>
 
         @if (TempData["Success"] is string ok)
         {
-            <div class="mb-5 px-4 py-3 rounded-xl text-sm flex items-center gap-2"
-                 style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#86efac;">
+            <div class="mb-5 px-4 py-3 rounded-xl text-sm flex items-center gap-2 auto-hide-alert"
+                 style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);color:#16a34a;">
                 <span class="material-symbols-outlined text-sm">check_circle</span> @ok
             </div>
         }
         @if (TempData["Error"] is string err)
         {
             <div class="mb-5 px-4 py-3 rounded-xl text-sm flex items-center gap-2"
-                 style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;">
+                 style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#dc2626;">
                 <span class="material-symbols-outlined text-sm">error</span> @err
             </div>
         }
@@ -229,22 +202,26 @@
                   class="glass-card rounded-2xl p-7 space-y-5">
                 @Html.AntiForgeryToken()
                 <div class="flex items-center gap-2 mb-1">
-                    <span class="material-symbols-outlined text-blue-400 text-base">lock</span>
-                    <h2 class="font-semibold text-white">Đổi mật khẩu</h2>
+                    <span class="material-symbols-outlined text-blue-600 text-base">lock</span>
+                    <h2 class="font-semibold text-slate-900">Đổi mật khẩu</h2>
                 </div>
                 <div>
-                    <label class="field-label">Mật khẩu hiện tại <span style="color:#f87171">*</span></label>
+                    <label class="field-label">Mật khẩu hiện tại <span style="color:#ef4444">*</span></label>
                     <input type="password" name="CurrentPassword" class="dark-input" placeholder="Nhập mật khẩu hiện tại" />
                 </div>
                 <div>
-                    <label class="field-label">Mật khẩu mới <span style="color:#f87171">*</span></label>
+                    <label class="field-label">Mật khẩu mới <span style="color:#ef4444">*</span></label>
                     <input type="password" name="NewPassword" class="dark-input" placeholder="Tối thiểu 8 ký tự, có chữ hoa và số" />
                 </div>
                 <div>
-                    <label class="field-label">Xác nhận mật khẩu mới <span style="color:#f87171">*</span></label>
+                    <label class="field-label">Xác nhận mật khẩu mới <span style="color:#ef4444">*</span></label>
                     <input type="password" name="ConfirmPassword" class="dark-input" placeholder="Nhập lại mật khẩu mới" />
                 </div>
                 <button type="submit" class="btn-primary">Cập nhật mật khẩu</button>
+                <p class="text-xs text-center" style="color:rgba(15,23,42,0.4);">
+                    <span class="material-symbols-outlined text-xs align-middle">verified_user</span>
+                    Yêu cầu xác thực mã OTP gửi qua email trước khi áp dụng.
+                </p>
             </form>
         </div>
 
@@ -254,37 +231,41 @@
                   class="glass-card rounded-2xl p-7 space-y-5">
                 @Html.AntiForgeryToken()
                 <div class="flex items-center gap-2 mb-1">
-                    <span class="material-symbols-outlined text-blue-400 text-base">mail</span>
-                    <h2 class="font-semibold text-white">Đổi địa chỉ Email</h2>
+                    <span class="material-symbols-outlined text-blue-600 text-base">mail</span>
+                    <h2 class="font-semibold text-slate-900">Đổi địa chỉ Email</h2>
                 </div>
                 <div>
                     <label class="field-label">Email hiện tại</label>
                     <input type="email" value="@User.FindFirst(ClaimTypes.Email)?.Value" class="dark-input" readonly />
                 </div>
                 <div>
-                    <label class="field-label">Email mới <span style="color:#f87171">*</span></label>
+                    <label class="field-label">Email mới <span style="color:#ef4444">*</span></label>
                     <input type="email" name="NewEmail" class="dark-input" placeholder="email-moi@example.com" />
                 </div>
                 <div>
-                    <label class="field-label">Xác nhận bằng mật khẩu <span style="color:#f87171">*</span></label>
+                    <label class="field-label">Xác nhận bằng mật khẩu <span style="color:#ef4444">*</span></label>
                     <input type="password" name="Password" class="dark-input" placeholder="Mật khẩu hiện tại" />
                 </div>
                 <button type="submit" class="btn-primary">Cập nhật email</button>
+                <p class="text-xs text-center" style="color:rgba(15,23,42,0.4);">
+                    <span class="material-symbols-outlined text-xs align-middle">verified_user</span>
+                    Mã OTP xác thực sẽ được gửi đến email mới để xác nhận quyền sở hữu.
+                </p>
             </form>
         </div>
 
         <!-- Panel: Xóa tài khoản -->
         <div id="panel-danger" class="hidden">
             <div class="rounded-2xl p-7 space-y-5"
-                 style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);backdrop-filter:blur(20px);">
+                 style="background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.18);backdrop-filter:blur(20px);">
                 <div class="flex items-start gap-3">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                         style="background:rgba(239,68,68,0.15);">
-                        <span class="material-symbols-outlined text-red-400">warning</span>
+                         style="background:rgba(239,68,68,0.12);">
+                        <span class="material-symbols-outlined text-red-500">warning</span>
                     </div>
                     <div>
-                        <h2 class="font-semibold" style="color:#fca5a5;">Xóa tài khoản vĩnh viễn</h2>
-                        <p class="text-sm mt-1" style="color:rgba(255,255,255,0.4);">
+                        <h2 class="font-semibold" style="color:#dc2626;">Xóa tài khoản vĩnh viễn</h2>
+                        <p class="text-sm mt-1" style="color:rgba(15,23,42,0.5);">
                             Hành động này không thể hoàn tác. Tất cả dữ liệu bao gồm hồ sơ,
                             đơn ứng tuyển và CV sẽ bị xóa hoàn toàn.
                         </p>
@@ -302,6 +283,10 @@
                             onclick="return confirm('Bạn có CHẮC CHẮN muốn xóa tài khoản? Hành động này KHÔNG THỂ hoàn tác!')">
                         Xóa tài khoản vĩnh viễn
                     </button>
+                    <p class="text-xs text-center mt-3" style="color:rgba(15,23,42,0.4);">
+                        <span class="material-symbols-outlined text-xs align-middle">verified_user</span>
+                        Yêu cầu xác thực mã OTP gửi qua email trước khi xóa vĩnh viễn.
+                    </p>
                 </form>
             </div>
         </div>
@@ -310,16 +295,6 @@
 </div>
 
 <script>
-    // Rain effect
-    const rain = document.getElementById('rain');
-    for (let i = 0; i < 30; i++) {
-        const d = document.createElement('div');
-        d.className = Math.random() > 0.5 ? 'drop' : 'drop';
-        const h = Math.random() * 80 + 20;
-        d.style.cssText = `left:${Math.random()*100}%;top:${-h}px;height:${h}px;opacity:${Math.random()*0.4+0.1};animation-duration:${Math.random()*2+1.5}s;animation-delay:${Math.random()*3}s;`;
-        rain.appendChild(d);
-    }
-
     // Tab switcher
     function switchTab(name) {
         ['password', 'email', 'danger'].forEach(t => {

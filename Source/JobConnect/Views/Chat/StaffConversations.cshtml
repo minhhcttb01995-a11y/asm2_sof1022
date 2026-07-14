@@ -11,14 +11,14 @@
     }
 }
 
-<div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-white mb-6">Hỗ trợ trực tuyến</h1>
+<div class="max-w-[1300px] mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-slate-900 mb-6">Hỗ trợ trực tuyến</h1>
 
     @if (!hasConversations)
     {
         <div class="text-center py-16">
             <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">support_agent</span>
-            <p class="text-slate-300">Chưa có cuộc trò chuyện nào.</p>
+            <p class="text-slate-600">Chưa có cuộc trò chuyện nào.</p>
         </div>
     }
     else
@@ -29,18 +29,18 @@
             {
                 <a asp-action="Conversation" asp-route-userId="@conv.OtherUserId" class="block border-b border-white/10 last:border-0 hover:bg-white/5 transition-colors">
                     <div class="p-4 flex items-center gap-4">
-                        <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 font-bold flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-600 font-bold flex-shrink-0">
                             @(conv.OtherUser.FullName?[0].ToString().ToUpper() ?? "U")
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-2">
-                                <h3 class="font-semibold text-white truncate">@conv.OtherUser.FullName</h3>
-                                <span class="text-xs text-slate-400 flex-shrink-0">@conv.LastMessage.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                <h3 class="font-semibold text-slate-900 truncate">@conv.OtherUser.FullName</h3>
+                                <span class="text-xs text-slate-500 flex-shrink-0">@conv.LastMessage.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
-                            <p class="text-sm text-slate-400 truncate mt-1">@conv.LastMessage.Content</p>
+                            <p class="text-sm text-slate-500 truncate mt-1">@conv.LastMessage.Content</p>
                             @if (conv.LastMessage.Job != null)
                             {
-                                <p class="text-xs text-blue-400 mt-1">Về tin: @conv.LastMessage.Job.Title</p>
+                                <p class="text-xs text-blue-600 mt-1">Về tin: @conv.LastMessage.Job.Title</p>
                             }
                         </div>
                         @if (conv.UnreadCount > 0)

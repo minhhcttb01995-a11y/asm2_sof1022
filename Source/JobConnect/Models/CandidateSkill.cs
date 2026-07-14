@@ -1,49 +1,34 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-/// <summary>
-/// Junction table representing a candidate's skill with proficiency details
-/// </summary>
-public class CandidateSkill
+public partial class CandidateSkill
 {
-    [Key]
-    [Column(Order = 1)]
-    public int ProfileID { get; set; }
+    public int ProfileId { get; set; }
 
-    [Key]
-    [Column(Order = 2)]
-    public int SkillID { get; set; }
+    public int SkillId { get; set; }
 
-    [Required]
-    [StringLength(50)]
-    public ProficiencyLevel ProficiencyLevel { get; set; } = ProficiencyLevel.Intermediate;
+    // Store as enum for clearer usage across controllers/views
+    public ProficiencyLevel ProficiencyLevel { get; set; }
 
-    [Range(0, 50)]
-    public decimal YearsOfExperience { get; set; } = 0;
+    public decimal YearsOfExperience { get; set; }
 
     public DateTime? LastUsedDate { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
-    // Navigation properties
-    [ForeignKey(nameof(ProfileID))]
-    public virtual CandidateProfile CandidateProfile { get; set; } = null!;
+    public virtual CandidateProfile Profile { get; set; } = null!;
 
-    [ForeignKey(nameof(SkillID))]
     public virtual Skill Skill { get; set; } = null!;
-}
 
-/// <summary>
-/// Proficiency levels for candidate skills
-/// </summary>
-public enum ProficiencyLevel
-{
-    Beginner,
-    Elementary,
-    Intermediate,
-    Advanced,
-    Expert
+    // Compatibility alias for skill id
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int SkillID
+    {
+        get => SkillId;
+        set => SkillId = value;
+    }
 }

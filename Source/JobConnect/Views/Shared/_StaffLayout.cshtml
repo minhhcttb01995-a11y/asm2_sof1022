@@ -168,7 +168,23 @@
         background: rgba(255,255,255,0.15);
         border-radius: 2px;
         }
+
+        /* Fix: danh sách option của thẻ select luôn được trình duyệt vẽ nền
+        trắng, trong khi chữ đang kế thừa màu trắng của theme tối => chữ
+        bị "mất" (trắng trên trắng). Ép màu tối cho option và nền select
+        khi đóng để đảm bảo luôn đọc được, đồng thời khai báo color-scheme
+        light cho riêng control này. */
+        select {
+        color: #ffffff;
+        color-scheme: light;
+        }
+
+        select option {
+        color: #0f172a;
+        background: #ffffff;
+        }
     </style>
+    <partial name="_ResponsiveAndSkeleton" />
 </head>
 <body class="text-white font-sans min-h-screen">
     <div class="flex min-h-screen">
@@ -311,7 +327,7 @@
                 <div class="flex items-center gap-4">
                     @if (TempData["Success"] != null)
                     {
-                        <div class="bg-green-500/20 text-green-400 px-4 py-2 rounded-lg flex items-center gap-2">
+                        <div class="bg-green-500/20 text-green-400 px-4 py-2 rounded-lg flex items-center gap-2 auto-hide-alert">
                             <span class="material-icons text-sm">check_circle</span>
                             <span>@TempData["Success"]</span>
                         </div>
@@ -331,6 +347,7 @@
         </main>
     </div>
 
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,275 @@
+@model List<JobConnect.Models.User>
+@{
+    ViewData["Title"] = "Liên hệ";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="jc-contacts-page">
+    <div class="jc-contacts-shell">
+
+        <div class="jc-contacts-header">
+            <a asp-action="Index" class="jc-contacts-back">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div>
+                <h1>Bắt đầu trò chuyện mới</h1>
+                <p>Chọn nhân viên để nhắn tin</p>
+            </div>
+        </div>
+
+        <form method="get" asp-action="Contacts" class="jc-contacts-filters">
+            <div class="jc-contacts-search">
+                <input type="text" name="search" value="@ViewBag.Search" placeholder="Tìm nhân viên theo tên hoặc email..." />
+                <button type="submit">Tìm</button>
+            </div>
+        </form>
+
+        @if (!Model.Any())
+        {
+            <div class="jc-contacts-empty">
+                <span class="material-symbols-outlined">person_search</span>
+                <p>Không tìm thấy nhân viên phù hợp.</p>
+            </div>
+        }
+        else
+        {
+            <div class="jc-contacts-list">
+                @foreach (var u in Model)
+                {
+                    var subLabel = u.Staff?.Position ?? u.Email;
+                    <a asp-action="StartWithUser" asp-route-userId="@u.UserId" class="jc-contacts-item">
+                        <div class="jc-contacts-avatar">
+                            @(u.FullName?[0].ToString().ToUpper() ?? "U")
+                        </div>
+                        <div class="jc-contacts-item-body">
+                            <div class="jc-contacts-item-top">
+                                <h3>@u.FullName</h3>
+                                <span class="jc-contacts-role-badge">Nhân viên</span>
+                            </div>
+                            <p>@subLabel</p>
+                        </div>
+                        <span class="material-symbols-outlined jc-contacts-chevron">chevron_right</span>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .jc-contacts-page {
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .jc-contacts-shell {
+        width: 100%;
+        max-width: 860px;
+    }
+
+    /* Header */
+    .jc-contacts-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .jc-contacts-back {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        flex-shrink: 0;
+        transition: background .15s, color .15s;
+    }
+
+        .jc-contacts-back:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+    .jc-contacts-header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .jc-contacts-header p {
+        margin: 4px 0 0;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    /* Filters */
+    .jc-contacts-filters {
+        margin-bottom: 18px;
+    }
+
+    .jc-contacts-search {
+        display: flex;
+        gap: 10px;
+    }
+
+        .jc-contacts-search input[type="text"] {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #0f172a;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+            .jc-contacts-search input[type="text"]::placeholder {
+                color: #94a3b8;
+            }
+
+            .jc-contacts-search input[type="text"]:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+            }
+
+        .jc-contacts-search button {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg,#2563eb,#3b82f6);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: filter .15s;
+        }
+
+            .jc-contacts-search button:hover {
+                filter: brightness(1.08);
+            }
+
+    /* List */
+    .jc-contacts-list {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 16px 40px -18px rgba(0,0,0,.4);
+    }
+
+    .jc-contacts-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        border-bottom: 1px solid #1e293b;
+        text-decoration: none;
+        transition: background .15s;
+    }
+
+        .jc-contacts-item:last-child {
+            border-bottom: none;
+        }
+
+        .jc-contacts-item:hover {
+            background: rgba(255,255,255,.05);
+        }
+
+    .jc-contacts-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#3b82f6,#6366f1);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(59,130,246,.35);
+    }
+
+    .jc-contacts-item-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .jc-contacts-item-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .jc-contacts-item-body h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #f1f5f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .jc-contacts-role-badge {
+        flex-shrink: 0;
+        font-size: 11px;
+        font-weight: 700;
+        color: #93c5fd;
+        background: rgba(59,130,246,.15);
+        padding: 3px 10px;
+        border-radius: 999px;
+    }
+
+    .jc-contacts-item-body > p {
+        margin: 4px 0 0;
+        font-size: 13.5px;
+        color: #94a3b8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .jc-contacts-chevron {
+        color: #64748b;
+        flex-shrink: 0;
+    }
+
+    /* Empty state */
+    .jc-contacts-empty {
+        text-align: center;
+        padding: 60px 20px;
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 18px;
+    }
+
+        .jc-contacts-empty .material-symbols-outlined {
+            font-size: 60px;
+            color: #334155;
+            margin-bottom: 12px;
+        }
+
+        .jc-contacts-empty p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+    @@media (max-width: 560px) {
+        .jc-contacts-page {
+            padding: 14px;
+        }
+
+        .jc-contacts-header h1 {
+            font-size: 20px;
+        }
+    }
+</style>

@@ -6,14 +6,16 @@ public class StaffDetailsViewModel
 {
     public int Id { get; set; }
     public string EmployeeCode { get; set; } = string.Empty;
+    public string CCCD { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? Gender { get; set; }
     public string? Avatar { get; set; }
     public string Position { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
-    public StaffStatus Status { get; set; }
+    public string Status { get; set; } = "Active";
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }

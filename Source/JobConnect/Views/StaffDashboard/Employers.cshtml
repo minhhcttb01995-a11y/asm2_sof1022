@@ -1,12 +1,14 @@
 @model List<JobConnect.Models.Employer>
+@using JobConnect.Models
 @{
     ViewData["Title"] = "Quản lý Nhà tuyển dụng";
     Layout = "_StaffLayout";
+    var employerStatuses = ViewBag.EmployerStatuses as List<StatusCatalog>;
 }
 
 <!-- Search & Filter -->
 <form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4">
-    <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên công ty, email..."
+    <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên công ty, email hoặc mã công ty..."
            class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
     <select name="status" class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
         <option value="">Tất cả trạng thái</option>
@@ -24,7 +26,7 @@
     <table class="w-full text-sm">
         <thead class="bg-white/5 border-b border-white/10">
             <tr>
-                <th class="text-left px-6 py-4 font-semibold">ID</th>
+                <th class="text-left px-6 py-4 font-semibold">Mã</th>
                 <th class="text-left px-6 py-4 font-semibold">Tên công ty</th>
                 <th class="text-left px-6 py-4 font-semibold">Email</th>
                 <th class="text-left px-6 py-4 font-semibold">Ngành nghề</th>
@@ -41,12 +43,13 @@
                 {
                     var verifiedClass = employer.IsVerified ? "badge-open" : "badge-pending";
                     var verifiedLabel = employer.IsVerified ? "Đã xác minh" : "Chưa xác minh";
-                    var lockedClass = employer.IsLocked ? "badge-rejected" : "badge-open";
-                    var lockedLabel = employer.IsLocked ? "Đã khóa" : "Hoạt động";
-                    
+                    var statusInfo = employerStatuses?.FirstOrDefault(s => s.Code == employer.Status);
+                    var statusLabel = statusInfo?.Name ?? employer.Status;
+                    var statusClass = statusInfo?.ColorClass ?? "bg-gray-500/20 text-gray-300";
+
                     <tr class="hover:bg-white/5 transition-colors">
                         <td class="px-6 py-4">
-                            <span class="font-mono text-xs text-gray-400">@employer.EmployerID</span>
+                            <span class="font-mono text-xs text-gray-400">@(employer.CompanyCode ?? employer.EmployerId.ToString())</span>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
@@ -65,25 +68,29 @@
                             <span class="px-3 py-1 rounded-full text-xs font-medium @verifiedClass">@verifiedLabel</span>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-medium @lockedClass">@lockedLabel</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium @statusClass">@statusLabel</span>
                         </td>
                         <td class="px-6 py-4 text-gray-400">@employer.CreatedAt.ToString("dd/MM/yyyy")</td>
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = employer.UserID })"
+                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = employer.UserId })"
                                    class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
                                    title="Xem chi tiết">
                                     <span class="material-icons text-sm">visibility</span>
                                 </a>
-                                <form asp-action="ToggleEmployerLock" method="post" class="inline">
+                                <form asp-action="ChangeEmployerStatus" method="post" class="inline">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="employerId" value="@employer.EmployerID" />
-                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                    <button type="submit" 
-                                            class="p-2 @(employer.IsLocked ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" : "bg-red-500/20 text-red-400 hover:bg-red-500/30") rounded-lg transition-colors"
-                                            title="@(employer.IsLocked ? "Mở khóa công ty" : "Khóa công ty")">
-                                        <span class="material-icons text-sm">@(employer.IsLocked ? "unlock" : "lock")</span>
-                                    </button>
+                                    <input type="hidden" name="employerId" value="@employer.EmployerId" />
+                                    <select name="newStatus" onchange="this.form.submit()"
+                                            class="px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs outline-none focus:border-blue-500">
+                                        @if (employerStatuses != null)
+                                        {
+                                            @foreach (var status in employerStatuses)
+                                            {
+                                                <option value="@status.Code" selected="@(employer.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                            }
+                                        }
+                                    </select>
                                 </form>
                             </div>
                         </td>
@@ -113,7 +120,7 @@
                 <span class="material-icons text-sm">chevron_left</span>
             </a>
         }
-        
+
         @for (int i = 1; i <= ViewBag.TotalPages; i++)
         {
             if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
@@ -128,7 +135,7 @@
                 <span class="px-2">...</span>
             }
         }
-        
+
         @if (ViewBag.Page < ViewBag.TotalPages)
         {
             <a href="@Url.Action("Employers", new { keyword = ViewBag.Keyword, status = ViewBag.Status, page = ViewBag.Page + 1 })"

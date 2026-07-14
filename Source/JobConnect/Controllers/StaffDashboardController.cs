@@ -1,5 +1,7 @@
 using JobConnect.Data;
+using JobConnect.Extensions;
 using JobConnect.Models;
+using JobConnect.Services;
 using JobConnect.ViewModels.Staff;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +15,17 @@ public class StaffDashboardController : Controller
 {
     private readonly AppDbContext _context;
     private readonly ILogger<StaffDashboardController> _logger;
+    private readonly IStatusCatalogService _statusSvc;
+    private readonly ICodeGeneratorService _codeGen;
+    private readonly IEmailService _emailSvc;
 
-    public StaffDashboardController(AppDbContext context, ILogger<StaffDashboardController> logger)
+    public StaffDashboardController(AppDbContext context, ILogger<StaffDashboardController> logger, IStatusCatalogService statusSvc, ICodeGeneratorService codeGen, IEmailService emailSvc)
     {
         _context = context;
         _logger = logger;
+        _statusSvc = statusSvc;
+        _codeGen = codeGen;
+        _emailSvc = emailSvc;
     }
 
     // ==================== HELPER METHODS ====================
@@ -28,7 +36,7 @@ public class StaffDashboardController : Controller
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (int.TryParse(userIdStr, out int userId))
         {
-            return await _context.Staff.Include(s => s.User).FirstOrDefaultAsync(s => s.ApplicationUserId == userId);
+            return await _context.Staff.Include(s => s.ApplicationUser).FirstOrDefaultAsync(s => s.ApplicationUserId == userId);
         }
         return null;
     }
@@ -55,29 +63,34 @@ public class StaffDashboardController : Controller
         {
             TotalCompanies = await _context.Employers.CountAsync(),
             TotalJobPosts = await _context.JobPosts.CountAsync(),
-            TotalOpenJobPosts = await _context.JobPosts.CountAsync(j => j.Status == "Open"),
+            TotalOpenJobPosts = await _context.JobPosts.CountAsync(j => j.Status == "Active"),
             TotalCandidates = await _context.CandidateProfiles.CountAsync(),
             TotalCvFiles = await _context.CvFiles.CountAsync(),
             PendingJobPostsCount = await _context.JobPosts.CountAsync(j => j.Status == "Pending"),
             PendingCompaniesCount = await _context.Employers.CountAsync(e => e.IsLocked == false && e.IsVerified == false),
             TotalReports = await _context.Reports.CountAsync(),
-            PendingReports = await _context.Reports.CountAsync(r => r.Status == ReportStatus.Pending),
-            OpenTickets = await _context.SupportTickets.CountAsync(t => t.Status == TicketStatus.Open)
+            PendingReports = await _context.Reports.CountAsync(r => r.Status == (int)ReportStatus.Pending),
+            OpenTickets = await _context.SupportTickets.CountAsync(t => t.Status == (int)TicketStatus.Open)
         };
 
-        // Chart: phân bố tin tuyển dụng theo ngành nghề (Category Type = "Industry")
-        viewModel.JobDistribution = await _context.JobPosts
-            .Include(j => j.Category)
-            .Where(j => j.Category != null && j.Category.Type == "Industry")
-            .GroupBy(j => j.Category!.Name)
-            .Select(g => new JobDistributionItem
-            {
-                Industry = g.Key,
-                Count = g.Count()
-            })
+        // Chart: phân bố tin tuyển dụng theo ngành nghề
+        // Lưu ý: JobPosts.CategoryID thường trỏ tới category con (Type="JobType", VD: "Backend Developer"),
+        // không trỏ trực tiếp tới category ngành nghề cha (Type="Industry"). Trước đây code lọc thẳng
+        // Category.Type == "Industry" nên hầu hết tin bị loại khỏi thống kê / dồn hết vào 1 lát cắt.
+        // Nay quy về đúng ngành nghề cha (Parent) khi category của tin là loại JobType.
+        var jobsWithCategory = await _context.JobPosts
+            .Include(j => j.Category!).ThenInclude(c => c.Parent)
+            .Where(j => j.Category != null)
+            .Select(j => new { j.JobId, j.Category })
+            .ToListAsync();
+
+        viewModel.JobDistribution = jobsWithCategory
+            .Select(j => j.Category!.Type == "Industry" ? j.Category!.Name : (j.Category!.Parent?.Name ?? j.Category!.Name))
+            .GroupBy(name => name)
+            .Select(g => new JobDistributionItem { Industry = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
             .Take(8)
-            .ToListAsync();
+            .ToList();
 
         // Recent activities
         viewModel.RecentActivities = await _context.ActivityLogs
@@ -101,7 +114,7 @@ public class StaffDashboardController : Controller
             .Take(5)
             .Select(j => new PendingJobPostViewModel
             {
-                Id = j.JobID,
+                Id = j.JobId,
                 Title = j.Title,
                 CompanyName = j.Employer != null ? j.Employer.CompanyName : "Unknown",
                 CreatedAt = j.CreatedAt
@@ -116,7 +129,7 @@ public class StaffDashboardController : Controller
             .Take(5)
             .Select(e => new PendingCompanyViewModel
             {
-                Id = e.EmployerID,
+                Id = e.EmployerId,
                 CompanyName = e.CompanyName,
                 Email = e.User != null ? e.User.Email : "",
                 CreatedAt = e.CreatedAt
@@ -136,7 +149,7 @@ public class StaffDashboardController : Controller
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            query = query.Where(u => u.FullName.Contains(keyword) || u.Email.Contains(keyword));
+            query = query.Where(u => u.FullName.Contains(keyword) || u.Email.Contains(keyword) || (u.UserCode != null && u.UserCode.Contains(keyword)));
         }
 
         if (!string.IsNullOrWhiteSpace(status))
@@ -154,6 +167,7 @@ public class StaffDashboardController : Controller
         ViewBag.Page = page;
         ViewBag.Keyword = keyword;
         ViewBag.Status = status;
+        ViewBag.CandidateStatuses = await _statusSvc.GetActiveByEntityTypeAsync(StatusEntityTypes.Candidate);
 
         return View(candidates);
     }
@@ -166,7 +180,7 @@ public class StaffDashboardController : Controller
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            query = query.Where(e => e.CompanyName.Contains(keyword) || e.User!.Email.Contains(keyword));
+            query = query.Where(e => e.CompanyName.Contains(keyword) || e.User!.Email.Contains(keyword) || (e.CompanyCode != null && e.CompanyCode.Contains(keyword)));
         }
 
         if (status == "Verified")
@@ -192,6 +206,7 @@ public class StaffDashboardController : Controller
         ViewBag.Page = page;
         ViewBag.Keyword = keyword;
         ViewBag.Status = status;
+        ViewBag.EmployerStatuses = await _statusSvc.GetActiveByEntityTypeAsync(StatusEntityTypes.Employer);
 
         return View(employers);
     }
@@ -203,7 +218,7 @@ public class StaffDashboardController : Controller
             .Include(u => u.CandidateProfile).ThenInclude(p => p!.CvFiles)
             .Include(u => u.CandidateProfile).ThenInclude(p => p!.Applications).ThenInclude(a => a.Job)
             .Include(u => u.Employer).ThenInclude(e => e!.JobPosts)
-            .FirstOrDefaultAsync(u => u.UserID == id);
+            .FirstOrDefaultAsync(u => u.UserId == id);
 
         if (user == null) return NotFound();
 
@@ -221,7 +236,7 @@ public class StaffDashboardController : Controller
         if (user == null) return NotFound();
 
         // Không cho phép Staff khóa chính mình
-        if (currentStaff.ApplicationUserId == user.UserID)
+        if (currentStaff.ApplicationUserId == user.UserId)
         {
             TempData["Error"] = "Bạn không thể khóa tài khoản của mình.";
             return RedirectToAction(user.Role == "Candidate" ? "Candidates" : "Employers");
@@ -254,7 +269,7 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        var employer = await _context.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.EmployerID == employerId);
+        var employer = await _context.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.EmployerId == employerId);
         if (employer == null) return NotFound();
 
         employer.IsLocked = !employer.IsLocked;
@@ -277,13 +292,19 @@ public class StaffDashboardController : Controller
     // ==================== DUYỆT NỘI DUNG ====================
 
     // GET: StaffDashboard/PendingCompanies
-    public async Task<IActionResult> PendingCompanies(int page = 1)
+    // Hien thi TOAN BO cong ty (khong chi loc Pending) de nhan vien co the doi trang thai
+    // qua lai bat cu luc nao ma khong bi mat khoi danh sach sau khi doi.
+    public async Task<IActionResult> PendingCompanies(string? status, int page = 1)
     {
         const int pageSize = 10;
         var query = _context.Employers
             .Include(e => e.User)
-            .Where(e => !e.IsVerified && !e.IsLocked)
             .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(e => e.Status == status);
+        }
 
         var total = await query.CountAsync();
         var companies = await query.OrderByDescending(e => e.CreatedAt)
@@ -293,6 +314,8 @@ public class StaffDashboardController : Controller
 
         ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
         ViewBag.Page = page;
+        ViewBag.Status = status;
+        ViewBag.CompanyStatuses = await _statusSvc.GetActiveByEntityTypeAsync(StatusEntityTypes.Company);
 
         return View(companies);
     }
@@ -304,17 +327,24 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        var employer = await _context.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.EmployerID == employerId);
+        var employer = await _context.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.EmployerId == employerId);
         if (employer == null) return NotFound();
 
         employer.IsVerified = true;
+        employer.Status = "Active";
+        if (employer.User != null && employer.User.Status == "Pending")
+        {
+            employer.User.Status = "Active";
+            employer.User.UpdatedAt = DateTime.Now;
+        }
+        employer.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         await LogActivityAsync(currentStaff, "VERIFY_EMPLOYER", $"Xác minh công ty {employer.CompanyName}");
 
         // Gửi thông báo cho employer
         _context.Notifications.Add(new Notification
         {
-            UserID = employer.UserID,
+            UserId = employer.UserId,
             Title = "Công ty đã được xác minh",
             Content = $"Công ty {employer.CompanyName} của bạn đã được xác minh bởi Admin.",
             Type = "System",
@@ -334,18 +364,20 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        var employer = await _context.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.EmployerID == employerId);
+        var employer = await _context.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.EmployerId == employerId);
         if (employer == null) return NotFound();
 
         employer.IsLocked = true;
+        employer.Status = "Banned";
         employer.User!.Status = "Banned";
+        employer.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         await LogActivityAsync(currentStaff, "REJECT_EMPLOYER", $"Từ chối công ty {employer.CompanyName}. Lý do: {reason}");
 
         // Gửi thông báo cho employer
         _context.Notifications.Add(new Notification
         {
-            UserID = employer.UserID,
+            UserId = employer.UserId,
             Title = "Công ty bị từ chối",
             Content = $"Công ty {employer.CompanyName} của bạn bị từ chối. Lý do: {reason}",
             Type = "System",
@@ -359,14 +391,20 @@ public class StaffDashboardController : Controller
     }
 
     // GET: StaffDashboard/PendingJobs
-    public async Task<IActionResult> PendingJobs(string? industry, int page = 1)
+    // Hien thi TOAN BO tin tuyen dung (khong chi loc Pending) de nhan vien co the doi trang thai
+    // qua lai bat cu luc nao ma khong bi mat khoi danh sach sau khi doi.
+    public async Task<IActionResult> PendingJobs(string? industry, string? status, int page = 1)
     {
         const int pageSize = 10;
         var query = _context.JobPosts
             .Include(j => j.Employer)
             .Include(j => j.Category)
-            .Where(j => j.Status == "Pending")
             .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(j => j.Status == status);
+        }
 
         if (!string.IsNullOrWhiteSpace(industry))
         {
@@ -382,7 +420,9 @@ public class StaffDashboardController : Controller
         ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
         ViewBag.Page = page;
         ViewBag.Industry = industry;
+        ViewBag.Status = status;
         ViewBag.Industries = await _context.Categories.Where(c => c.Type == "Industry").Select(c => c.Name).Distinct().ToListAsync();
+        ViewBag.JobPostStatuses = await _statusSvc.GetActiveByEntityTypeAsync(StatusEntityTypes.JobPost);
 
         return View(jobs);
     }
@@ -393,7 +433,7 @@ public class StaffDashboardController : Controller
         var job = await _context.JobPosts
             .Include(j => j.Employer).ThenInclude(e => e!.User)
             .Include(j => j.Category)
-            .FirstOrDefaultAsync(j => j.JobID == id);
+            .FirstOrDefaultAsync(j => j.JobId == id);
 
         if (job == null) return NotFound();
 
@@ -407,10 +447,10 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        var job = await _context.JobPosts.Include(j => j.Employer).FirstOrDefaultAsync(j => j.JobID == jobId);
+        var job = await _context.JobPosts.Include(j => j.Employer).FirstOrDefaultAsync(j => j.JobId == jobId);
         if (job == null) return NotFound();
 
-        job.Status = "Open";
+        job.Status = "Active";
         job.UpdatedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         await LogActivityAsync(currentStaff, "APPROVE_JOB", $"Duyệt tin tuyển dụng: {job.Title}");
@@ -420,7 +460,7 @@ public class StaffDashboardController : Controller
         {
             _context.Notifications.Add(new Notification
             {
-                UserID = job.Employer.UserID,
+                UserId = job.Employer.UserId,
                 Title = "Tin tuyển dụng đã được duyệt",
                 Content = $"Tin \"{job.Title}\" đã được duyệt và đang hiển thị.",
                 Type = "System",
@@ -441,7 +481,7 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        var job = await _context.JobPosts.Include(j => j.Employer).FirstOrDefaultAsync(j => j.JobID == jobId);
+        var job = await _context.JobPosts.Include(j => j.Employer).FirstOrDefaultAsync(j => j.JobId == jobId);
         if (job == null) return NotFound();
 
         job.Status = "Rejected";
@@ -454,7 +494,7 @@ public class StaffDashboardController : Controller
         {
             _context.Notifications.Add(new Notification
             {
-                UserID = job.Employer.UserID,
+                UserId = job.Employer.UserId,
                 Title = "Tin tuyển dụng bị từ chối",
                 Content = $"Tin \"{job.Title}\" bị từ chối. Lý do: {reason}",
                 Type = "System",
@@ -475,7 +515,7 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        var job = await _context.JobPosts.FirstOrDefaultAsync(j => j.JobID == jobId);
+        var job = await _context.JobPosts.FirstOrDefaultAsync(j => j.JobId == jobId);
         if (job == null) return NotFound();
 
         job.Status = "Closed";
@@ -607,7 +647,7 @@ public class StaffDashboardController : Controller
         {
             if (Enum.TryParse<TicketStatus>(status, out var ticketStatus))
             {
-                query = query.Where(t => t.Status == ticketStatus);
+                query = query.Where(t => t.Status == (int)ticketStatus);
             }
         }
 
@@ -615,7 +655,7 @@ public class StaffDashboardController : Controller
         {
             if (Enum.TryParse<TicketType>(type, out var ticketType))
             {
-                query = query.Where(t => t.Type == ticketType);
+                query = query.Where(t => t.Type == (int)ticketType);
             }
         }
 
@@ -657,7 +697,7 @@ public class StaffDashboardController : Controller
         if (ticket == null) return NotFound();
 
         ticket.AssignedToStaffId = currentStaff.Id;
-        ticket.Status = TicketStatus.InProgress;
+        ticket.Status = (int)TicketStatus.InProgress;
         await _context.SaveChangesAsync();
         await LogActivityAsync(currentStaff, "ASSIGN_TICKET", $"Nhận ticket #{ticketId}");
 
@@ -676,7 +716,7 @@ public class StaffDashboardController : Controller
         if (ticket == null) return NotFound();
 
         ticket.StaffResponse = response;
-        ticket.Status = TicketStatus.Resolved;
+        ticket.Status = (int)TicketStatus.Resolved;
         ticket.ResolvedAt = DateTime.Now;
         await _context.SaveChangesAsync();
         await LogActivityAsync(currentStaff, "REPLY_TICKET", $"Trả lời ticket #{ticketId}");
@@ -684,7 +724,7 @@ public class StaffDashboardController : Controller
         // Gửi thông báo cho user
         _context.Notifications.Add(new Notification
         {
-            UserID = ticket.UserId,
+            UserId = ticket.UserId,
             Title = "Ticket đã được giải quyết",
             Content = $"Ticket của bạn đã được giải quyết. Trả lời: {response}",
             Type = "System",
@@ -707,7 +747,7 @@ public class StaffDashboardController : Controller
         var ticket = await _context.SupportTickets.FindAsync(ticketId);
         if (ticket == null) return NotFound();
 
-        ticket.Status = TicketStatus.Closed;
+        ticket.Status = (int)TicketStatus.Closed;
         await _context.SaveChangesAsync();
         await LogActivityAsync(currentStaff, "CLOSE_TICKET", $"Đóng ticket #{ticketId}");
 
@@ -772,7 +812,7 @@ public class StaffDashboardController : Controller
         var category = await _context.Categories.FindAsync(categoryId);
         if (category == null) return NotFound();
 
-        if (await _context.Categories.AnyAsync(c => c.Slug == slug && c.CategoryID != categoryId))
+        if (await _context.Categories.AnyAsync(c => c.Slug == slug && c.CategoryId != categoryId))
         {
             TempData["Error"] = "Slug đã tồn tại.";
             return RedirectToAction("Categories");
@@ -809,9 +849,9 @@ public class StaffDashboardController : Controller
         const int pageSize = 10;
         var query = _context.Skills.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(category) && Enum.TryParse<SkillCategory>(category, out var skillCategory))
+        if (!string.IsNullOrWhiteSpace(category))
         {
-            query = query.Where(s => s.Category == skillCategory);
+            query = query.Where(s => s.Category != null && s.Category.Name == category);
         }
 
         var total = await query.CountAsync();
@@ -837,23 +877,15 @@ public class StaffDashboardController : Controller
             return RedirectToAction("Skills");
         }
 
-        // Map string to SkillCategory enum
-        SkillCategory skillCategory;
-        if (category == "Programming")
-            skillCategory = SkillCategory.Programming;
-        else if (category == "SoftSkills")
-            skillCategory = SkillCategory.SoftSkills;
-        else if (category == "Language")
-            skillCategory = SkillCategory.Language;
-        else if (category == "Management")
-            skillCategory = SkillCategory.Management;
-        else
-            skillCategory = SkillCategory.Other;
+        // Tìm Category theo tên (Skills.CategoryId là FK đến Categories)
+        var categoryEntity = !string.IsNullOrWhiteSpace(category)
+            ? await _context.Categories.FirstOrDefaultAsync(c => c.Name == category)
+            : null;
 
         _context.Skills.Add(new Skill
         {
             Name = name,
-            Category = skillCategory,
+            CategoryId = categoryEntity?.CategoryId,
             Description = description,
             IsActive = true
         });
@@ -948,15 +980,15 @@ public class StaffDashboardController : Controller
         }
         else
         {
-            post = new BlogPost { AuthorID = currentStaff.ApplicationUserId };
+            post = new BlogPost { AuthorId = currentStaff.ApplicationUserId, BlogCode = await _codeGen.GenerateBlogCodeAsync() };
             _context.BlogPosts.Add(post);
         }
 
         post.Title = title;
-        post.Slug = string.IsNullOrEmpty(slug) ? title.ToLower().Replace(" ", "-") : slug;
+        post.Slug = string.IsNullOrEmpty(slug) ? SlugHelper.ToSlug(title) : SlugHelper.ToSlug(slug);
         post.Excerpt = excerpt;
         post.Content = content;
-        post.CoverURL = coverUrl;
+        post.CoverUrl = coverUrl;
         post.IsPublished = status == "Published";
         post.PublishedAt = post.IsPublished ? (post.PublishedAt ?? DateTime.Now) : null;
         post.UpdatedAt = DateTime.Now;
@@ -1027,7 +1059,7 @@ public class StaffDashboardController : Controller
         var users = await usersQuery.ToListAsync();
         var notifications = users.Select(u => new Notification
         {
-            UserID = u.UserID,
+            UserId = u.UserId,
             Title = title,
             Content = content,
             Type = "System",
@@ -1056,20 +1088,21 @@ public class StaffDashboardController : Controller
 
     // POST: StaffDashboard/UpdateProfile
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateProfile(string fullName, string phone, string position, string department)
+    public async Task<IActionResult> UpdateProfile(string fullName, string phone, string email, string? gender)
     {
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
         currentStaff.FullName = fullName;
         currentStaff.Phone = phone;
-        currentStaff.Position = position;
-        currentStaff.Department = department;
+        currentStaff.Email = email;
+        currentStaff.Gender = gender;
 
-        if (currentStaff.User != null)
+        if (currentStaff.ApplicationUser != null)
         {
-            currentStaff.User.FullName = fullName;
-            currentStaff.User.PhoneNumber = phone;
+            currentStaff.ApplicationUser.FullName = fullName;
+            currentStaff.ApplicationUser.PhoneNumber = phone;
+            currentStaff.ApplicationUser.Email = email;
         }
 
         await _context.SaveChangesAsync();
@@ -1086,25 +1119,69 @@ public class StaffDashboardController : Controller
         var currentStaff = await GetCurrentStaffAsync();
         if (currentStaff == null) return Unauthorized();
 
-        if (currentStaff.User == null)
+        if (currentStaff.ApplicationUser == null)
         {
             TempData["Error"] = "Không tìm thấy thông tin user.";
             return RedirectToAction("Profile");
         }
 
-        if (!BCrypt.Net.BCrypt.Verify(currentPassword, currentStaff.User.PasswordHash))
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, currentStaff.ApplicationUser.PasswordHash))
         {
             TempData["Error"] = "Mật khẩu hiện tại không đúng.";
             return RedirectToAction("Profile");
         }
 
-        currentStaff.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        await _context.SaveChangesAsync();
-        await LogActivityAsync(currentStaff, "CHANGE_PASSWORD", "Đổi mật khẩu");
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        {
+            TempData["Error"] = "Mật khẩu mới phải có ít nhất 6 ký tự.";
+            return RedirectToAction("Profile");
+        }
 
-        TempData["Success"] = "Đã đổi mật khẩu.";
-        return RedirectToAction("Profile");
+        // Không đổi ngay — yêu cầu xác thực OTP gửi qua email trước khi áp dụng
+        var user = currentStaff.ApplicationUser;
+        var otp = new Random().Next(100000, 999999).ToString();
+        user.OtpCode = otp;
+        user.OtpExpiry = DateTime.Now.AddMinutes(10);
+        await _context.SaveChangesAsync();
+
+        var html = BuildStaffOtpEmail(user.FullName ?? user.Email, otp, "đổi mật khẩu", 10);
+        try { await _emailSvc.SendAsync(user.Email, "🔐 Xác thực đổi mật khẩu - JobConnect", html); }
+        catch { /* log nếu cần */ }
+
+        TempData["OtpEmail"] = user.Email;
+        TempData["OtpPurpose"] = "change_password";
+        TempData["PendingNewPasswordHash"] = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        TempData["OtpReturnController"] = "StaffDashboard";
+        TempData["OtpReturnAction"] = "Profile";
+        TempData["Success"] = "Đã gửi mã OTP xác thực đến email của bạn. Vui lòng nhập mã để hoàn tất đổi mật khẩu.";
+        return RedirectToAction("VerifyEmailOtp", "Account");
     }
+
+    // Email OTP đơn giản dùng riêng cho Staff self-service actions
+    private static string BuildStaffOtpEmail(string name, string otp, string purpose, int minutes) => $@"
+<!DOCTYPE html><html><head><meta charset='UTF-8'></head>
+<body style='margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif;'>
+<table width='100%' cellpadding='0' cellspacing='0' style='padding:40px 0;'>
+<tr><td align='center'>
+<table width='520' cellpadding='0' cellspacing='0' style='background:#111827;border-radius:16px;border:1px solid #1e293b;overflow:hidden;'>
+  <tr><td style='background:linear-gradient(135deg,#1d4ed8,#4f46e5);padding:28px 40px;text-align:center;'>
+    <div style='font-size:26px;font-weight:900;color:#fff;'>📋 JobConnect</div>
+    <div style='color:#bfdbfe;font-size:12px;margin-top:4px;'>Mã xác thực {purpose}</div>
+  </td></tr>
+  <tr><td style='padding:32px 40px;'>
+    <p style='color:#94a3b8;font-size:14px;margin:0 0 6px;'>Xin chào <strong style='color:#f1f5f9;'>{name}</strong>,</p>
+    <p style='color:#94a3b8;font-size:14px;margin:0 0 24px;'>Mã OTP để {purpose} của bạn là:</p>
+    <div style='background:#0f172a;border:2px dashed #3b82f6;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;'>
+      <div style='color:#94a3b8;font-size:11px;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;'>Mã xác thực OTP</div>
+      <div style='font-size:42px;font-weight:900;letter-spacing:12px;color:#60a5fa;font-family:monospace;'>{otp}</div>
+      <div style='color:#64748b;font-size:12px;margin-top:10px;'>⏱ Hiệu lực trong <strong style='color:#f59e0b;'>{minutes} phút</strong></div>
+    </div>
+    <p style='color:#64748b;font-size:12px;'>Không chia sẻ mã này với bất kỳ ai. Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email.</p>
+  </td></tr>
+  <tr><td style='background:#0f172a;padding:16px 40px;border-top:1px solid #1e293b;text-align:center;'>
+    <p style='color:#475569;font-size:11px;margin:0;'>© 2025 JobConnect – Nhóm Star Arrow</p>
+  </td></tr>
+</table></td></tr></table></body></html>";
 
     // POST: StaffDashboard/UpdateAvatar
     [HttpPost, ValidateAntiForgeryToken]
@@ -1119,10 +1196,26 @@ public class StaffDashboardController : Controller
             return RedirectToAction("Profile");
         }
 
+        // Chỉ cho phép ảnh, chặn upload file thực thi (.aspx/.php/.html/.svg chứa script...)
+        var ext = Path.GetExtension(avatar.FileName).ToLowerInvariant();
+        var allowedExt = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        if (!allowedExt.Contains(ext))
+        {
+            TempData["Error"] = "Chỉ chấp nhận file ảnh JPG, PNG, GIF hoặc WEBP.";
+            return RedirectToAction("Profile");
+        }
+
+        const long maxAvatarSize = 3 * 1024 * 1024; // 3MB
+        if (avatar.Length > maxAvatarSize)
+        {
+            TempData["Error"] = "Kích thước ảnh tối đa 3MB.";
+            return RedirectToAction("Profile");
+        }
+
         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
         Directory.CreateDirectory(uploadsFolder);
 
-        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(avatar.FileName);
+        var uniqueFileName = Guid.NewGuid().ToString() + ext;
         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
         using (var stream = new FileStream(filePath, FileMode.Create))
@@ -1132,9 +1225,9 @@ public class StaffDashboardController : Controller
 
         var avatarUrl = $"/uploads/avatars/{uniqueFileName}";
         currentStaff.Avatar = avatarUrl;
-        if (currentStaff.User != null)
+        if (currentStaff.ApplicationUser != null)
         {
-            currentStaff.User.AvatarURL = avatarUrl;
+            currentStaff.ApplicationUser.AvatarUrl = avatarUrl;
         }
 
         await _context.SaveChangesAsync();
@@ -1142,5 +1235,142 @@ public class StaffDashboardController : Controller
 
         TempData["Success"] = "Đã cập nhật avatar.";
         return RedirectToAction("Profile");
+    }
+
+    // ====================== ENTITY STATUS MANAGEMENT ======================
+
+    // POST: StaffDashboard/ChangeCandidateStatus
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeCandidateStatus(int profileId, string newStatus)
+    {
+        var currentStaff = await GetCurrentStaffAsync();
+        if (currentStaff == null) return Unauthorized();
+
+        var profile = await _context.CandidateProfiles
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.ProfileId == profileId);
+
+        if (profile == null) return NotFound();
+
+        // Validate status exists in StatusCatalog
+        var statusExists = await _context.StatusCatalogs
+            .AnyAsync(s => s.EntityType == StatusEntityTypes.Candidate && s.Code == newStatus && s.IsActive);
+
+        if (!statusExists)
+        {
+            TempData["Error"] = "Trạng thái không hợp lệ!";
+            return RedirectToAction("Candidates");
+        }
+
+        profile.User.Status = newStatus;
+        profile.User.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        await LogActivityAsync(currentStaff, "CHANGE_CANDIDATE_STATUS", $"Đổi trạng thái ứng viên {profileId} thành {newStatus}");
+
+        TempData["Success"] = $"Đã cập nhật trạng thái ứng viên thành: {newStatus}";
+        return RedirectToAction("Candidates");
+    }
+
+    // POST: StaffDashboard/ChangeEmployerStatus
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeEmployerStatus(int employerId, string newStatus)
+    {
+        var currentStaff = await GetCurrentStaffAsync();
+        if (currentStaff == null) return Unauthorized();
+
+        var employer = await _context.Employers
+            .Include(e => e.User)
+            .FirstOrDefaultAsync(e => e.EmployerId == employerId);
+
+        if (employer == null) return NotFound();
+
+        // Validate status exists in StatusCatalog
+        var statusExists = await _context.StatusCatalogs
+            .AnyAsync(s => s.EntityType == StatusEntityTypes.Employer && s.Code == newStatus && s.IsActive);
+
+        if (!statusExists)
+        {
+            TempData["Error"] = "Trạng thái không hợp lệ!";
+            return RedirectToAction("Employers");
+        }
+
+        employer.Status = newStatus;
+        employer.User.Status = newStatus;
+        employer.User.UpdatedAt = DateTime.Now;
+
+        // Đồng bộ 2 cờ boolean legacy (IsVerified/IsLocked) theo Status mới,
+        // tránh lệch dữ liệu khiến bộ lọc "Đã xác minh/Chưa xác minh/Đã khoá" sai.
+        employer.IsVerified = newStatus is "Verified" or "Active";
+        employer.IsLocked = newStatus == "Banned";
+
+        employer.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        await LogActivityAsync(currentStaff, "CHANGE_EMPLOYER_STATUS", $"Đổi trạng thái nhà tuyển dụng {employerId} thành {newStatus}");
+
+        TempData["Success"] = $"Đã cập nhật trạng thái nhà tuyển dụng thành: {newStatus}";
+        return RedirectToAction("Employers");
+    }
+
+    // POST: StaffDashboard/ChangeJobStatus
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeJobStatus(int jobId, string newStatus)
+    {
+        var currentStaff = await GetCurrentStaffAsync();
+        if (currentStaff == null) return Unauthorized();
+
+        var job = await _context.JobPosts.FindAsync(jobId);
+        if (job == null) return NotFound();
+
+        // Validate status exists in StatusCatalog
+        var statusExists = await _context.StatusCatalogs
+            .AnyAsync(s => s.EntityType == StatusEntityTypes.JobPost && s.Code == newStatus && s.IsActive);
+
+        if (!statusExists)
+        {
+            TempData["Error"] = "Trạng thái không hợp lệ!";
+            return RedirectToAction("PendingJobs");
+        }
+
+        job.Status = newStatus;
+        job.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        await LogActivityAsync(currentStaff, "CHANGE_JOB_STATUS", $"Đổi trạng thái tin tuyển dụng {jobId} thành {newStatus}");
+
+        TempData["Success"] = $"Đã cập nhật trạng thái tin tuyển dụng thành: {newStatus}";
+        return RedirectToAction("PendingJobs");
+    }
+
+    // POST: StaffDashboard/ChangeCompanyStatus
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeCompanyStatus(int employerId, string newStatus)
+    {
+        var currentStaff = await GetCurrentStaffAsync();
+        if (currentStaff == null) return Unauthorized();
+
+        var employer = await _context.Employers
+            .Include(e => e.User)
+            .FirstOrDefaultAsync(e => e.EmployerId == employerId);
+
+        if (employer == null) return NotFound();
+
+        // Validate status exists in StatusCatalog
+        var statusExists = await _context.StatusCatalogs
+            .AnyAsync(s => s.EntityType == StatusEntityTypes.Company && s.Code == newStatus && s.IsActive);
+
+        if (!statusExists)
+        {
+            TempData["Error"] = "Trạng thái không hợp lệ!";
+            return RedirectToAction("PendingCompanies");
+        }
+
+        employer.Status = newStatus;
+        employer.User.Status = newStatus;
+        employer.User.UpdatedAt = DateTime.Now;
+        employer.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+        await LogActivityAsync(currentStaff, "CHANGE_COMPANY_STATUS", $"Đổi trạng thái công ty {employerId} thành {newStatus}");
+
+        TempData["Success"] = $"Đã cập nhật trạng thái công ty thành: {newStatus}";
+        return RedirectToAction("PendingCompanies");
     }
 }

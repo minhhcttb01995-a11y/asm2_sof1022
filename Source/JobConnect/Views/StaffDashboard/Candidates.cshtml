@@ -1,12 +1,14 @@
 @model List<JobConnect.Models.User>
+@using JobConnect.Models
 @{
     ViewData["Title"] = "Quản lý Ứng viên";
     Layout = "_StaffLayout";
+    var candidateStatuses = ViewBag.CandidateStatuses as List<StatusCatalog>;
 }
 
 <!-- Search & Filter -->
 <form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4">
-    <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên, email..."
+    <input name="keyword" value="@ViewBag.Keyword" type="text" placeholder="Tìm theo tên, email hoặc mã ứng viên..."
            class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
     <select name="status" class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
         <option value="">Tất cả trạng thái</option>
@@ -24,7 +26,7 @@
     <table class="w-full text-sm">
         <thead class="bg-white/5 border-b border-white/10">
             <tr>
-                <th class="text-left px-6 py-4 font-semibold">ID</th>
+                <th class="text-left px-6 py-4 font-semibold">Mã</th>
                 <th class="text-left px-6 py-4 font-semibold">Họ tên</th>
                 <th class="text-left px-6 py-4 font-semibold">Email</th>
                 <th class="text-left px-6 py-4 font-semibold">Số điện thoại</th>
@@ -38,16 +40,17 @@
             {
                 @foreach (var user in Model)
                 {
-                    var statusClass = user.Status == "Active" ? "badge-open" : user.Status == "Banned" ? "badge-rejected" : "badge-pending";
-                    var statusLabel = user.Status == "Active" ? "Hoạt động" : user.Status == "Banned" ? "Đã khóa" : "Chờ duyệt";
-                    
+                    var statusInfo = candidateStatuses?.FirstOrDefault(s => s.Code == user.Status);
+                    var statusLabel = statusInfo?.Name ?? user.Status;
+                    var statusClass = statusInfo?.ColorClass ?? "bg-gray-500/20 text-gray-300";
+
                     <tr class="hover:bg-white/5 transition-colors">
                         <td class="px-6 py-4">
-                            <span class="font-mono text-xs text-gray-400">@user.UserID</span>
+                            <span class="font-mono text-xs text-gray-400">@(user.UserCode ?? user.UserId.ToString())</span>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <img src="@user.AvatarURL ?? "/img/default-avatar.png"" 
+                                <img src="@user.AvatarURL ?? " /img/default-avatar.png""
                                      alt="Avatar" class="w-10 h-10 rounded-full object-cover" />
                                 <div>
                                     <p class="font-medium">@user.FullName</p>
@@ -62,20 +65,24 @@
                         <td class="px-6 py-4 text-gray-400">@user.CreatedAt.ToString("dd/MM/yyyy")</td>
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = user.UserID })"
+                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = user.UserId })"
                                    class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
                                    title="Xem chi tiết">
                                     <span class="material-icons text-sm">visibility</span>
                                 </a>
-                                <form asp-action="ToggleUserStatus" method="post" class="inline">
+                                <form asp-action="ChangeCandidateStatus" method="post" class="inline">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="userId" value="@user.UserID" />
-                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                    <button type="submit" 
-                                            class="p-2 @(user.Status == "Active" ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30") rounded-lg transition-colors"
-                                            title="@(user.Status == "Active" ? "Khóa tài khoản" : "Mở khóa tài khoản")">
-                                        <span class="material-icons text-sm">@(user.Status == "Active" ? "lock" : "unlock")</span>
-                                    </button>
+                                    <input type="hidden" name="profileId" value="@user.CandidateProfile?.ProfileId" />
+                                    <select name="newStatus" onchange="this.form.submit()"
+                                            class="px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs outline-none focus:border-blue-500">
+                                        @if (candidateStatuses != null)
+                                        {
+                                            @foreach (var status in candidateStatuses)
+                                            {
+                                                <option value="@status.Code" selected="@(user.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                            }
+                                        }
+                                    </select>
                                 </form>
                             </div>
                         </td>
@@ -105,7 +112,7 @@
                 <span class="material-icons text-sm">chevron_left</span>
             </a>
         }
-        
+
         @for (int i = 1; i <= ViewBag.TotalPages; i++)
         {
             if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
@@ -120,7 +127,7 @@
                 <span class="px-2">...</span>
             }
         }
-        
+
         @if (ViewBag.Page < ViewBag.TotalPages)
         {
             <a href="@Url.Action("Candidates", new { keyword = ViewBag.Keyword, status = ViewBag.Status, page = ViewBag.Page + 1 })"

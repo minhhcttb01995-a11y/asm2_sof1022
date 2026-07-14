@@ -5,7 +5,7 @@
     Layout = "_Layout";
 }
 
-<div class="max-w-4xl mx-auto px-6 py-8">
+<div class="max-w-[1300px] mx-auto px-6 py-8">
     <div class="flex items-center gap-3 mb-6">
         <a asp-action="Profile" class="text-secondary hover:text-primary">
             <span class="material-symbols-outlined align-middle">arrow_back</span>
@@ -20,7 +20,7 @@
             <span class="material-symbols-outlined text-5xl text-secondary block mb-3">bookmark</span>
             <p class="text-secondary mb-3">Bạn chưa lưu tin tuyển dụng nào.</p>
             <a asp-controller="Job" asp-action="Index"
-               class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+               class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
                 Khám phá việc làm
             </a>
         </div>
@@ -46,11 +46,11 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@job?.JobID"
+                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@job?.JobId"
                                        class="font-semibold text-on-surface hover:text-primary text-sm">@job?.Title</a>
                                     <p class="text-secondary text-xs mt-0.5">@job?.Employer?.CompanyName</p>
                                 </div>
-                                <p class="text-sm font-semibold text-primary whitespace-nowrap flex-shrink-0">@job?.SalaryDisplay</p>
+                                <p class="text-sm font-semibold text-primary whitespace-nowrap flex-shrink-0">@job?.FormatSalary()</p>
                             </div>
                             <div class="flex flex-wrap gap-2 mt-2">
                                 @if (job?.JobType != null)
@@ -70,13 +70,13 @@
                         </div>
                     </div>
                     <div class="mt-3 pt-3 border-t border-outline-variant flex gap-3">
-                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@job?.JobID"
-                           class="px-4 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity">
+                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@job?.JobId"
+                           class="px-4 py-1.5 bg-primary text-slate-900 text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity">
                             Xem chi tiết
                         </a>
                         <form asp-controller="Job" asp-action="ToggleSave" method="post" class="inline">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="jobId" value="@job?.JobID" />
+                            <input type="hidden" name="jobId" value="@job?.JobId" />
                             <button type="submit"
                                     class="px-4 py-1.5 border border-outline-variant text-secondary text-xs rounded-lg hover:bg-surface-container transition-colors">
                                 Bỏ lưu

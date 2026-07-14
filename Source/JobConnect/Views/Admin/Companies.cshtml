@@ -1,223 +1,278 @@
-﻿@{
+﻿@using JobConnect.Models
+@model IEnumerable<Employer>
+@{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Báo cáo thống kê";
-
-    var statusColorMap = new Dictionary<string, string>
-    {
-        ["Pending"] = "bg-yellow-400",
-        ["Reviewed"] = "bg-blue-400",
-        ["Interview"] = "bg-purple-400",
-        ["Accepted"] = "bg-green-500",
-        ["Rejected"] = "bg-red-400",
-    };
-    var statusLabelMap = new Dictionary<string, string>
-    {
-        ["Pending"] = "Chờ duyệt",
-        ["Reviewed"] = "Đã xem",
-        ["Interview"] = "Phỏng vấn",
-        ["Accepted"] = "Chấp nhận",
-        ["Rejected"] = "Từ chối",
-    };
-
-    var kpis = new[]
-    {
-        (Icon: "people",    Label: "Tổng người dùng",     Value: ViewBag.TotalUsers?.ToString("N0")     ?? "0", Color: "text-blue-600",   Bg: "bg-blue-50"),
-        (Icon: "work",      Label: "Tổng tin tuyển dụng", Value: ViewBag.TotalJobs?.ToString("N0")      ?? "0", Color: "text-green-600",  Bg: "bg-green-50"),
-        (Icon: "send",      Label: "Đơn ứng tuyển",       Value: ViewBag.TotalApps?.ToString("N0")      ?? "0", Color: "text-purple-600", Bg: "bg-purple-50"),
-        (Icon: "apartment", Label: "Công ty đã duyệt",    Value: ViewBag.TotalCompanies?.ToString("N0") ?? "0", Color: "text-orange-600", Bg: "bg-orange-50"),
-    };
+    ViewData["Title"] = "Quản lý công ty";
 }
 
-<div class="space-y-6">
-    <div>
-        <h1 class="text-xl font-bold text-on-surface">Báo cáo thống kê</h1>
-        <p class="text-sm text-secondary">Tổng quan hoạt động hệ thống</p>
-    </div>
-
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        @foreach (var k in kpis)
-        {
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-xs text-secondary mb-1">@k.Label</p>
-                        <p class="text-2xl font-bold text-on-surface">@k.Value</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl @k.Bg flex items-center justify-center">
-                        <span class="material-symbols-outlined @k.Color text-xl">@k.Icon</span>
-                    </div>
-                </div>
+<!-- Modal xác nhận xóa -->
+<div id="modalDelete" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600">delete</span>
             </div>
-        }
+            <div>
+                <h2 class="text-base font-bold text-on-surface">Xác nhận xóa công ty</h2>
+                <p class="text-xs text-secondary">Toàn bộ tin tuyển dụng sẽ bị xóa theo.</p>
+            </div>
+        </div>
+        <p class="text-sm text-secondary mb-5">
+            Bạn có chắc muốn xóa công ty <strong id="deleteCompanyName"></strong>?
+        </p>
+        <form asp-action="DeleteCompany" method="post" id="deleteForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="deleteCompanyId" />
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                    Huỷ
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700">
+                    Xóa
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- Đơn ứng tuyển theo tháng -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
-            <h2 class="font-semibold text-on-surface mb-4">Đơn ứng tuyển theo tháng</h2>
-            @if (ViewBag.MonthlyApps is List<(string Month, int Count)> monthData && monthData.Any())
-            {
-                int maxVal = monthData.Max(m => m.Count) + 1;
-                <div class="space-y-2">
-                    @foreach (var m in monthData)
-                    {
-                        int pctM = maxVal > 0 ? m.Count * 100 / maxVal : 0;
-                        <div class="flex items-center gap-3 text-sm">
-                            <span class="w-14 text-secondary text-xs shrink-0">@m.Month</span>
-                            <div class="flex-1 bg-surface-container rounded-full h-5 overflow-hidden">
-                                <div class="h-full bg-primary rounded-full transition-all" style="width:@(pctM)%"></div>
-                            </div>
-                            <span class="w-8 text-right font-medium text-on-surface text-xs">@m.Count</span>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
-            }
-        </div>
-
-        <!-- Top ngành nghề -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
-            <h2 class="font-semibold text-on-surface mb-4">Top ngành nghề hot nhất</h2>
-            @if (ViewBag.TopCategories is List<(string Name, int Count)> catData && catData.Any())
-            {
-                int catMax = catData.Max(c => c.Count) + 1;
-                int rank = 0;
-                <div class="space-y-3">
-                    @foreach (var cat in catData)
-                    {
-                        rank++;
-                        int pctC = catMax > 0 ? cat.Count * 100 / catMax : 0;
-                        string rankClass = rank <= 3 ? "bg-primary text-white" : "bg-surface-container text-secondary";
-                        <div class="flex items-center gap-3 text-sm">
-                            <span class="w-6 h-6 rounded-full @rankClass flex items-center justify-center text-xs font-bold shrink-0">@rank</span>
-                            <div class="flex-1">
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="font-medium text-on-surface">@cat.Name</span>
-                                    <span class="text-secondary">@cat.Count tin</span>
-                                </div>
-                                <div class="bg-surface-container rounded-full h-2">
-                                    <div class="h-full bg-primary rounded-full" style="width:@(pctC)%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
-            }
-        </div>
-
-        <!-- Top công ty -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
-            <h2 class="font-semibold text-on-surface mb-4">Top công ty đăng tin nhiều nhất</h2>
-            @if (ViewBag.TopCompanies is List<(string Name, int Count)> compData && compData.Any())
-            {
-                int cr = 0;
-                <div class="divide-y divide-outline-variant">
-                    @foreach (var comp in compData)
-                    {
-                        cr++;
-                        <div class="flex items-center gap-3 py-2.5 text-sm">
-                            <span class="w-6 text-center font-bold text-secondary text-xs">@cr</span>
-                            <span class="flex-1 font-medium text-on-surface">@comp.Name</span>
-                            <span class="badge badge-active">@comp.Count tin</span>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
-            }
-        </div>
-
-        <!-- Tỉ lệ đơn theo trạng thái -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
-            <h2 class="font-semibold text-on-surface mb-4">Tỉ lệ kết quả đơn ứng tuyển</h2>
-            @if (ViewBag.AppStatus is List<(string Status, int Count)> statusData && statusData.Any())
-            {
-                int totalApps = statusData.Sum(s => s.Count);
-                <div class="flex rounded-full overflow-hidden h-4 mb-4">
-                    @foreach (var s in statusData.Where(x => x.Count > 0))
-                    {
-                        int pctBar = totalApps > 0 ? s.Count * 100 / totalApps : 0;
-                        string sColor = statusColorMap.GetValueOrDefault(s.Status, "bg-gray-400");
-                        string sLabel = statusLabelMap.GetValueOrDefault(s.Status, s.Status);
-                        <div class="@sColor h-full" style="width:@(pctBar)%" title="@sLabel: @s.Count"></div>
-                    }
-                </div>
-                <div class="space-y-2">
-                    @foreach (var s in statusData)
-                    {
-                        double pctNum = totalApps > 0 ? s.Count * 100.0 / totalApps : 0;
-                        string sColor2 = statusColorMap.GetValueOrDefault(s.Status, "bg-gray-400");
-                        string sLabel2 = statusLabelMap.GetValueOrDefault(s.Status, s.Status);
-                        <div class="flex items-center justify-between text-sm">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full @sColor2 inline-block"></span>
-                                <span class="text-secondary">@sLabel2</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="font-medium text-on-surface">@s.Count</span>
-                                <span class="text-xs text-secondary w-10 text-right">@pctNum.ToString("F0")%</span>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="text-secondary text-sm text-center py-6">Chưa có dữ liệu.</p>
-            }
+<div class="space-y-5">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-bold text-on-surface">Quản lý công ty</h1>
+            <p class="text-sm text-secondary">Tổng: <strong>@Model.Count()</strong> công ty đã đăng ký</p>
         </div>
     </div>
 
-    <!-- Người dùng mới nhất -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant">
-        <h2 class="font-semibold text-on-surface mb-4">10 người dùng đăng ký gần nhất</h2>
+    @if (TempData["Success"] != null)
+    {
+        <div class="px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- Filter bar -->
+    <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs text-secondary mb-1">Tìm công ty</label>
+            <input type="text" name="q" value="@ViewBag.Q"
+                   class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary"
+                   placeholder="Tên công ty hoặc mã công ty..." />
+        </div>
+        <div>
+            <label class="block text-xs text-secondary mb-1">Trạng thái</label>
+            <select name="status" class="px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary w-44">
+                <option value="">Tất cả</option>
+                <option value="Verified" selected="@(ViewBag.Status == "Verified" ? "selected" : null)">Đã xác minh</option>
+                <option value="Unverified" selected="@(ViewBag.Status == "Unverified" ? "selected" : null)">Chưa xác minh</option>
+                <option value="Locked" selected="@(ViewBag.Status == "Locked" ? "selected" : null)">Đã khoá</option>
+            </select>
+        </div>
+        <button type="submit"
+                class="px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:opacity-90">
+            Lọc
+        </button>
+    </form>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead>
-                    <tr class="text-xs text-secondary uppercase border-b border-outline-variant">
-                        <th class="py-2 text-left">Tên</th>
-                        <th class="py-2 text-left">Email</th>
-                        <th class="py-2 text-center">Vai trò</th>
-                        <th class="py-2 text-center">Ngày đăng ký</th>
+                <thead class="bg-surface-container text-secondary text-xs uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Mã</th>
+                        <th class="px-4 py-3 text-left">Công ty</th>
+                        <th class="px-4 py-3 text-left">Email liên hệ</th>
+                        <th class="px-4 py-3 text-center">Tin đăng</th>
+                        <th class="px-4 py-3 text-center">Trạng thái</th>
+                        <th class="px-4 py-3 text-center">Ngày đăng ký</th>
+                        <th class="px-4 py-3 text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant">
-                    @if (ViewBag.RecentUsers is List<JobConnect.Models.User> users)
+                    @if (!Model.Any())
                     {
-                        @foreach (var u in users)
-                        {
-                            string roleBadge = u.Role switch
-                            {
-                                "Admin" => "badge-interview",
-                                "Employer" => "badge-reviewed",
-                                _ => "badge-active"
-                            };
-                            string roleLabel = u.Role switch
-                            {
-                                "Admin" => "Admin",
-                                "Employer" => "NTD",
-                                _ => "Ứng viên"
-                            };
-                            <tr class="text-sm">
-                                <td class="py-2.5 font-medium text-on-surface">@u.FullName</td>
-                                <td class="py-2.5 text-secondary">@u.Email</td>
-                                <td class="py-2.5 text-center"><span class="badge @roleBadge">@roleLabel</span></td>
-                                <td class="py-2.5 text-center text-xs text-secondary">@u.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                            </tr>
-                        }
+                        <tr>
+                            <td colspan="7" class="px-4 py-10 text-center text-secondary">
+                                <span class="material-symbols-outlined text-3xl block mb-2 opacity-40">apartment</span>
+                                Không tìm thấy công ty nào.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var c in Model)
+                    {
+                        // Get status info from StatusCatalog
+                        List<StatusCatalog>? employerStatuses = null;
+                        if (ViewBag.EmployerStatuses != null)
+                            employerStatuses = ViewBag.EmployerStatuses as List<StatusCatalog>;
+
+                        var statusInfo = employerStatuses?.FirstOrDefault(s => s.Code == c.Status);
+                        var statusName = statusInfo?.Name ?? c.Status;
+                        var statusColor = statusInfo?.ColorClass ?? "bg-gray-100 text-gray-700";
+
+                        <tr class="hover:bg-surface-container/50 transition-colors">
+                            <!-- Mã công ty -->
+                            <td class="px-4 py-3">
+                                <span class="font-mono text-xs text-secondary bg-surface-container px-2 py-1 rounded-lg select-all">@(c.CompanyCode ?? c.EmployerId.ToString())</span>
+                            </td>
+                            <!-- Tên công ty -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(c.LogoURL))
+                                    {
+                                        <img src="@c.LogoURL" class="w-9 h-9 rounded-lg object-contain border border-outline-variant" />
+                                    }
+                                    else
+                                    {
+                                        <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-secondary flex-shrink-0">
+                                            <span class="material-symbols-outlined text-sm">apartment</span>
+                                        </div>
+                                    }
+                                    <div>
+                                        <p class="font-medium text-on-surface">@c.CompanyName</p>
+                                        <p class="text-xs text-secondary">@(c.Industry ?? "—")</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Email -->
+                            <td class="px-4 py-3 text-secondary text-sm">@(c.User?.Email ?? "—")</td>
+                            <!-- Số tin -->
+                            <td class="px-4 py-3 text-center font-medium">@(c.JobPosts?.Count ?? 0)</td>
+                            <!-- Trạng thái -->
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium @statusColor">
+                                    @statusName
+                                </span>
+                            </td>
+                            <!-- Ngày đăng ký -->
+                            <td class="px-4 py-3 text-center text-secondary text-xs">@c.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <!-- Thao tác -->
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+
+                                    <!-- Xem chi tiết -->
+                                    <a asp-action="CompanyDetail" asp-route-id="@c.EmployerId"
+                                       class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-container text-secondary hover:text-primary hover:bg-surface-container-high border border-outline-variant transition-colors">
+                                        <span class="material-symbols-outlined text-sm">visibility</span>
+                                        Xem
+                                    </a>
+
+                                    <!-- Xác minh / Hủy xác minh -->
+                                    @if (!c.IsVerified)
+                                    {
+                                        <form asp-action="ApproveCompany" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@c.EmployerId" />
+                                            <button type="submit"
+                                                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors">
+                                                <span class="material-symbols-outlined text-sm">verified</span>
+                                                Xác minh
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="SuspendCompany" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@c.EmployerId" />
+                                            <button type="submit"
+                                                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 transition-colors">
+                                                <span class="material-symbols-outlined text-sm">unpublished</span>
+                                                Hủy XM
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <!-- Thay đổi trạng thái -->
+                                    <form asp-action="ChangeEmployerStatus" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="employerId" value="@c.EmployerId" />
+                                        <select name="newStatus" class="px-2 py-1.5 rounded-lg text-xs font-medium border border-outline-variant outline-none focus:border-primary" onchange="changeEmployerStatus(this, @c.EmployerId)">
+                                            <option value="" disabled selected>Trạng thái</option>
+                                            @foreach (var status in ViewBag.EmployerStatuses as List<StatusCatalog>)
+                                            {
+                                                <option value="@status.Code" selected="@(c.User?.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                            }
+                                        </select>
+                                    </form>
+
+                                    <!-- Xóa -->
+                                    <button onclick="openDeleteModal(@c.EmployerId, '@c.CompanyName.Replace("'", "\\'")')"
+                                            class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
+                                        <span class="material-symbols-outlined text-sm">delete</span>
+                                        Xóa
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if ((int)(ViewBag.TotalPages ?? 1) > 1)
+        {
+            <div class="flex justify-center gap-2 p-4 border-t border-outline-variant">
+                @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                {
+                    var pgCls = i == (int)(ViewBag.Page ?? 1)
+                        ? "bg-primary text-white border-primary"
+                        : "border-outline-variant text-secondary hover:bg-surface-container";
+                    <a asp-action="Companies" asp-route-page="@i" asp-route-q="@ViewBag.Q" asp-route-status="@ViewBag.Status"
+                       class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border @pgCls">
+                        @i
+                    </a>
+                }
+            </div>
+        }
     </div>
 </div>
+
+<script>
+    function openDeleteModal(id, name) {
+        document.getElementById('deleteCompanyId').value = id;
+        document.getElementById('deleteCompanyName').textContent = name;
+        document.getElementById('modalDelete').classList.remove('hidden');
+        document.getElementById('modalDelete').classList.add('flex');
+    }
+    function closeDeleteModal() {
+        document.getElementById('modalDelete').classList.add('hidden');
+        document.getElementById('modalDelete').classList.remove('flex');
+    }
+
+    function changeEmployerStatus(selectElement, employerId) {
+        const newStatus = selectElement.value;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch('/Admin/ChangeEmployerStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `employerId=${employerId}&newStatus=${newStatus}&__RequestVerificationToken=${token}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Không thể thay đổi trạng thái');
+                selectElement.value = selectElement.getAttribute('data-original-value');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi thay đổi trạng thái');
+            selectElement.value = selectElement.getAttribute('data-original-value');
+        });
+    }
+
+    document.getElementById('modalDelete').addEventListener('click', function (e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>

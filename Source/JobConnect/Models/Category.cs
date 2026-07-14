@@ -1,22 +1,39 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class Category
+public partial class Category
 {
-    [Key]
-    public int CategoryID { get; set; }
-    public int? ParentID { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;  // Industry|Location|Level|JobType
-    public string Slug { get; set; } = string.Empty;
+    public int CategoryId { get; set; }
+
+    public int? ParentId { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public string Type { get; set; } = null!;
+
+    public string Slug { get; set; } = null!;
+
     public string? Description { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
-    public Category? Parent { get; set; }
-    public ICollection<Category> Children { get; set; } = new List<Category>();
-    public ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
-    public ICollection<Skill> Skills { get; set; } = new List<Skill>();
+    public virtual ICollection<Category> InverseParent { get; set; } = new List<Category>();
+
+    public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
+
+    public virtual Category? Parent { get; set; }
+
+    public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
+
+    // Compatibility alias for CategoryID
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int CategoryID
+    {
+        get => CategoryId;
+        set => CategoryId = value;
+    }
 }

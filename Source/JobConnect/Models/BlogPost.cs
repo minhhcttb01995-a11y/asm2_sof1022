@@ -1,26 +1,59 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class BlogPost
+public partial class BlogPost
 {
-    [Key]
-    public int PostID { get; set; }
+    public int PostId { get; set; }
 
-    public int AuthorID { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
+    /// <summary>Mã bài blog - ngẫu nhiên, không trùng (VD: BL9Q3M7Z).</summary>
+    public string? BlogCode { get; set; }
+
+    public int AuthorId { get; set; }
+
+    public string Title { get; set; } = null!;
+
+    public string Slug { get; set; } = null!;
+
     public string? Excerpt { get; set; }
+
     public string? Content { get; set; }
-    public string? CoverURL { get; set; }
+
+    public string? CoverUrl { get; set; }
+
+    // Compatibility aliases (some views/controllers use PostID / CoverURL)
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int PostID
+    {
+        get => PostId;
+        set => PostId = value;
+    }
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string? CoverURL
+    {
+        get => CoverUrl;
+        set => CoverUrl = value;
+    }
+
     public bool IsPublished { get; set; }
+
+    public string? Status { get; set; }
+
     public DateTime? PublishedAt { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    [NotMapped]
+
+    public DateTime CreatedAt { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
-    // Navigation
-    public User? Author { get; set; }
+    public virtual User Author { get; set; } = null!;
+
+    // Compatibility alias for AuthorID
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int AuthorID
+    {
+        get => AuthorId;
+        set => AuthorId = value;
+    }
 }

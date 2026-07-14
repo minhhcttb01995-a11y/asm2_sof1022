@@ -1,0 +1,151 @@
+﻿@using JobConnect.Models
+@{
+    ViewData["Title"] = "Quản lý Trạng thái";
+    Layout = "_LayoutAdmin";
+    var entityTypes = (string[])ViewBag.EntityTypes;
+    var entityTypeLabels = (Dictionary<string, string>)ViewBag.EntityTypeLabels;
+}
+
+<div class="max-w-[1700px] mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Quản lý Trạng thái</h1>
+            <p class="text-secondary text-sm">Tùy chỉnh danh mục trạng thái cho Ứng viên, Nhà tuyển dụng, Nhân viên, Công ty, Tin tuyển dụng</p>
+        </div>
+        <a asp-action="StatusCreate" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">add</span>
+            Thêm trạng thái mới
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm auto-hide-alert">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- Filter -->
+    <div class="bg-white rounded-2xl border border-outline-variant p-4 mb-6">
+        <form method="get" asp-action="Statuses" class="flex flex-wrap items-end gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-medium text-secondary mb-1">Đối tượng áp dụng</label>
+                <select name="entityType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm">
+                    <option value="">Tất cả</option>
+                    @foreach (var et in entityTypes)
+                    {
+                        <option value="@et" selected="@(ViewBag.EntityTypeFilter == et)">@entityTypeLabels[et]</option>
+                    }
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-medium text-secondary mb-1">Từ khóa</label>
+                <input type="text" name="keyword" value="@ViewBag.KeywordFilter" placeholder="Tên hoặc mã trạng thái..."
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm" />
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                Lọc
+            </button>
+            <a asp-action="Statuses" class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Đặt lại
+            </a>
+        </form>
+    </div>
+
+    <!-- Table -->
+    @{
+        var statuses = (List<StatusCatalog>)ViewBag.Statuses;
+    }
+    @if (statuses != null && statuses.Any())
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-surface-container">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Đối tượng</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Tên hiển thị</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Xem trước</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Mô tả</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Hiển thị</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in statuses)
+                    {
+                        <tr class="border-t border-outline-variant hover:bg-surface-container-low">
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                                    @(entityTypeLabels.ContainsKey(s.EntityType) ? entityTypeLabels[s.EntityType] : s.EntityType)
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-medium text-on-surface">@s.Name</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-xs font-medium @(string.IsNullOrWhiteSpace(s.ColorClass) ? "bg-gray-100 text-gray-700" : s.ColorClass)">
+                                    @s.Name
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm text-secondary">@s.Description</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if (s.IsActive)
+                                {
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Đã ẩn</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a asp-action="StatusEdit" asp-route-id="@s.Id"
+                                       class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Sửa">
+                                        <span class="material-symbols-outlined text-sm">edit</span>
+                                    </a>
+                                    <form asp-action="StatusToggle" asp-route-id="@s.Id" method="post"
+                                          onsubmit="return confirm('Bạn có chắc muốn thay đổi hiển thị trạng thái này?')"
+                                          class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="p-2 @(s.IsActive ? "text-orange-600 hover:bg-orange-50" : "text-green-600 hover:bg-green-50") rounded-lg"
+                                                title="@(s.IsActive ? "Ẩn" : "Hiện")">
+                                            <span class="material-symbols-outlined text-sm">@(s.IsActive ? "visibility_off" : "visibility")</span>
+                                        </button>
+                                    </form>
+                                    <form asp-action="StatusDelete" asp-route-id="@s.Id" method="post"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa trạng thái này?')"
+                                          class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Xóa">
+                                            <span class="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl p-12 text-center border border-outline-variant">
+            <span class="material-symbols-outlined text-6xl text-secondary mb-4">tune</span>
+            <p class="text-lg text-secondary">Không tìm thấy trạng thái nào</p>
+            <a asp-action="StatusCreate" class="inline-block mt-4 px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                Thêm trạng thái đầu tiên
+            </a>
+        </div>
+    }
+</div>

@@ -1,11 +1,11 @@
 @using JobConnect.Models
-@model JobConnect.Models.Staff
+@model JobConnect.Models.Staff;
 @{
     ViewData["Title"] = "Lịch sử hoạt động";
     Layout = "_LayoutAdmin";
 }
 
-<div class="max-w-4xl mx-auto px-6 py-8">
+<div class="max-w-[1300px] mx-auto px-6 py-8">
     <div class="flex items-center gap-4 mb-6">
         <a asp-action="Index" class="text-secondary hover:text-primary">
             <span class="material-symbols-outlined">arrow_back</span>
@@ -85,7 +85,7 @@
                         @for (int i = 1; i <= ViewBag.TotalPages; i++)
                         {
                             <a asp-action="ActivityLog" asp-route-id="@Model.Id" asp-route-page="@i"
-                               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
+                               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm border @(i == ViewBag.CurrentPage ? "bg-primary text-slate-900 border-primary" : "border-outline-variant text-secondary hover:bg-surface-container")">
                                 @i
                             </a>
                         }

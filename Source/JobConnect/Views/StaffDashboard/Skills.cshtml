@@ -79,7 +79,7 @@
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="skillId" value="@skill.SkillID" />
                                     <button type="submit" 
-                                            class="p-2 @(skill.IsActive ? "bg-gray-500/20 text-gray-400 hover:bg-gray-500/30" : "bg-green-500/20 text-green-400 hover:bg-green-500/30") rounded-lg transition-colors"
+                                            class="p-2 @(skill.IsActive ? "bg-gray-500/20 text-gray-400 hover:bg-gray-500/30" : "bg-green-500/20 text-green-600 hover:bg-green-500/30") rounded-lg transition-colors"
                                             title="@(skill.IsActive ? "Ẩn kỹ năng" : "Hiện kỹ năng")">
                                         <span class="material-icons text-sm">@(skill.IsActive ? "visibility_off" : "visibility")</span>
                                     </button>
@@ -88,7 +88,7 @@
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="skillId" value="@skill.SkillID" />
                                     <button type="submit" 
-                                            class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                            class="p-2 bg-red-500/20 text-red-600 rounded-lg hover:bg-red-500/30 transition-colors"
                                             title="Xóa">
                                         <span class="material-icons text-sm">delete</span>
                                     </button>

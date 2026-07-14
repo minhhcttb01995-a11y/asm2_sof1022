@@ -1,21 +1,19 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class PasswordResetToken
+public partial class PasswordResetToken
 {
-    [Key]
     public int Id { get; set; }
 
-    [Required]
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-    [Required, MaxLength(6)]
-    public string Code { get; set; } = string.Empty;   // 6 chữ số
+    public string Code { get; set; } = null!;
 
-    public DateTime ExpiresAt { get; set; }            // hết hạn sau 10 phút
+    public DateTime ExpiresAt { get; set; }
 
-    public bool IsUsed { get; set; } = false;
+    public bool IsUsed { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
 }

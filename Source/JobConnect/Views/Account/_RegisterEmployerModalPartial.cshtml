@@ -1,0 +1,124 @@
+@model JobConnect.ViewModels.RegisterEmployerViewModel
+@{
+    Layout = null;
+}
+<form id="authForm" asp-action="RegisterEmployer" asp-controller="Account" method="post" class="space-y-4" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-rose-600 text-sm bg-rose-50 border border-rose-200 p-3 rounded-xl"></div>
+
+    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+        <span class="material-symbols-outlined text-sm">person</span> Thông tin liên hệ
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">
+                Họ tên <span class="text-rose-600">*</span>
+            </label>
+            <input asp-for="ContactName" placeholder="Nguyễn Văn A"
+                   class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            <span asp-validation-for="ContactName" class="text-rose-600 text-xs mt-1 block"></span>
+        </div>
+        <div>
+            <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">Số điện thoại</label>
+            <input asp-for="PhoneNumber" type="tel" placeholder="0901 234 567"
+                   class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            <span asp-validation-for="PhoneNumber" class="text-rose-600 text-xs mt-1 block"></span>
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">
+            Email <span class="text-rose-600">*</span>
+        </label>
+        <input asp-for="Email" type="email" placeholder="contact@company.com"
+               class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        <span asp-validation-for="Email" class="text-rose-600 text-xs mt-1 block"></span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">
+                Mật khẩu <span class="text-rose-600">*</span>
+            </label>
+            <div class="relative">
+                <input asp-for="Password" type="password" id="empPasswordInput" placeholder="Ít nhất 8 ký tự"
+                       class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" style="padding-right:2.75rem" />
+                <button type="button" onclick="jcTogglePwd('empPasswordInput', 'empEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary">
+                    <span class="material-symbols-outlined text-xl leading-none" id="empEyeIcon">visibility_off</span>
+                </button>
+            </div>
+            <span asp-validation-for="Password" class="text-rose-600 text-xs mt-1 block"></span>
+        </div>
+        <div>
+            <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">
+                Xác nhận <span class="text-rose-600">*</span>
+            </label>
+            <div class="relative">
+                <input asp-for="ConfirmPassword" type="password" id="empConfirmPasswordInput" placeholder="Nhập lại mật khẩu"
+                       class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" style="padding-right:2.75rem" />
+                <button type="button" onclick="jcTogglePwd('empConfirmPasswordInput', 'empEyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary">
+                    <span class="material-symbols-outlined text-xl leading-none" id="empEyeIcon2">visibility_off</span>
+                </button>
+            </div>
+            <span asp-validation-for="ConfirmPassword" class="text-rose-600 text-xs mt-1 block"></span>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary pt-2">
+        <span class="material-symbols-outlined text-sm">business</span> Thông tin công ty
+    </div>
+
+    <div>
+        <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">
+            Tên công ty <span class="text-rose-600">*</span>
+        </label>
+        <input asp-for="CompanyName" placeholder="Công ty TNHH ABC"
+               class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        <span asp-validation-for="CompanyName" class="text-rose-600 text-xs mt-1 block"></span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">Mã số thuế</label>
+            <input asp-for="TaxCode" placeholder="0123456789"
+                   class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            <span asp-validation-for="TaxCode" class="text-rose-600 text-xs mt-1 block"></span>
+        </div>
+        <div>
+            <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">Ngành nghề</label>
+            <input asp-for="Industry" placeholder="Công nghệ thông tin"
+                   class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            <span asp-validation-for="Industry" class="text-rose-600 text-xs mt-1 block"></span>
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">Địa chỉ</label>
+        <input asp-for="Address" placeholder="Tầng 10, Tòa nhà ABC, Hà Nội"
+               class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        <span asp-validation-for="Address" class="text-rose-600 text-xs mt-1 block"></span>
+    </div>
+
+    <div>
+        <label class="block text-[0.7rem] font-bold tracking-wider uppercase text-slate-400 mb-2">Website</label>
+        <input asp-for="Website" type="url" placeholder="https://company.com"
+               class="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        <span asp-validation-for="Website" class="text-rose-600 text-xs mt-1 block"></span>
+    </div>
+
+    <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-sm shadow-lg shadow-blue-900/20 mt-2">
+        <span class="material-symbols-outlined text-sm align-middle mr-1">business_center</span>
+        Đăng ký Nhà tuyển dụng
+    </button>
+</form>
+
+<div class="text-center mt-5 text-sm text-slate-600">
+    <p>Đã có tài khoản?
+        <a href="#" class="text-primary font-bold hover:text-blue-700" onclick="jcOpenAuth(event, 'login')">Đăng nhập ngay</a>
+    </p>
+    <p class="mt-1">Bạn là ứng viên?
+        <a href="#" class="text-primary hover:text-blue-700" onclick="jcOpenAuth(event, 'register')">Đăng ký tài khoản ứng viên</a>
+    </p>
+</div>

@@ -1,34 +1,37 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
-namespace JobConnect.Models
+namespace JobConnect.Models;
+
+public partial class Interview
 {
-    public class Interview
+    public int InterviewId { get; set; }
+
+    public int AppID { get; set; }
+
+    public DateTime InterviewDate { get; set; }
+
+    public string Location { get; set; } = null!;
+
+    public string? Notes { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public virtual Application Application { get; set; } = null!;
+
+    // Compatibility alias for InterviewID
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int InterviewID
     {
-        [Key]
-        public int InterviewID { get; set; }
+        get => InterviewId;
+        set => InterviewId = value;
+    }
 
-        [Required]
-        public int AppID { get; set; }
-
-        [Required]
-        [Display(Name = "Thời gian phỏng vấn")]
-        public DateTime InterviewDate { get; set; }
-
-        [Required]
-        [MaxLength(200)]
-        [Display(Name = "Địa điểm/Link trực tuyến")]
-        public string Location { get; set; } = string.Empty;
-
-        [MaxLength(1000)]
-        [Display(Name = "Ghi chú/Hướng dẫn")]
-        public string? Notes { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        // Navigation properties
-        [ForeignKey("AppID")]
-        public virtual Application? Application { get; set; }
+    // Backwards-compatible alias (some views/controllers use AppId)
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int AppId
+    {
+        get => AppID;
+        set => AppID = value;
     }
 }

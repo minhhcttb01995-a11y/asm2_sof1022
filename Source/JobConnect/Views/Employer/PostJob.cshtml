@@ -4,12 +4,38 @@
     Layout = "_LayoutEmployer";
 }
 
-<div class="max-w-3xl space-y-6 pb-10">
+<!-- Quill CSS -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+<style>
+    .ql-toolbar.ql-snow {
+        border-radius: 12px 12px 0 0;
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
 
-    
-    <div class="flex items-center gap-3">
+    .ql-container.ql-snow {
+        border-radius: 0 0 12px 12px;
+        border-color: #e2e8f0;
+        font-size: 14px;
+    }
+
+    .ql-editor {
+        min-height: 320px;
+        line-height: 1.75;
+    }
+
+        .ql-editor.ql-blank::before {
+            color: #94a3b8;
+            font-style: normal;
+        }
+</style>
+
+<div class="max-w-[1300px] mx-auto pb-10">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
         <a asp-action="Dashboard"
-           class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors">
+           class="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1e293b] border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors">
             <span class="material-symbols-outlined text-xl">arrow_back</span>
         </a>
         <div>
@@ -18,131 +44,251 @@
         </div>
     </div>
 
-    <form asp-action="PostJob" method="post" class="space-y-5">
+    <form asp-action="PostJob" method="post" id="jobForm">
         @Html.AntiForgeryToken()
 
         <div asp-validation-summary="ModelOnly"
-             class="bg-red-900/30 border border-red-500/40 text-red-300 text-sm rounded-xl px-4 py-3"></div>
+             class="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-5"></div>
 
-        
-        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Thông tin cơ bản</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-            <div class="space-y-1">
-                <label class="block text-sm font-medium text-slate-300">
-                    Tiêu đề công việc <span class="text-red-400">*</span>
-                </label>
-                <input asp-for="Title" placeholder="VD: Senior Backend Developer"
-                       class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
-                <span asp-validation-for="Title" class="text-red-400 text-xs mt-1 block"></span>
+            <!-- Cột chính -->
+            <div class="lg:col-span-2 space-y-5">
+
+                <!-- Thông tin cơ bản -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">edit_note</span>
+                        Thông tin cơ bản
+                    </h3>
+
+                    <div class="space-y-1 mb-4">
+                        <label class="block text-sm font-medium text-slate-300">
+                            Tiêu đề công việc <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Title" id="titleInput" placeholder="VD: Senior Backend Developer" required
+                               class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        <div class="flex justify-between mt-1">
+                            <span asp-validation-for="Title" class="text-red-500 text-xs"></span>
+                            <span class="text-xs text-slate-400" id="titleCount">0 / 120</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Loại công việc</label>
+                            <select asp-for="JobType"
+                                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+                                <option value="FullTime">Full-time</option>
+                                <option value="PartTime">Part-time</option>
+                                <option value="Contract">Hợp đồng</option>
+                                <option value="Intern">Thực tập</option>
+                                <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Cấp bậc kinh nghiệm</label>
+                            <select asp-for="ExperienceLevel"
+                                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+                                <option value="">Không yêu cầu</option>
+                                <option value="Fresher">Fresher</option>
+                                <option value="Junior">Junior</option>
+                                <option value="Middle">Middle</option>
+                                <option value="Senior">Senior</option>
+                                <option value="Manager">Manager</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Địa điểm làm việc</label>
+                            <input asp-for="Location" placeholder="VD: Hà Nội, TP. HCM"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Ngành nghề</label>
+                            <select asp-for="CategoryID"
+                                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+                                <option value="">Chọn ngành nghề</option>
+                                @foreach (var cat in (ViewBag.Categories as List<JobConnect.Models.Category> ?? new()))
+                                {
+                                    <option value="@cat.CategoryID">@cat.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lương & Thời hạn -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">payments</span>
+                        Lương &amp; Thời hạn
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Lương tối thiểu (VND)</label>
+                            <input asp-for="SalaryMin" type="number" placeholder="VD: 15000000"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Lương tối đa (VND)</label>
+                            <input asp-for="SalaryMax" type="number" placeholder="VD: 30000000"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Ngày hết hạn</label>
+                            <input asp-for="Deadline" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nội dung chi tiết -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">description</span>
+                        Nội dung chi tiết
+                    </h3>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Mô tả công việc <span class="text-red-500">*</span>
+                        </label>
+                        <input type="hidden" asp-for="Description" id="descriptionHidden" />
+                        <div id="descriptionEditor" class="rounded-xl overflow-hidden border border-slate-700"></div>
+                        <span asp-validation-for="Description" class="text-red-500 text-xs mt-1 block"></span>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            Hỗ trợ định dạng văn bản, heading, danh sách, link và hình ảnh
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Loại công việc</label>
-                    <select asp-for="JobType"
-                            class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-                        <option value="FullTime">Full-time</option>
-                        <option value="PartTime">Part-time</option>
-                        <option value="Contract">Hợp đồng</option>
-                        <option value="Intern">Thực tập</option>
-                        <option value="Remote">Remote</option>
-                    </select>
+            <!-- Cột phụ -->
+            <div class="space-y-5">
+
+                <!-- Gửi duyệt -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm lg:sticky lg:top-5">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">send</span>
+                        Gửi duyệt
+                    </h3>
+                    <div class="flex items-start gap-2 px-3 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-300 mb-4">
+                        <span class="material-symbols-outlined text-sm mt-0.5">info</span>
+                        <span>Tin đăng sẽ được gửi cho quản trị viên duyệt trước khi hiển thị công khai.</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button type="submit"
+                                class="w-full px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-base">send</span>
+                            Gửi tin để duyệt
+                        </button>
+                        <a asp-action="Dashboard"
+                           class="w-full text-center px-4 py-2.5 border border-slate-700 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-700 transition-colors">
+                            Hủy
+                        </a>
+                    </div>
                 </div>
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Cấp bậc kinh nghiệm</label>
-                    <select asp-for="ExperienceLevel"
-                            class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-                        <option value="">Không yêu cầu</option>
-                        <option value="Fresher">Fresher</option>
-                        <option value="Junior">Junior</option>
-                        <option value="Middle">Middle</option>
-                        <option value="Senior">Senior</option>
-                        <option value="Manager">Manager</option>
-                    </select>
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Địa điểm làm việc</label>
-                    <input asp-for="Location" placeholder="VD: Hà Nội, TP. HCM"
-                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Ngành nghề</label>
-                    <select asp-for="CategoryID"
-                            class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-                        <option value="">Chọn ngành nghề</option>
-                        @foreach (var cat in (ViewBag.Categories as List<JobConnect.Models.Category> ?? new()))
+
+                <!-- Quy mô công ty -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">groups</span>
+                        Quy mô công ty
+                    </h3>
+                    @{
+                        var companySize = ViewBag.CompanySize as string;
+                        var companySizeLabel = companySize switch
                         {
-                            <option value="@cat.CategoryID">@cat.Name</option>
-                        }
-                    </select>
+                            "1-10" => "1 - 10 nhân viên",
+                            "11-50" => "11 - 50 nhân viên",
+                            "51-200" => "51 - 200 nhân viên",
+                            "200+" => "Trên 200 nhân viên",
+                            _ => null
+                        };
+                    }
+                    @if (companySizeLabel != null)
+                    {
+                        <p class="text-sm font-medium text-slate-100">@companySizeLabel</p>
+                    }
+                    else
+                    {
+                        <p class="text-sm text-slate-400 italic">Chưa cập nhật quy mô công ty</p>
+                    }
+                    <a asp-action="CompanyProfile"
+                       class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        Sửa tại Hồ sơ công ty
+                    </a>
+                </div>
+
+                <!-- Mẹo viết tin -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-500 text-base">lightbulb</span>
+                        Mẹo viết tin hiệu quả
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-400 leading-relaxed">
+                        <li class="flex gap-2">
+                            <span class="w-1.5 h-1.5 mt-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                            Tiêu đề ngắn gọn, nêu rõ vị trí và cấp bậc.
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="w-1.5 h-1.5 mt-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                            Mô tả công việc càng chi tiết, ứng viên phù hợp càng dễ tìm thấy tin.
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="w-1.5 h-1.5 mt-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                            Ghi rõ mức lương giúp tăng tỷ lệ ứng tuyển.
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-
-        
-        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Lương & Thời hạn</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Lương tối thiểu (VND)</label>
-                    <input asp-for="SalaryMin" type="number" placeholder="VD: 15000000"
-                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Lương tối đa (VND)</label>
-                    <input asp-for="SalaryMax" type="number" placeholder="VD: 30000000"
-                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-300">Ngày hết hạn</label>
-                    <input asp-for="Deadline" type="date"
-                           class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
-                </div>
-            </div>
-        </div>
-
-        
-        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Nội dung chi tiết</p>
-
-            <div class="space-y-1">
-                <label class="block text-sm font-medium text-slate-300">
-                    Mô tả công việc <span class="text-red-400">*</span>
-                </label>
-                <textarea asp-for="Description" rows="6"
-                          placeholder="Mô tả chi tiết về vị trí công việc..."
-                          class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
-                <span asp-validation-for="Description" class="text-red-400 text-xs mt-1 block"></span>
-            </div>
-
-            <div class="space-y-1">
-                <label class="block text-sm font-medium text-slate-300">Yêu cầu ứng viên</label>
-                <textarea asp-for="Requirements" rows="4"
-                          placeholder="Kỹ năng, kinh nghiệm yêu cầu..."
-                          class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
-            </div>
-
-            <div class="space-y-1">
-                <label class="block text-sm font-medium text-slate-300">Quyền lợi</label>
-                <textarea asp-for="Benefits" rows="3"
-                          placeholder="Các quyền lợi hấp dẫn dành cho ứng viên..."
-                          class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"></textarea>
-            </div>
-        </div>
-
-        <div class="flex gap-3">
-            <button type="submit"
-                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-base">send</span>
-                Gửi tin để duyệt
-            </button>
-            <a asp-action="Dashboard"
-               class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium rounded-xl transition-colors">
-                Hủy
-            </a>
-        </div>
-
     </form>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    const titleInput = document.getElementById('titleInput');
+    const titleCount = document.getElementById('titleCount');
+    if (titleInput && titleCount) {
+    const updateCount = () => titleCount.textContent = titleInput.value.length + ' / 120';
+    titleInput.addEventListener('input', updateCount);
+    updateCount();
+    }
+
+    // Toolbar đầy đủ chức năng cho Mô tả công việc
+    const descriptionQuill = new Quill('#descriptionEditor', {
+    theme: 'snow',
+    placeholder: 'Mô tả chi tiết về vị trí công việc...',
+    modules: {
+    toolbar: [
+    [{ header: [2, 3, 4, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: [] }, { background: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ indent: '-1' }, { indent: '+1' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    ['clean']
+    ]
+    }
+    });
+
+    // Nếu có nội dung cũ (khi sửa tin) thì nạp lại vào editor
+    const descriptionHidden = document.getElementById('descriptionHidden');
+    if (descriptionHidden && descriptionHidden.value) {
+    descriptionQuill.root.innerHTML = descriptionHidden.value;
+    }
+
+    // Đồng bộ nội dung Quill → hidden input trước khi submit
+    document.getElementById('jobForm').addEventListener('submit', function (e) {
+    if (descriptionQuill.getText().trim().length === 0) {
+    e.preventDefault();
+    alert('Vui lòng nhập mô tả công việc!');
+    return;
+    }
+    document.getElementById('descriptionHidden').value = descriptionQuill.root.innerHTML;
+    });
+</script>

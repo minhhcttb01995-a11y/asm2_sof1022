@@ -1,0 +1,95 @@
+﻿@using JobConnect.Models
+@model List<CompanyFollow>
+@{
+    ViewData["Title"] = "Công ty đã theo dõi";
+    Layout = "_Layout";
+}
+
+<div class="max-w-[1300px] mx-auto px-6 py-8">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="Profile" class="text-secondary hover:text-primary">
+            <span class="material-symbols-outlined align-middle">arrow_back</span>
+        </a>
+        <h1 class="text-2xl font-bold text-on-surface">Công ty đã theo dõi</h1>
+        <span class="ml-2 bg-surface-container text-secondary text-sm px-3 py-1 rounded-full">@Model.Count công ty</span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white rounded-xl border border-outline-variant p-16 text-center">
+            <span class="material-symbols-outlined text-5xl text-secondary block mb-3">domain</span>
+            <p class="text-secondary mb-3">Bạn chưa theo dõi công ty nào.</p>
+            <p class="text-secondary text-sm mb-4">Theo dõi công ty để nhận thông báo ngay khi có tin tuyển dụng mới.</p>
+            <a asp-controller="Company" asp-action="Index"
+               class="px-5 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                Khám phá công ty
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-3">
+            @foreach (var follow in Model)
+            {
+                var emp = follow.Employer;
+                <div class="bg-white rounded-xl border border-outline-variant p-5 hover:shadow-md transition-shadow">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl border border-outline-variant bg-surface-container-low flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            @if (!string.IsNullOrEmpty(emp?.LogoURL))
+                            {
+                                <img src="@emp.LogoURL" class="w-full h-full object-contain rounded-xl" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-secondary">business</span>
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <a asp-controller="Company" asp-action="Detail" asp-route-id="@emp?.EmployerId"
+                                       class="font-semibold text-on-surface hover:text-primary text-sm">@emp?.CompanyName</a>
+                                    @if (!string.IsNullOrEmpty(emp?.Industry))
+                                    {
+                                        <p class="text-secondary text-xs mt-0.5">@emp.Industry</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                @if (!string.IsNullOrEmpty(emp?.CompanySize))
+                                {
+                                    <span class="text-xs bg-surface-container px-2 py-0.5 rounded-full text-secondary">
+                                        <span class="material-symbols-outlined text-xs align-middle">group</span> @emp.CompanySize nhân viên
+                                    </span>
+                                }
+                                @if (!string.IsNullOrEmpty(emp?.Address))
+                                {
+                                    <span class="text-xs bg-surface-container px-2 py-0.5 rounded-full text-secondary">
+                                        <span class="material-symbols-outlined text-xs align-middle">location_on</span> @emp.Address
+                                    </span>
+                                }
+                                <span class="text-xs text-secondary">
+                                    Theo dõi từ: @follow.CreatedAt.ToString("dd/MM/yyyy")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-outline-variant flex gap-3">
+                        <a asp-controller="Company" asp-action="Detail" asp-route-id="@emp?.EmployerId"
+                           class="px-4 py-1.5 bg-primary text-slate-900 text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity">
+                            Xem công ty
+                        </a>
+                        <form asp-controller="Company" asp-action="ToggleFollow" asp-route-id="@emp?.EmployerId" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="returnUrl" value="/Candidate/FollowedCompanies" />
+                            <button type="submit"
+                                    class="px-4 py-1.5 border border-outline-variant text-secondary text-xs rounded-lg hover:bg-surface-container transition-colors">
+                                Bỏ theo dõi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

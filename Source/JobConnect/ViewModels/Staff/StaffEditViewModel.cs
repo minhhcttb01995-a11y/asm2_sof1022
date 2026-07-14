@@ -15,6 +15,11 @@ public class StaffEditViewModel
     [StringLength(20)]
     public string EmployeeCode { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "CCCD là bắt buộc")]
+    [StringLength(20, MinimumLength = 9, ErrorMessage = "CCCD phải từ 9-20 ký tự")]
+    [RegularExpression(@"^\d+$", ErrorMessage = "CCCD chỉ được chứa số")]
+    public string CCCD { get; set; } = string.Empty;
+
     [Required]
     [StringLength(100)]
     public string FullName { get; set; } = string.Empty;
@@ -28,6 +33,9 @@ public class StaffEditViewModel
     [Phone]
     public string? Phone { get; set; }
 
+    [StringLength(20)]
+    public string? Gender { get; set; }
+
     [StringLength(500)]
     public string? Avatar { get; set; }
 
@@ -35,12 +43,11 @@ public class StaffEditViewModel
     [StringLength(100)]
     public string Position { get; set; } = string.Empty;
 
-    [Required]
     [StringLength(100)]
     public string Department { get; set; } = string.Empty;
 
     [Required]
-    public StaffStatus Status { get; set; }
+    public string Status { get; set; } = "Active";
 
     public string? Role { get; set; }
 }

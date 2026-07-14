@@ -1,0 +1,123 @@
+@using JobConnect.Models
+@model StatusCatalog
+@{
+    ViewData["Title"] = "Sửa Trạng thái";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="max-w-3xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <a asp-action="Index" class="inline-flex items-center gap-2 text-secondary hover:text-on-surface mb-4">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            Quay lại danh sách
+        </a>
+        <h1 class="text-2xl font-bold text-on-surface">Sửa Trạng thái</h1>
+        <p class="text-secondary text-sm mt-1">Chỉnh sửa thông tin trạng thái</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-outline-variant p-6">
+        <form asp-action="Edit" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedAt" />
+            <input type="hidden" asp-for="IsSystem" />
+
+            <div>
+                <label asp-for="EntityType" class="block text-sm font-medium text-on-surface mb-2">Loại đối tượng <span class="text-red-600">*</span></label>
+                <select asp-for="EntityType" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" required>
+                    <option value="">-- Chọn loại đối tượng --</option>
+                    @foreach (var type in StatusEntityTypes.All)
+                    {
+                        <option value="@type">@StatusEntityTypes.Labels[type]</option>
+                    }
+                </select>
+                <span asp-validation-for="EntityType" class="text-red-600 text-sm"></span>
+            </div>
+
+            <input type="hidden" asp-for="Code" />
+
+            <div>
+                <label asp-for="ColorClass" class="block text-sm font-medium text-on-surface mb-2">Màu hiển thị</label>
+                <select asp-for="ColorClass" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="">-- Chọn màu --</option>
+                    <option value="bg-green-100 text-green-700" class="bg-green-100 text-green-700">Xanh lá (Active / Đã duyệt / Đã xuất bản)</option>
+                    <option value="bg-yellow-100 text-yellow-700" class="bg-yellow-100 text-yellow-700">Vàng (Pending / Chờ duyệt / Chờ xác thực)</option>
+                    <option value="bg-blue-100 text-blue-700" class="bg-blue-100 text-blue-700">Xanh dương (Verified / Đã xác minh)</option>
+                    <option value="bg-red-100 text-red-700" class="bg-red-100 text-red-700">Đỏ (Banned / Locked / Rejected / Đã khóa / Từ chối)</option>
+                    <option value="bg-gray-100 text-gray-700" class="bg-gray-100 text-gray-700">Xám (Deleted / Đã xóa)</option>
+                    <option value="bg-purple-100 text-purple-700" class="bg-purple-100 text-purple-700">Tím (Draft / Bản nháp)</option>
+                    <option value="bg-orange-100 text-orange-700" class="bg-orange-100 text-orange-700">Cam</option>
+                    <option value="bg-teal-100 text-teal-700" class="bg-teal-100 text-teal-700">Xanh ngọc</option>
+                    <option value="bg-pink-100 text-pink-700" class="bg-pink-100 text-pink-700">Hồng</option>
+                    <option value="bg-indigo-100 text-indigo-700" class="bg-indigo-100 text-indigo-700">Chàm</option>
+                </select>
+                <span asp-validation-for="ColorClass" class="text-red-600 text-sm"></span>
+                <p class="text-xs text-secondary mt-1">Chọn màu hiển thị cho trạng thái này.</p>
+            </div>
+
+            <div>
+                <label asp-for="Name" class="block text-sm font-medium text-on-surface mb-2">Tên hiển thị <span class="text-red-600">*</span></label>
+                <input asp-for="Name" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" required
+                       placeholder="Ví dụ: Đang hoạt động, Chờ duyệt, Đã khóa...">
+                <span asp-validation-for="Name" class="text-red-600 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="Description" class="block text-sm font-medium text-on-surface mb-2">Mô tả</label>
+                <textarea asp-for="Description" rows="3" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"
+                          placeholder="Mô tả chi tiết về trạng thái này..."></textarea>
+                <span asp-validation-for="Description" class="text-red-600 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="IsActive" class="block text-sm font-medium text-on-surface mb-2">Trạng thái hoạt động</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input asp-for="IsActive" class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary" type="checkbox">
+                    <label asp-for="IsActive" class="text-sm text-on-surface">Hoạt động</label>
+                </div>
+            </div>
+
+            <div>
+                <label asp-for="BlocksLogin" class="block text-sm font-medium text-on-surface mb-2">Chặn đăng nhập</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input asp-for="BlocksLogin" class="w-5 h-5 text-red-600 border-outline-variant rounded focus:ring-red-500" type="checkbox">
+                    <label asp-for="BlocksLogin" class="text-sm text-on-surface">Tài khoản đang ở trạng thái này sẽ KHÔNG đăng nhập được</label>
+                </div>
+                <p class="text-xs text-secondary mt-1">Bật tuỳ chọn này cho các trạng thái như "Đã khóa", "Đã xóa"...</p>
+            </div>
+
+            <div>
+                <label asp-for="ShowPublicly" class="block text-sm font-medium text-on-surface mb-2">Hiển thị công khai</label>
+                <div class="flex items-center gap-3 mt-3">
+                    <input asp-for="ShowPublicly" class="w-5 h-5 text-green-600 border-outline-variant rounded focus:ring-green-500" type="checkbox">
+                    <label asp-for="ShowPublicly" class="text-sm text-on-surface">Hiển thị công khai trên trang chủ / danh sách (Công ty, Tin tuyển dụng, Blog)</label>
+                </div>
+                <p class="text-xs text-secondary mt-1">Tắt cho các trạng thái như "Chờ duyệt", "Đã khóa", "Đã từ chối", "Bản nháp"...</p>
+            </div>
+
+            @if (Model.IsSystem)
+            {
+                <div class="px-4 py-3 bg-yellow-50 text-yellow-700 rounded-xl text-sm flex items-start gap-2">
+                    <span class="material-symbols-outlined text-base mt-0.5">warning</span>
+                    <div>
+                        <span class="font-medium">Cảnh báo:</span> Đây là trạng thái hệ thống mặc định. Bạn có thể chỉnh sửa thông tin nhưng không thể xóa nó.
+                    </div>
+                </div>
+            }
+
+            <div class="flex gap-3 pt-2">
+                <a asp-action="Index" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                    Huỷ
+                </a>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-slate-900 rounded-xl text-sm font-semibold hover:opacity-90">
+                    Cập nhật trạng thái
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

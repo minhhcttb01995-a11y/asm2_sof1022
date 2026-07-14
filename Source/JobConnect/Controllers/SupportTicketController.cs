@@ -29,7 +29,7 @@ public class SupportTicketController : Controller
 
         if (status.HasValue)
         {
-            query = query.Where(st => st.Status == status.Value);
+            query = query.Where(st => st.Status == (int)status.Value);
         }
 
         var totalCount = await query.CountAsync();
@@ -91,7 +91,7 @@ public class SupportTicketController : Controller
         }
 
         ticket.AssignedToStaffId = staff.Id;
-        ticket.Status = TicketStatus.InProgress;
+        ticket.Status = (int)TicketStatus.InProgress;
         ticket.AssignedAt = DateTime.UtcNow;
         ticket.UpdatedAt = DateTime.UtcNow;
 
@@ -150,7 +150,7 @@ public class SupportTicketController : Controller
             return NotFound();
         }
 
-        ticket.Status = TicketStatus.Resolved;
+        ticket.Status = (int)TicketStatus.Resolved;
         ticket.ResolvedAt = DateTime.UtcNow;
         ticket.UpdatedAt = DateTime.UtcNow;
 
@@ -173,7 +173,7 @@ public class SupportTicketController : Controller
             return NotFound();
         }
 
-        ticket.Status = TicketStatus.Closed;
+        ticket.Status = (int)TicketStatus.Closed;
         ticket.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

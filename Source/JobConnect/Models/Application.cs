@@ -1,48 +1,48 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class Application
+public partial class Application
 {
-    [Key]
     public int AppID { get; set; }
 
-    [Required]
-    public int JobID { get; set; }
+    public int JobId { get; set; }
 
-    [Required]
-    public int ProfileID { get; set; }
+    public int ProfileId { get; set; }
 
-    public int? CVID { get; set; }
+    public int? Cvid { get; set; }
 
-    [StringLength(1000)]
     public string? CoverLetter { get; set; }
 
-    [Required]
-    [StringLength(50)]
-    public string Status { get; set; } = "Pending"; // Pending, Reviewing, Interview, Offered, Rejected
+    public string Status { get; set; } = null!;
 
-    public DateTime AppliedAt { get; set; } = DateTime.Now;
+    public DateTime AppliedAt { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
-    // Các trường hỗ trợ cho nhà tuyển dụng (không lưu vào DB)
-    [NotMapped]
-    public int? Rating { get; set; }           // Đánh giá 1-5
+    public virtual CvFile? Cv { get; set; }
 
-    [NotMapped]
-    public string? Note { get; set; }          // Ghi chú của nhà tuyển dụng
+    public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
-    // ==================== NAVIGATION PROPERTIES ====================
-    [ForeignKey("JobID")]
-    public virtual JobPost? Job { get; set; }   // Đổi từ JobPost thành Job cho nhất quán
+    public virtual JobPost Job { get; set; } = null!;
 
-    [ForeignKey("ProfileID")]
-    public virtual CandidateProfile? CandidateProfile { get; set; }
+    // Mapped navigation property named CandidateProfile to match view/controller usage
+    public virtual CandidateProfile CandidateProfile { get; set; } = null!;
 
-    [ForeignKey("CVID")]
-    public virtual CvFile? CvFile { get; set; }
+    // Backwards-compatible alias for code referring to Profile
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public CandidateProfile Profile
+    {
+        get => CandidateProfile;
+        set => CandidateProfile = value;
+    }
 
-    // Optional: Thêm collection nếu cần
-    // public virtual ICollection<Interview>? Interviews { get; set; }
+    // Compatibility alias for Cv
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public CvFile? CvFile
+    {
+        get => Cv;
+        set => Cv = value;
+    }
 }

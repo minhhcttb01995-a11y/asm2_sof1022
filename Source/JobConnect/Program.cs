@@ -32,7 +32,13 @@ builder.Services.AddAuthentication(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.SlidingExpiration = true;
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // FIX: Project chỉ chạy HTTP ở localhost (xem launchSettings.json, không có
+    // profile HTTPS nào). CookieSecurePolicy.Always khiến trình duyệt KHÔNG lưu
+    // cookie đăng nhập trên kết nối HTTP -> mất session ngay sau khi login ->
+    // [Authorize(Roles = "Staff,Admin")] trả về 401 ở mọi trang cần đăng nhập.
+    // SameAsRequest sẽ tự dùng Secure khi chạy HTTPS (production) và bỏ qua khi
+    // chạy HTTP (local dev), nên hoạt động đúng ở cả 2 môi trường.
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 })
 .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
 {
@@ -58,6 +64,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<IStatusCatalogService, StatusCatalogService>();
+builder.Services.AddScoped<ICodeGeneratorService, CodeGeneratorService>();
 
 // ── MVC ────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
@@ -76,7 +84,13 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// FIX: Không có cổng HTTPS nào cấu hình cho local dev (launchSettings.json chỉ
+// có profile "http"), nên UseHttpsRedirection() ở dev chỉ sinh warning vô ích
+// và không redirect được. Chỉ bật khi chạy production (đã có HTTPS thật).
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -89,7 +103,12 @@ app.MapControllerRoute(
 name: "default",
 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ── Database Migration + Seed Data ─────────────────────────────
+// ── Database First: KHÔNG migrate, chỉ kiểm tra kết nối + seed (nếu cần) ──
+// Database đã được tạo sẵn bằng script SQL (JobConnectDB_Create.sql) chạy
+// trực tiếp trong SSMS. Model C# được sinh ra từ database đó bằng lệnh:
+//   dotnet ef dbcontext scaffold ...
+// Vì vậy KHÔNG được gọi dbContext.Database.MigrateAsync() nữa — Migrations
+// thuộc về Code First, đi ngược lại yêu cầu Database First.
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -99,19 +118,23 @@ using (var scope = app.Services.CreateScope())
     {
         var dbContext = services.GetRequiredService<AppDbContext>();
 
-        logger.LogInformation("Applying database migrations...");
-        await dbContext.Database.MigrateAsync();
+        // Chỉ kiểm tra là kết nối được tới database đã tạo sẵn,
+        // KHÔNG tạo/sửa schema từ code nữa.
+        logger.LogInformation("Checking database connection...");
+        bool canConnect = await dbContext.Database.CanConnectAsync();
 
-        if (app.Environment.IsDevelopment())
+        if (!canConnect)
         {
-            logger.LogInformation("Seeding initial data...");
-            await SeedData.Initialize(services);
+            logger.LogError(
+                "Không kết nối được tới database. Hãy chắc chắn bạn đã chạy " +
+                "script JobConnectDB_Create.sql trong SSMS và connection string " +
+                "trong appsettings.json đúng với server của bạn.");
         }
     }
     catch (Exception ex)
     {
         logger.LogError(ex,
-            "An error occurred while migrating or seeding the database.");
+            "An error occurred while connecting to or seeding the database.");
     }
 
 }

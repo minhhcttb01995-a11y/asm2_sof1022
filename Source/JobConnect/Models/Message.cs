@@ -1,25 +1,27 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace JobConnect.Models;
 
-public class Message
+public partial class Message
 {
-    [Key]
-    public int MessageID { get; set; }
-    
-    public int SenderID { get; set; }
-    public User? Sender { get; set; }
-    
-    public int ReceiverID { get; set; }
-    public User? Receiver { get; set; }
-    
-    public string Content { get; set; } = string.Empty;
-    
-    public bool IsRead { get; set; } = false;
-    
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    
-    // Optional: Reference to a job if the chat is about a specific job
-    public int? JobID { get; set; }
-    public JobPost? Job { get; set; }
+    public int MessageId { get; set; }
+
+    public int SenderId { get; set; }
+
+    public int ReceiverId { get; set; }
+
+    public string Content { get; set; } = null!;
+
+    public bool IsRead { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public int? JobId { get; set; }
+
+    public virtual JobPost? Job { get; set; }
+
+    public virtual User Receiver { get; set; } = null!;
+
+    public virtual User Sender { get; set; } = null!;
 }
