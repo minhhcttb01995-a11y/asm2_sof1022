@@ -1,4 +1,10 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng NGƯỜI DÙNG GỐC — trung tâm của toàn bộ hệ thống xác thực/phân quyền.
+// Mỗi User có 1 Role (Candidate/Employer/Staff/Admin...) và tùy Role sẽ có thêm
+// 1 bảng chi tiết tương ứng (CandidateProfile / Employer / Staff). Lưu email, mật
+// khẩu đã hash (PasswordHash — KHÔNG BAO GIỜ lưu plain text), OTP để xác thực email,
+// trạng thái tài khoản (Status) và các mốc thời gian (CreatedAt/LastLoginAt...).
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

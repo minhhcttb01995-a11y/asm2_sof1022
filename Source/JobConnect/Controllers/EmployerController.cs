@@ -1,3 +1,17 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// EmployerController — [Authorize(Roles = "Employer")]: TRANG QUẢN LÝ DÀNH CHO
+// NHÀ TUYỂN DỤNG sau khi đăng nhập. Các nhóm chức năng chính:
+//   • Dashboard/JobStats: thống kê tổng quan (số tin đăng, số đơn ứng tuyển...).
+//   • PostJob/EditJob: đăng tin tuyển dụng mới / chỉnh sửa tin đã đăng.
+//   • ManageApplications/UpdateApplicationStatus(Ajax)/CandidateDetail/CandidateSkills:
+//     xem & xử lý danh sách ứng viên đã nộp đơn cho 1 tin, đổi trạng thái đơn.
+//   • DownloadCv/ViewCv: tải/xem CV ứng viên đã nộp.
+//   • ExportApplicationsCsv/PrintApplications: xuất danh sách ứng viên ra CSV / bản in.
+//   • ScheduleInterview/EditInterview/DeleteInterview/RejectApplication: quản lý lịch phỏng vấn.
+//   • CompanyProfile/MyProfile: chỉnh sửa hồ sơ công ty / hồ sơ cá nhân người đại diện.
+// Đây là controller lớn (>1000 dòng) — dùng Ctrl+F theo tên action để tìm nhanh.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;
@@ -16,18 +30,26 @@ public class EmployerController : Controller
     private readonly AppDbContext _db;
     private readonly IJobService _jobSvc;
     private readonly IWebHostEnvironment _env;
+    private readonly IGeminiService _aiService;
+    private readonly IEmailService _emailService;
+    private readonly ICvTextExtractionService _cvTextExtractor;
+    private readonly ILocalCvMatchService _localMatchService;
 
-    public EmployerController(AppDbContext db, IJobService jobSvc, IWebHostEnvironment env)
+    public EmployerController(AppDbContext db, IJobService jobSvc, IWebHostEnvironment env, IGeminiService aiService, IEmailService emailService, ICvTextExtractionService cvTextExtractor, ILocalCvMatchService localMatchService)
     {
         _db = db;
         _jobSvc = jobSvc;
         _env = env;
+        _aiService = aiService;
+        _emailService = emailService;
+        _cvTextExtractor = cvTextExtractor;
+        _localMatchService = localMatchService;
     }
 
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
     private async Task<Employer?> GetEmployerAsync()
-        => await _db.Employers.FirstOrDefaultAsync(e => e.UserId == UserId);
+        => await _db.Employers.Include(e => e.User).FirstOrDefaultAsync(e => e.UserId == UserId);
 
     // GET /Employer/CandidateSkills/{profileId}
     public async Task<IActionResult> CandidateSkills(int profileId)
@@ -45,6 +67,28 @@ public class EmployerController : Controller
 
         ViewBag.Employer = emp;
         return View(profile);
+    }
+
+    // GET /Employer/CandidateDetail/{appId}
+    // Trang xem chi tiết đầy đủ ứng viên (thông tin cá nhân, kỹ năng, CV, đơn ứng tuyển)
+    // gắn với 1 đơn ứng tuyển cụ thể để đảm bảo NTD chỉ xem được ứng viên đã ứng tuyển vào job của mình.
+    public async Task<IActionResult> CandidateDetail(int appId)
+    {
+        var emp = await GetEmployerAsync();
+        if (emp == null) return RedirectToAction("RegisterEmployer", "Account");
+
+        var app = await _db.Applications
+            .Include(a => a.Job)
+            .Include(a => a.Cv)
+            .Include(a => a.CandidateProfile).ThenInclude(p => p.User)
+            .Include(a => a.CandidateProfile).ThenInclude(p => p.CandidateSkills).ThenInclude(cs => cs.Skill)
+            .Include(a => a.CandidateProfile).ThenInclude(p => p.CvFiles)
+            .FirstOrDefaultAsync(a => a.AppID == appId && a.Job.EmployerId == emp.EmployerId);
+
+        if (app == null) return NotFound();
+
+        ViewBag.Employer = emp;
+        return View(app);
     }
 
     // GET /Employer/Dashboard
@@ -95,23 +139,12 @@ public class EmployerController : Controller
             .ToList();
         ViewBag.ExpiringSoonJobs = expiringSoonJobs;
 
-        var expiringTransactions = await _db.Transactions
-            .Include(t => t.Package)
-            .Where(t => t.EmployerId == emp.EmployerId
-                        && t.Status == "Completed"
-                        && t.ExpiredAt.HasValue
-                        && t.ExpiredAt.Value >= now
-                        && t.ExpiredAt.Value <= soonThreshold)
-            .OrderBy(t => t.ExpiredAt)
-            .ToListAsync();
-        ViewBag.ExpiringTransactions = expiringTransactions;
-
-        await CreateExpiryReminderNotificationsAsync(emp, expiringSoonJobs, expiringTransactions);
+        await CreateExpiryReminderNotificationsAsync(emp, expiringSoonJobs);
 
         return View(jobs);
     }
 
-    private async Task CreateExpiryReminderNotificationsAsync(Employer emp, List<JobPost> expiringSoonJobs, List<Transaction> expiringTransactions)
+    private async Task CreateExpiryReminderNotificationsAsync(Employer emp, List<JobPost> expiringSoonJobs)
     {
         var today = DateTime.Now.Date;
         var newNotifications = new List<Notification>();
@@ -131,26 +164,6 @@ public class EmployerController : Controller
                     Content = "Tin tuyen dung \"" + job.Title + "\" se het han vao " + job.Deadline?.ToString("dd/MM/yyyy") + ". Vui long gia han neu ban van con nhu cau tuyen dung.",
                     Type = "JobExpiring",
                     RelatedId = job.JobId,
-                    CreatedAt = DateTime.Now
-                });
-            }
-        }
-
-        foreach (var trans in expiringTransactions)
-        {
-            bool already = await _db.Notifications.AnyAsync(n =>
-                n.UserId == emp.UserId && n.Type == "PackageExpiring" &&
-                n.RelatedId == trans.TransId && n.CreatedAt.Date == today);
-
-            if (!already)
-            {
-                newNotifications.Add(new Notification
-                {
-                    UserId = emp.UserId,
-                    Title = "Goi dich vu \"" + trans.Package?.Name + "\" sap het han",
-                    Content = "Goi dich vu \"" + trans.Package?.Name + "\" cua ban se het han vao " + trans.ExpiredAt?.ToString("dd/MM/yyyy") + ". Vui long gia han de tiep tuc su dung day du tinh nang dang tin.",
-                    Type = "PackageExpiring",
-                    RelatedId = trans.TransId,
                     CreatedAt = DateTime.Now
                 });
             }
@@ -332,6 +345,10 @@ public class EmployerController : Controller
             .Include(a => a.Cv)
             .Where(a => a.JobId == jobId);
 
+        // Tổng số đơn ứng tuyển thực tế (không áp dụng bộ lọc trạng thái) để phân biệt
+        // giữa "chưa có đơn nào" và "lọc không ra kết quả nào".
+        var totalApplicationsCount = await _db.Applications.CountAsync(a => a.JobId == jobId);
+
         if (!string.IsNullOrEmpty(status))
             query = query.Where(a => a.Status == status);
 
@@ -339,7 +356,35 @@ public class EmployerController : Controller
             .OrderByDescending(a => a.AppliedAt)
             .ToListAsync();
 
+        // Tính nhanh % phù hợp (thuật toán so khớp cục bộ, ưu tiên theo danh mục Skill có sẵn, không gọi AI)
+        // để hiển thị ngay trong danh sách.
+        var knownSkillNames = await _db.Skills.Where(s => s.IsActive).Select(s => s.Name).ToListAsync();
+
+        var quickMatchResults = new Dictionary<int, LocalCvMatchResult>();
+        foreach (var app in apps)
+        {
+            var cv = app.Cv;
+            if (cv == null)
+            {
+                quickMatchResults[app.AppID] = new LocalCvMatchResult { LooksLikeCv = false, Reason = "Đơn này chưa đính kèm CV." };
+                continue;
+            }
+
+            var absolutePath = Path.Combine(_env.WebRootPath, cv.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (!System.IO.File.Exists(absolutePath))
+            {
+                quickMatchResults[app.AppID] = new LocalCvMatchResult { LooksLikeCv = false, Reason = "Không tìm thấy file CV." };
+                continue;
+            }
+
+            var cvText = await _cvTextExtractor.ExtractTextAsync(absolutePath);
+            quickMatchResults[app.AppID] = _localMatchService.CalculateMatch(
+                cvText, job.Title ?? "", job.Description ?? "", job.Requirements ?? "", knownSkillNames);
+        }
+
+        ViewBag.QuickMatchResults = quickMatchResults;
         ViewBag.Job = job;
+        ViewBag.TotalApplicationsCount = totalApplicationsCount;
         return View(apps);
     }
 
@@ -381,6 +426,41 @@ public class EmployerController : Controller
         return PhysicalFile(fullPath, contentType, fileName);
     }
 
+    // ====================== XEM TRƯỚC CV (không tải về) ======================
+    // GET /Employer/ViewCv?cvId=123
+    public async Task<IActionResult> ViewCv(int cvId)
+    {
+        var emp = await GetEmployerAsync();
+        if (emp == null) return NotFound("Bạn chưa đăng ký tài khoản nhà tuyển dụng.");
+
+        var cv = await _db.CvFiles.FirstOrDefaultAsync(c => c.Cvid == cvId);
+        if (cv == null) return NotFound("Không tìm thấy CV.");
+
+        var hasPermission = await _db.Applications
+            .AnyAsync(a => a.Cvid == cvId
+                        && a.Job != null
+                        && a.Job.EmployerId == emp.EmployerId);
+
+        if (!hasPermission)
+            return NotFound("Bạn không có quyền xem CV này.");
+
+        var relPath = cv.FilePath?.TrimStart('/') ?? string.Empty;
+        var fullPath = Path.Combine(_env.WebRootPath,
+            relPath.Replace('/', Path.DirectorySeparatorChar));
+
+        if (!System.IO.File.Exists(fullPath))
+            return NotFound("File CV không tồn tại trên server.");
+
+        var contentType = GetContentType(Path.GetExtension(fullPath));
+
+        // Đọc toàn bộ file vào bộ nhớ và trả về bằng File() thay vì PhysicalFile()
+        // để tránh mọi vấn đề liên quan tới header Content-Disposition/Range thủ công.
+        // Không truyền fileDownloadName => trình duyệt sẽ hiển thị trực tiếp (inline)
+        // thay vì tải về, đặc biệt là với PDF.
+        var fileBytes = await System.IO.File.ReadAllBytesAsync(fullPath);
+        return File(fileBytes, contentType);
+    }
+
     private string GetContentType(string extension)
     {
         return extension.ToLower() switch
@@ -419,6 +499,59 @@ public class EmployerController : Controller
 
         TempData["Success"] = "Cập nhật trạng thái thành công!";
         return RedirectToAction("ManageApplications", new { jobId });
+    }
+
+    // POST /Employer/UpdateApplicationStatusAjax
+    // Cập nhật trạng thái đơn ứng tuyển trực tiếp từ dropdown trong bảng (không reload trang)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateApplicationStatusAjax(int appId, string status)
+    {
+        try
+        {
+            var emp = await GetEmployerAsync();
+            if (emp == null) return Json(new { success = false, message = "Bạn chưa đăng ký tài khoản nhà tuyển dụng." });
+
+            var validStatuses = new[] { "Pending", "Reviewing", "Interview", "Accepted", "Rejected" };
+            if (!validStatuses.Contains(status))
+                return Json(new { success = false, message = "Trạng thái không hợp lệ." });
+
+            var app = await _db.Applications
+                .Include(a => a.CandidateProfile)
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.AppID == appId && a.Job != null && a.Job.EmployerId == emp.EmployerId);
+
+            if (app == null) return Json(new { success = false, message = "Không tìm thấy đơn ứng tuyển." });
+
+            app.Status = status;
+            app.UpdatedAt = DateTime.Now;
+
+            _db.Notifications.Add(new Notification
+            {
+                UserId = app.CandidateProfile?.UserId ?? 0,
+                Title = $"Đơn ứng tuyển \"{app.Job?.Title}\" đã được cập nhật: {status}",
+                Type = "Application",
+                RelatedId = app.JobId,
+                CreatedAt = DateTime.Now
+            });
+
+            await _db.SaveChangesAsync();
+
+            var labels = new Dictionary<string, string>
+            {
+                ["Pending"] = "Chờ xét duyệt",
+                ["Reviewing"] = "Đang xem xét",
+                ["Interview"] = "Mời phỏng vấn",
+                ["Accepted"] = "Đã nhận",
+                ["Rejected"] = "Từ chối"
+            };
+
+            return Json(new { success = true, message = "Đã cập nhật trạng thái thành công!", status, label = labels.GetValueOrDefault(status, status) });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Có lỗi xảy ra: " + (ex.InnerException?.Message ?? ex.Message) });
+        }
     }
 
     // GET /Employer/EditJob/5
@@ -647,7 +780,7 @@ public class EmployerController : Controller
     // POST: /Employer/ScheduleInterview
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ScheduleInterview(Interview model)
+    public async Task<IActionResult> ScheduleInterview(Interview model, string dateStr, string timeStr, string? contactPhone)
     {
         var emp = await GetEmployerAsync();
         if (emp == null) return RedirectToAction("RegisterEmployer", "Account");
@@ -658,6 +791,18 @@ public class EmployerController : Controller
             .FirstOrDefaultAsync(a => a.AppID == model.AppID && a.Job!.EmployerId == emp.EmployerId);
 
         if (app == null) return NotFound();
+
+        // Ghép ngày (dd/MM/yyyy) + giờ (HH:mm) do JS gửi lên thành DateTime thật.
+        if (DateTime.TryParseExact($"{dateStr} {timeStr}", "dd/MM/yyyy HH:mm",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var parsedDate))
+        {
+            model.InterviewDate = parsedDate;
+        }
+        else
+        {
+            ModelState.AddModelError("", "Ngày hoặc giờ phỏng vấn không hợp lệ. Vui lòng nhập đúng định dạng (VD: 30/06/2026 và 09:00).");
+        }
 
         if (ModelState.IsValid)
         {
@@ -678,24 +823,102 @@ public class EmployerController : Controller
             app.Status = "Interview";
             app.UpdatedAt = DateTime.Now;
 
+            var companyName = emp.CompanyName ?? app.Job?.Employer?.CompanyName ?? "Công ty";
+            var candidateName = app.CandidateProfile?.FullName ?? app.CandidateProfile?.User?.FullName ?? "Ứng viên";
+            var candidateEmail = app.CandidateProfile?.User?.Email;
+            var phoneToShow = string.IsNullOrWhiteSpace(contactPhone) ? emp.User?.PhoneNumber : contactPhone;
+
             _db.Notifications.Add(new Notification
             {
                 UserId = app.CandidateProfile?.UserId ?? 0,
                 Title = $"Thư mời phỏng vấn: {app.Job?.Title}",
-                Content = $"Bạn nhận được lời mời phỏng vấn.\nThời gian: {model.InterviewDate:dd/MM/yyyy HH:mm}\nĐịa điểm/Hình thức: {model.Location}\nGhi chú: {model.Notes}",
+                Content = $"Bạn nhận được lời mời phỏng vấn.\nThời gian: {model.InterviewDate:dd/MM/yyyy HH:mm}\nĐịa điểm/Hình thức: {model.Location}\nGhi chú: {model.Notes}" +
+                          (string.IsNullOrWhiteSpace(phoneToShow) ? "" : $"\nSố điện thoại liên hệ: {phoneToShow}"),
                 Type = "Application",
                 RelatedId = app.JobId,
                 CreatedAt = DateTime.Now
             });
 
             await _db.SaveChangesAsync();
-            TempData["Success"] = "Đã gửi lời mời phỏng vấn thành công!";
+
+            // Gửi email thư mời phỏng vấn thật cho ứng viên (không chặn luồng chính nếu gửi lỗi).
+            if (!string.IsNullOrWhiteSpace(candidateEmail))
+            {
+                try
+                {
+                    var htmlBody = BuildInterviewEmailHtml(
+                        candidateName: candidateName,
+                        companyName: companyName,
+                        jobTitle: app.Job?.Title ?? "",
+                        interviewDate: model.InterviewDate,
+                        location: model.Location,
+                        notes: model.Notes,
+                        contactPhone: phoneToShow,
+                        contactEmail: emp.User?.Email);
+
+                    await _emailService.SendAsync(candidateEmail, $"Thư mời phỏng vấn - {app.Job?.Title} tại {companyName}", htmlBody);
+
+                    // Gửi thêm 1 bản sao về email của NTD để làm bằng chứng đã gửi lời mời.
+                    if (!string.IsNullOrWhiteSpace(emp.User?.Email))
+                    {
+                        try
+                        {
+                            var copyBody = $@"<p style=""font-family:Segoe UI,Arial,sans-serif;color:#1e293b;"">
+                                Đây là bản sao thư mời phỏng vấn đã được gửi tới ứng viên <strong>{System.Net.WebUtility.HtmlEncode(candidateName)}</strong>
+                                ({System.Net.WebUtility.HtmlEncode(candidateEmail)}) cho vị trí <strong>{System.Net.WebUtility.HtmlEncode(app.Job?.Title)}</strong>.</p>"
+                                + htmlBody;
+
+                            await _emailService.SendAsync(emp.User!.Email, $"[Bản sao] Đã gửi thư mời phỏng vấn - {app.Job?.Title}", copyBody);
+                        }
+                        catch
+                        {
+                            // Bỏ qua lỗi gửi bản sao cho NTD — không quan trọng bằng việc ứng viên đã nhận được thư mời.
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Không làm gián đoạn quy trình mời phỏng vấn nếu gửi email lỗi (VD: sai SMTP).
+                    TempData["Warning"] = "Đã lưu lịch phỏng vấn, nhưng gửi email thất bại: " + ex.Message;
+                }
+            }
+
+            TempData["Success"] ??= "Đã gửi lời mời phỏng vấn thành công!";
             return RedirectToAction("Interviews");
         }
 
         ViewBag.Application = app;
         ViewBag.Employer = emp;
         return View(model);
+    }
+
+    /// <summary>
+    /// Soạn nội dung HTML cho email thư mời phỏng vấn gửi ứng viên.
+    /// </summary>
+    private static string BuildInterviewEmailHtml(string candidateName, string companyName, string jobTitle,
+        DateTime interviewDate, string location, string? notes, string? contactPhone, string? contactEmail)
+    {
+        return $@"
+        <div style=""font-family:Segoe UI,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;"">
+            <div style=""background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:24px;border-radius:12px 12px 0 0;"">
+                <h2 style=""color:#fff;margin:0;"">Thư mời phỏng vấn</h2>
+                <p style=""color:#e0e7ff;margin:4px 0 0;"">{System.Net.WebUtility.HtmlEncode(companyName)}</p>
+            </div>
+            <div style=""border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 12px 12px;"">
+                <p>Kính gửi <strong>{System.Net.WebUtility.HtmlEncode(candidateName)}</strong>,</p>
+                <p>Công ty <strong>{System.Net.WebUtility.HtmlEncode(companyName)}</strong> trân trọng mời bạn tham dự buổi phỏng vấn cho vị trí <strong>{System.Net.WebUtility.HtmlEncode(jobTitle)}</strong>.</p>
+                <table style=""width:100%;border-collapse:collapse;margin:16px 0;"">
+                    <tr><td style=""padding:8px 0;color:#64748b;width:160px;"">Thời gian</td><td style=""padding:8px 0;font-weight:600;"">{interviewDate:HH:mm 'ngày' dd/MM/yyyy}</td></tr>
+                    <tr><td style=""padding:8px 0;color:#64748b;"">Địa điểm / Hình thức</td><td style=""padding:8px 0;font-weight:600;"">{System.Net.WebUtility.HtmlEncode(location)}</td></tr>
+                    {(string.IsNullOrWhiteSpace(contactPhone) ? "" : $@"<tr><td style=""padding:8px 0;color:#64748b;"">Số điện thoại liên hệ</td><td style=""padding:8px 0;font-weight:600;"">{System.Net.WebUtility.HtmlEncode(contactPhone)}</td></tr>")}
+                    {(string.IsNullOrWhiteSpace(contactEmail) ? "" : $@"<tr><td style=""padding:8px 0;color:#64748b;"">Email liên hệ</td><td style=""padding:8px 0;font-weight:600;"">{System.Net.WebUtility.HtmlEncode(contactEmail)}</td></tr>")}
+                </table>
+                {(string.IsNullOrWhiteSpace(notes) ? "" : $@"<div style=""background:#f1f5f9;border-radius:8px;padding:12px 16px;margin-bottom:16px;""><p style=""margin:0 0 4px;color:#475569;font-weight:600;"">Ghi chú từ nhà tuyển dụng:</p><p style=""margin:0;white-space:pre-line;"">{System.Net.WebUtility.HtmlEncode(notes)}</p></div>")}
+                <p>Vui lòng phản hồi lại email này hoặc liên hệ số điện thoại trên nếu bạn cần đổi lịch hoặc có bất kỳ thắc mắc nào.</p>
+                <p>Chúc bạn có buổi phỏng vấn thành công!</p>
+                <p style=""margin-top:24px;color:#94a3b8;font-size:12px;"">Email này được gửi tự động từ hệ thống JobConnect thay mặt cho {System.Net.WebUtility.HtmlEncode(companyName)}.</p>
+            </div>
+        </div>";
     }
 
     // POST: /Employer/RejectApplication

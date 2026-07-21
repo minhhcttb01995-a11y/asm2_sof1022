@@ -1,3 +1,7 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho trang Dashboard tổng quan của Staff (StaffDashboardController.Index):
+// gom số liệu thống kê (số công ty, tin đang mở, ứng viên...), danh sách việc cần
+// duyệt (tin/công ty đang chờ), hoạt động gần đây và dữ liệu biểu đồ phân bố ngành nghề.
 namespace JobConnect.ViewModels.Staff;
 
 public class StaffDashboardViewModel

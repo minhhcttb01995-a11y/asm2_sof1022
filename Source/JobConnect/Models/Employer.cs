@@ -1,4 +1,9 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng HỒ SƠ NHÀ TUYỂN DỤNG — thông tin công ty của 1 User có Role = Employer:
+// tên công ty, mã số thuế, ngành nghề, quy mô, logo/ảnh bìa, trạng thái duyệt
+// (IsVerified), có bị khóa hay không (IsLocked), có được ghim nổi bật hay không
+// (IsFeatured). 1 Employer đăng nhiều JobPost và có thể bị người dùng report.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;
@@ -70,7 +75,6 @@ public partial class Employer
 
     public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
 
-    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
     public virtual User User { get; set; } = null!;
 

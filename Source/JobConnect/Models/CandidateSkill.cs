@@ -1,4 +1,8 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng nối (many-to-many) giữa CandidateProfile và Skill: lưu ứng viên nào có
+// kỹ năng gì, mức độ thành thạo (ProficiencyLevel: Beginner..Expert) và số năm
+// kinh nghiệm với kỹ năng đó.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

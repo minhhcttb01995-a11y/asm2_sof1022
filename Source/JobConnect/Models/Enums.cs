@@ -1,4 +1,8 @@
-﻿namespace JobConnect.Models;
+// [MODEL-HEADER-ADDED]
+// Tập hợp các ENUM dùng chung trong toàn hệ thống, thay cho việc so sánh chuỗi
+// ("Open", "Resolved"...) dễ gõ sai — mỗi enum tương ứng với 1 cột trạng thái/loại
+// của 1 bảng cụ thể (đã ghi chú ngay phía trên từng enum).
+namespace JobConnect.Models;
 
 // Trạng thái ticket hỗ trợ (SupportTicket.Status)
 public enum TicketStatus

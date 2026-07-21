@@ -1,3 +1,13 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// ChatController — [Authorize]: TÍNH NĂNG NHẮN TIN giữa các User (VD: nhà tuyển dụng
+// nhắn tin ứng viên, ứng viên nhắn Staff hỗ trợ):
+//   • Index/Conversation/GetMessagesJson/Send: danh sách hội thoại, xem 1 hội thoại,
+//     lấy tin nhắn mới dạng JSON (dùng cho polling/AJAX phía client), gửi tin nhắn mới.
+//   • Contacts: [Authorize(Roles = "Admin")] — Admin xem danh bạ toàn hệ thống.
+//   • StartWithUser/StartConversation: khởi tạo hội thoại mới với 1 user/staff cụ thể.
+//   • StaffConversations: [Authorize(Roles = "Staff,Admin")] — Staff xem các hội thoại hỗ trợ.
+// ═══════════════════════════════════════════════════════════════════════════
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

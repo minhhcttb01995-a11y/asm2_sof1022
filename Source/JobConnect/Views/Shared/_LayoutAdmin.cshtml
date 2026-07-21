@@ -1,4 +1,8 @@
-﻿@using System.Security.Claims
+@* [VIEW-HEADER-ADDED]
+   Layout khung trang riêng cho khu vực QUẢN TRỊ ADMIN (sidebar menu quản trị khác
+// với layout public).
+*@
+@using System.Security.Claims
 @{
     var adminName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Admin";
     var currentPath = Context.Request.Path.Value ?? "";

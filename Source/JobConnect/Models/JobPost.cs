@@ -1,4 +1,9 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng TIN TUYỂN DỤNG — cốt lõi của cả hệ thống: tiêu đề, mô tả, yêu cầu, quyền lợi,
+// khoảng lương, loại hình công việc, địa điểm, hạn nộp hồ sơ, trạng thái duyệt
+// (Status), lượt xem (ViewCount), có phải tin nổi bật hay không (IsFeatured).
+// 1 tin thuộc 1 Employer và 1 Category, có nhiều Application/SavedJob/Report.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

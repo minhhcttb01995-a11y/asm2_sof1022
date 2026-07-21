@@ -1,4 +1,8 @@
-﻿@{
+@* [VIEW-HEADER-ADDED]
+   Trang hiển thị khi có lỗi hệ thống (exception) không được xử lý — xem HomeController.Error
+// và app.UseExceptionHandler trong Program.cs.
+*@
+@{
     ViewData["Title"] = "Lỗi";
     var statusCode = Context.Response.StatusCode;
 }

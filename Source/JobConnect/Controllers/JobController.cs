@@ -1,5 +1,15 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// JobController — trang CÔNG KHAI TÌM KIẾM & ỨNG TUYỂN việc làm (khác CandidateController
+// là trang quản lý cá nhân của ứng viên):
+//   • Index: trang tìm kiếm/lọc danh sách tin tuyển dụng (dùng IJobService.SearchAsync).
+//   • Detail: trang chi tiết 1 tin tuyển dụng.
+//   • Apply: ứng viên nộp đơn ứng tuyển cho 1 tin (yêu cầu đăng nhập).
+//   • ToggleSave: lưu/bỏ lưu tin yêu thích.
+// ═══════════════════════════════════════════════════════════════════════════
 using System.Security.Claims;
 using JobConnect.Data;
+using JobConnect.Extensions;
 using JobConnect.Models;
 using JobConnect.Services;
 using JobConnect.ViewModels;
@@ -49,9 +59,18 @@ namespace JobConnect.Controllers
             bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             if (isAjax)
             {
+                // Quan trọng: KHÔNG để trình duyệt cache response này theo URL.
+                // Vì URL này (/Job?...) cũng được dùng cho lần tải trang đầy đủ
+                // (kèm layout/CSS) khi người dùng bấm nút Back/Forward hoặc F5.
+                // Nếu không có Cache-Control: no-store, trình duyệt có thể trả lại
+                // đúng bản HTML rút gọn (không CSS) này khi điều hướng lại trang,
+                // khiến trang bị mất toàn bộ giao diện.
+                Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+                Response.Headers["Vary"] = "X-Requested-With";
                 return PartialView("_JobListResults", jobs);
             }
 
+            Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
             return View(jobs);
         }
 
@@ -100,6 +119,11 @@ namespace JobConnect.Controllers
                 .Take(4)
                 .ToListAsync();
 
+            // Tổng quan (Yêu cầu / Quyền lợi / Chuyên môn) — tính thuần cục bộ (regex + từ khóa),
+            // KHÔNG gọi AI nên hiển thị tức thời, không tốn quota dù trang được xem nhiều lần.
+            var allSkills = await _db.Skills.Where(s => s.IsActive).ToListAsync();
+            ViewBag.Overview = job.BuildOverview(allSkills);
+
             ViewBag.HasApplied = hasApplied;
             ViewBag.IsSaved = isSaved;
             ViewBag.SimilarJobs = relatedJobs;
@@ -108,6 +132,11 @@ namespace JobConnect.Controllers
         }
 
         // POST: Ứng tuyển (Chọn CV + Thư xin việc)
+        // Lưu ý: KHÔNG dùng [ValidateAntiForgeryToken] ở đây vì attribute này chạy
+        // như một filter TRƯỚC khi vào try/catch bên dưới — nếu token lỗi, exception
+        // sẽ rơi thẳng ra Developer Exception Page (trả về HTML) thay vì JSON, khiến
+        // popup ứng tuyển hiện lỗi "Server trả về lỗi (mã 500)" và không parse được.
+        // Validate token thủ công bên trong try để luôn trả JSON cho request AJAX.
         [HttpPost]
         public async Task<IActionResult> Apply(int jobId, int cvId, string? coverLetter)
         {
@@ -160,21 +189,6 @@ namespace JobConnect.Controllers
                         return Json(new { success = false, message = msg });
                     TempData["Error"] = msg;
                     return RedirectToAction("Detail", new { id = jobId });
-                }
-
-                // Chặn ứng tuyển mới nếu tin đã hết hạn nộp hồ sơ (vẫn cho rút đơn nếu đã ứng tuyển trước đó)
-                bool alreadyApplied = await _jobSvc.HasAppliedAsync(profile.ProfileId, jobId);
-                if (!alreadyApplied)
-                {
-                    var jobDeadlineCheck = await _db.JobPosts.FindAsync(jobId);
-                    if (jobDeadlineCheck?.Deadline != null && jobDeadlineCheck.Deadline.Value < DateTime.Now)
-                    {
-                        const string msg = "Tin tuyển dụng này đã hết hạn nộp hồ sơ, bạn không thể ứng tuyển.";
-                        if (isAjax)
-                            return Json(new { success = false, message = msg });
-                        TempData["Error"] = msg;
-                        return RedirectToAction("Detail", new { id = jobId });
-                    }
                 }
 
                 // Gọi service để ứng tuyển (hoạt động theo kiểu toggle: ứng tuyển lần 2 = rút đơn)

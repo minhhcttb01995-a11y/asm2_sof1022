@@ -1,3 +1,6 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "ScheduleInterview" trong khu vực trang quản lý Nhà tuyển dụng (EmployerController).
+*@
 @model JobConnect.Models.Interview
 @using JobConnect.Models
 @{
@@ -113,7 +116,14 @@
 
     <!-- Thông tin ứng viên -->
     <div class="bg-[#1e293b] rounded-2xl border border-slate-700 shadow-sm px-6 py-4">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Ứng viên</p>
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ứng viên</p>
+            <a asp-action="CandidateDetail" asp-route-appId="@app?.AppID"
+               class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">visibility</span>
+                Xem chi tiết ứng viên
+            </a>
+        </div>
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">
                 @((candidate?.FullName?[0].ToString().ToUpper() ?? "U"))
@@ -168,6 +178,15 @@
             </div>
 
             <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    Số điện thoại liên hệ (hiển thị trong thư mời gửi ứng viên)
+                </label>
+                <input type="text" name="contactPhone" value="@(emp?.User?.PhoneNumber)"
+                       placeholder="VD: 0901234567"
+                       class="w-full px-4 py-2.5 bg-[#0f172a] text-white border border-slate-700 rounded-xl text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+            </div>
+
+            <div class="space-y-1.5">
                 <label asp-for="Location" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Địa điểm / Link phỏng vấn <span class="text-red-500">*</span>
                 </label>
@@ -191,11 +210,11 @@
             <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-sm text-slate-300 space-y-1">
                 <p class="font-semibold text-blue-300 mb-2 flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-base">mail</span>
-                    Nội dung thông báo sẽ gửi đến ứng viên:
+                    Email sẽ được gửi tới <strong>@(candidate?.User?.Email)</strong> với nội dung:
                 </p>
                 <p>Kính gửi <strong>@(candidate?.FullName ?? candidate?.User?.FullName)</strong>,</p>
                 <p>Công ty <strong>@(emp?.CompanyName ?? job?.Employer?.CompanyName)</strong> trân trọng mời bạn tham dự phỏng vấn cho vị trí <strong>@job?.Title</strong>.</p>
-                <p class="text-slate-400 italic text-xs mt-2">* Thời gian và địa điểm cụ thể sẽ được cập nhật theo thông tin bạn điền ở trên.</p>
+                <p class="text-slate-400 italic text-xs mt-2">* Thời gian, địa điểm và số điện thoại liên hệ cụ thể sẽ theo thông tin bạn điền ở trên.</p>
             </div>
 
             <div class="flex items-center gap-3 pt-2 border-t border-slate-700">

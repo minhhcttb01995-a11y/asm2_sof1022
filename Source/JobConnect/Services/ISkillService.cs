@@ -1,3 +1,7 @@
+// [SERVICE-IFACE-HEADER-ADDED]
+// Interface cho dịch vụ quản lý KỸ NĂNG: phần Admin operations (CRUD danh mục kỹ
+// năng dùng chung) và phần Candidate operations (ứng viên tự thêm/sửa/xóa kỹ năng
+// vào hồ sơ cá nhân + tính % hoàn thiện hồ sơ). Cài đặt bởi SkillService.cs.
 using JobConnect.Models;
 
 namespace JobConnect.Services;

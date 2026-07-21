@@ -1,0 +1,333 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "AiCvBuilder" trong khu vực trang cá nhân Ứng viên (CandidateController).
+*@
+@model JobConnect.ViewModels.AiCvBuilderViewModel
+@{
+    ViewData["Title"] = "AI Tạo CV";
+    Layout = "_Layout";
+}
+
+<style>
+    @@media print {
+        @@page {
+            size: A4;
+            margin: 8mm;
+        }
+
+        header, footer, .no-print { display: none !important; }
+        body { background: #fff !important; }
+
+        .cv-print-area {
+            box-shadow: none !important;
+            border: none !important;
+            width: 100% !important;
+            font-size: 11px !important;
+            transform-origin: top left;
+        }
+
+        /* Không cho 1 mục (Học vấn, Kỹ năng, Kinh nghiệm...) bị cắt ngang giữa 2 trang */
+        .cv-section { break-inside: avoid; page-break-inside: avoid; }
+
+        /* Thu nhỏ khoảng cách để nội dung gọn lại trong 1 trang */
+        .cv-print-area .cv-col-left { gap: 14px !important; padding: 20px 14px !important; }
+        .cv-print-area .cv-col-right-header { padding: 16px 20px !important; }
+        .cv-print-area .cv-col-right-body { padding: 16px 20px !important; gap: 14px !important; }
+        .cv-print-area h3 { font-size: 10px !important; margin-bottom: 6px !important; }
+        .cv-print-area p, .cv-print-area li { font-size: 10.5px !important; line-height: 1.4 !important; }
+        .cv-print-area .skill-bar { height: 4px !important; margin-top: 2px; }
+        .cv-print-area img.rounded-full { width: 72px !important; height: 72px !important; }
+
+        /* Trình duyệt mặc định bỏ màu nền khi in để tiết kiệm mực,
+           khiến sidebar xám / header đậm / thanh kỹ năng bị mất màu.
+           Ép giữ nguyên màu nền + màu chữ khi in. */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+    }
+
+    .skill-bar { height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .skill-bar-fill { height: 100%; background: #1e293b; border-radius: 4px; }
+</style>
+
+<div class="max-w-[1400px] mx-auto px-6 py-8">
+    <div class="flex items-center gap-3 mb-6 no-print">
+        <a asp-action="CvManager" class="text-secondary hover:text-primary transition-colors">
+            <span class="material-symbols-outlined align-middle">arrow_back</span>
+        </a>
+        <h1 class="text-2xl font-bold text-on-surface">AI Tạo CV Online</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- FORM NHẬP -->
+        <div class="bg-white rounded-2xl border border-outline-variant p-6 no-print">
+            <h2 class="font-semibold text-on-surface mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">auto_awesome</span>
+                Nhập thông tin ngắn gọn
+            </h2>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined">error</span>
+                    @Model.ErrorMessage
+                </div>
+            }
+
+            <form asp-action="AiCvBuilder" method="post" enctype="multipart/form-data" class="flex flex-col gap-4">
+                @Html.AntiForgeryToken()
+
+                <div class="flex items-center gap-4">
+                    <img src="@(Model.PhotoUrl ?? "/images/default-avatar.png")" onerror="this.src='https://placehold.co/100x100?text=Photo'"
+                         class="w-16 h-16 rounded-full object-cover border border-outline-variant" />
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện (dùng cho CV)</label>
+                        <input type="file" name="PhotoFile" accept=".jpg,.jpeg,.png,.webp"
+                               class="w-full text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700" />
+                    </div>
+                </div>
+                <input type="hidden" name="PhotoUrl" value="@Model.PhotoUrl" />
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                    <input name="FullName" value="@Model.FullName" required
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vị trí ứng tuyển mong muốn</label>
+                    <input name="JobTitle" value="@Model.JobTitle" required placeholder="VD: Marketing Manager"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input name="Email" value="@Model.Email"
+                               class="w-full px-4 py-2.5 border border-outline-variant rounded-xl" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                        <input name="Phone" value="@Model.Phone"
+                               class="w-full px-4 py-2.5 border border-outline-variant rounded-xl" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                    <input name="Address" value="@Model.Address"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Số năm kinh nghiệm</label>
+                    <input type="number" min="0" name="ExperienceYears" value="@Model.ExperienceYears"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kỹ năng (liệt kê, cách nhau bằng dấu phẩy)</label>
+                    <textarea name="Skills" rows="2" placeholder="VD: Quản lý dự án, Digital Marketing, Thuyết trình"
+                              class="w-full px-4 py-2.5 border border-outline-variant rounded-xl">@Model.Skills</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Học vấn</label>
+                    <textarea name="Education" rows="2" placeholder="VD: Cử nhân QTKD - ĐH Wardiere - 2020-2023"
+                              class="w-full px-4 py-2.5 border border-outline-variant rounded-xl">@Model.Education</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quá trình làm việc / dự án</label>
+                    <textarea name="WorkHistory" rows="3" placeholder="VD: Marketing Manager tại Arowwai Industries 2020-2023..."
+                              class="w-full px-4 py-2.5 border border-outline-variant rounded-xl">@Model.WorkHistory</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Thành tích / giải thưởng (nếu có)</label>
+                    <textarea name="Achievements" rows="2"
+                              class="w-full px-4 py-2.5 border border-outline-variant rounded-xl">@Model.Achievements</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ngôn ngữ</label>
+                    <textarea name="Languages" rows="2" placeholder="VD: Tiếng Anh khá, Tiếng Nhật N3"
+                              class="w-full px-4 py-2.5 border border-outline-variant rounded-xl">@Model.Languages</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Người tham chiếu (mỗi dòng: Họ tên | Chức vụ | Công ty | SĐT | Email)
+                    </label>
+                    <textarea name="References" rows="2" placeholder="VD: Harumi Kobayashi | CEO | Wardiere Inc. | 123-456-7890 | hello@email.com"
+                              class="w-full px-4 py-2.5 border border-outline-variant rounded-xl">@Model.References</textarea>
+                    <p class="text-xs text-gray-400 mt-1">Mục này không qua AI để đảm bảo thông tin liên hệ chính xác. Ngăn cách các trường bằng dấu | (không dùng dấu gạch ngang vì trùng với SĐT).</p>
+                </div>
+
+                <button type="submit"
+                        class="mt-2 px-8 py-3 bg-primary text-slate-900 font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    Tạo CV bằng AI
+                </button>
+            </form>
+        </div>
+
+        <!-- KẾT QUẢ CV -->
+        <div>
+            @if (Model.Result != null)
+            {
+                <div class="flex justify-end mb-3 no-print">
+                    <button onclick="window.print()" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 flex items-center gap-2">
+                        <span class="material-symbols-outlined">print</span>
+                        In / Lưu PDF
+                    </button>
+                </div>
+
+                <div class="cv-print-area bg-white rounded-2xl border border-outline-variant overflow-hidden shadow-sm grid grid-cols-5">
+                    <!-- CỘT TRÁI: sidebar xám -->
+                    <div class="col-span-2 bg-slate-100 px-5 py-8 flex flex-col gap-6 cv-col-left">
+                        <div class="flex justify-center">
+                            <img src="@(Model.PhotoUrl ?? "https://placehold.co/140x140?text=Photo")"
+                                 class="w-28 h-28 rounded-full object-cover border-4 border-white shadow" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Result.Summary))
+                        {
+                            <div class="cv-section">
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Giới thiệu</h3>
+                                <p class="text-xs text-slate-600 leading-relaxed">@Model.Result.Summary</p>
+                            </div>
+                        }
+
+                        @if (Model.Result.Education.Any())
+                        {
+                            <div class="cv-section">
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Học vấn</h3>
+                                <ul class="space-y-2">
+                                    @foreach (var line in Model.Result.Education)
+                                    {
+                                        <li class="text-xs text-slate-600">@line</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (Model.Result.Skills.Any())
+                        {
+                            <div class="cv-section">
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Kỹ năng</h3>
+                                <div class="space-y-2">
+                                    @foreach (var sk in Model.Result.Skills)
+                                    {
+                                        <div>
+                                            <p class="text-xs text-slate-700 mb-1">@sk</p>
+                                            <div class="skill-bar"><div class="skill-bar-fill" style="width:85%"></div></div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.Result.Languages.Any())
+                        {
+                            <div class="cv-section">
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Ngôn ngữ</h3>
+                                <ul class="space-y-1">
+                                    @foreach (var lang in Model.Result.Languages)
+                                    {
+                                        <li class="text-xs text-slate-600">@lang</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- CỘT PHẢI: header đậm + kinh nghiệm + tham chiếu -->
+                    <div class="col-span-3 flex flex-col">
+                        <div class="bg-slate-800 text-white px-6 py-6 cv-col-right-header">
+                            <h2 class="text-xl font-bold tracking-wide">@Model.FullName</h2>
+                            <p class="text-slate-300 text-sm uppercase tracking-widest mt-1">@Model.JobTitle</p>
+                            <div class="flex flex-wrap gap-x-5 gap-y-1 mt-4 text-xs text-slate-300">
+                                @if (!string.IsNullOrEmpty(Model.Phone))
+                                {
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">call</span>@Model.Phone</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">mail</span>@Model.Email</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Address))
+                                {
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span>@Model.Address</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-6 flex-1 space-y-6 cv-col-right-body">
+                            @if (Model.Result.Experience.Any())
+                            {
+                                <div class="cv-section">
+                                    <h3 class="text-sm font-bold uppercase tracking-widest text-slate-700 mb-3">Kinh nghiệm làm việc</h3>
+                                    <ul class="space-y-3 border-l-2 border-slate-200 pl-4">
+                                        @foreach (var line in Model.Result.Experience)
+                                        {
+                                            <li class="text-sm text-slate-600 relative">
+                                                <span class="absolute -left-[21px] top-1 w-2 h-2 bg-slate-700 rounded-full"></span>
+                                                @line
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            @if (Model.Result.Achievements.Any())
+                            {
+                                <div class="cv-section">
+                                    <h3 class="text-sm font-bold uppercase tracking-widest text-slate-700 mb-3">Thành tích</h3>
+                                    <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                                        @foreach (var line in Model.Result.Achievements)
+                                        {
+                                            <li>@line</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            @if (Model.ReferenceLines != null && Model.ReferenceLines.Any())
+                            {
+                                <div class="cv-section">
+                                    <h3 class="text-sm font-bold uppercase tracking-widest text-slate-700 mb-3">Người tham chiếu</h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        @foreach (var refLine in Model.ReferenceLines)
+                                        {
+                                            var parts = refLine.Split('|', StringSplitOptions.TrimEntries);
+                                            <div class="text-xs text-slate-600 space-y-0.5">
+                                                @for (int i = 0; i < parts.Length; i++)
+                                                {
+                                                    if (i == 0)
+                                                    {
+                                                        <p class="font-semibold text-slate-800">@parts[i]</p>
+                                                    }
+                                                    else
+                                                    {
+                                                        <p>@parts[i]</p>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 no-print">
+                    <span class="material-symbols-outlined align-middle text-base">info</span>
+                    Đây là bản xem trước. Nhấn <strong>"In / Lưu PDF"</strong> để lưu thành file PDF, sau đó tải file đó lên mục
+                    <a asp-action="CvManager" class="underline font-medium">Quản lý CV</a> như CV bình thường.
+                </div>
+            }
+            else
+            {
+                <div class="h-full flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-dashed border-outline-variant p-10 no-print">
+                    <span class="material-symbols-outlined text-5xl text-indigo-300 mb-3">description</span>
+                    <p class="text-secondary">Điền thông tin bên trái rồi nhấn "Tạo CV bằng AI" để xem kết quả tại đây.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

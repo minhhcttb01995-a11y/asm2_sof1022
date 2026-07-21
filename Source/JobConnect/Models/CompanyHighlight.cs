@@ -1,3 +1,6 @@
+// [MODEL-HEADER-ADDED]
+// Bảng các ĐIỂM NỔI BẬT / LÝ DO NÊN LÀM VIỆC ở công ty (hiển thị ở trang chi tiết
+// công ty, mục "Why work here"), do Employer tự cấu hình cho công ty của mình.
 namespace JobConnect.Models;
 
 public class CompanyHighlight

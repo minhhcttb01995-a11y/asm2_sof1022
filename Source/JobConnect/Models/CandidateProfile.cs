@@ -1,4 +1,9 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng HỒ SƠ ỨNG VIÊN — thông tin chi tiết của 1 User có Role = Candidate:
+// họ tên, ngày sinh, địa chỉ, chức danh mong muốn, mức lương mong muốn, có đang
+// mở tìm việc hay không (IsOpenToWork). 1 hồ sơ có nhiều CV (CvFiles), nhiều kỹ
+// năng (CandidateSkills) và nhiều đơn ứng tuyển (Applications).
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

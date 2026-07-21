@@ -1,4 +1,7 @@
-﻿@using JobConnect.Models
+@* [VIEW-HEADER-ADDED]
+   View cho action "Dashboard" trong khu vực trang quản lý Nhà tuyển dụng (EmployerController).
+*@
+@using JobConnect.Models
 @model List<JobPost>
 @{
     ViewData["Title"] = "Dashboard tuyển dụng";
@@ -16,7 +19,6 @@
     int expiredCount = (int)(ViewBag.ExpiredCount ?? 0);
     int expiringSoonCount = (int)(ViewBag.ExpiringSoonCount ?? 0);
     var expiringSoonJobs = ViewBag.ExpiringSoonJobs as List<JobPost> ?? new List<JobPost>();
-    var expiringTransactions = ViewBag.ExpiringTransactions as List<JobConnect.Models.Transaction> ?? new List<JobConnect.Models.Transaction>();
 }
 
 <div class="space-y-6">
@@ -36,27 +38,17 @@
         </a>
     </div>
 
-    @if (expiringSoonJobs.Any() || expiringTransactions.Any())
+    @if (expiringSoonJobs.Any())
     {
         <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start">
             <span class="material-symbols-outlined" style="color:#f87171;font-size:22px">notification_important</span>
             <div style="flex:1">
                 <p style="color:#fca5a5;font-weight:600;font-size:14px;margin:0 0 6px">Nhắc hết hạn</p>
-                @if (expiringSoonJobs.Any())
-                {
-                    <p style="color:#e2e8f0;font-size:13px;margin:0 0 4px">
-                        Có <strong>@expiringSoonJobs.Count</strong> tin tuyển dụng sắp hết hạn trong 7 ngày tới:
-                        @string.Join(", ", expiringSoonJobs.Take(3).Select(j => $"\"{j.Title}\" ({j.Deadline:dd/MM})"))
-                        @(expiringSoonJobs.Count > 3 ? $" và {expiringSoonJobs.Count - 3} tin khác" : "")
-                    </p>
-                }
-                @if (expiringTransactions.Any())
-                {
-                    <p style="color:#e2e8f0;font-size:13px;margin:0">
-                        Có <strong>@expiringTransactions.Count</strong> gói dịch vụ sắp hết hạn:
-                        @string.Join(", ", expiringTransactions.Take(3).Select(t => $"\"{t.Package?.Name}\" ({t.ExpiredAt:dd/MM})"))
-                    </p>
-                }
+                <p style="color:#e2e8f0;font-size:13px;margin:0">
+                    Có <strong>@expiringSoonJobs.Count</strong> tin tuyển dụng sắp hết hạn trong 7 ngày tới:
+                    @string.Join(", ", expiringSoonJobs.Take(3).Select(j => $"\"{j.Title}\" ({j.Deadline:dd/MM})"))
+                    @(expiringSoonJobs.Count > 3 ? $" và {expiringSoonJobs.Count - 3} tin khác" : "")
+                </p>
             </div>
         </div>
     }

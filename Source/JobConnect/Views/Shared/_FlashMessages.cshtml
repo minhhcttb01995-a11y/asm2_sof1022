@@ -1,3 +1,7 @@
+@* [VIEW-HEADER-ADDED]
+   Partial view dùng chung: hiển thị thông báo tạm thời (thành công/lỗi) sau khi submit
+// 1 form (đọc từ TempData trong Controller).
+*@
 @{
     var success = TempData["Success"] as string;
     var error = TempData["Error"] as string;

@@ -1,4 +1,8 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng DANH MỤC NGÀNH NGHỀ / LĨNH VỰC, dùng để phân loại JobPost và Skill.
+// Hỗ trợ cây phân cấp (ParentId/Parent/InverseParent) — 1 danh mục cha có thể
+// có nhiều danh mục con.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

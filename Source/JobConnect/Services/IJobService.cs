@@ -1,3 +1,8 @@
+// [SERVICE-IFACE-HEADER-ADDED]
+// Interface cho dịch vụ nghiệp vụ TIN TUYỂN DỤNG: tìm kiếm/lọc tin, xem chi tiết,
+// ứng tuyển (Apply)/rút đơn (ToggleApplyAsync), lưu tin (ToggleSaveAsync), nhà
+// tuyển dụng tạo/sửa tin. ApplyToggleResult mô tả 3 trạng thái có thể xảy ra khi
+// người dùng bấm nút ứng tuyển. Cài đặt bởi JobService.cs.
 using JobConnect.Models;
 using JobConnect.ViewModels;
 

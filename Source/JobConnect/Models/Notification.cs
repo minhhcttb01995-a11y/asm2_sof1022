@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng THÔNG BÁO trong hệ thống gửi cho 1 User cụ thể (VD: "Đơn ứng tuyển của bạn
+// đã được duyệt"), có Type để phân loại và IsRead để biết đã đọc hay chưa.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

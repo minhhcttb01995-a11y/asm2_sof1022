@@ -1,4 +1,13 @@
-﻿using JobConnect.Data;
+// [[SERVICE-IMPL-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// CodeGeneratorService — cài đặt ICodeGeneratorService.
+// - GenerateUserCode: sinh mã KHÔNG cần async vì chỉ ghép chuỗi prefix + UserId
+//   (đã chắc chắn không trùng vì UserId là khóa chính tự tăng).
+// - Các hàm GenerateXxxCodeAsync còn lại: sinh MÃ NGẪU NHIÊN (RandomChars, bỏ ký
+//   tự dễ nhầm như 0/O, 1/I) rồi gọi GenerateUniqueRandomCodeAsync để vòng lặp
+//   sinh lại nếu bị trùng trong DB (kiểm tra bằng callback truyền vào).
+// ═══════════════════════════════════════════════════════════════════════════
+using JobConnect.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace JobConnect.Services;

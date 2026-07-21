@@ -1,3 +1,10 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// HomeController — TRANG CHỦ của website (route mặc định "/"):
+//   • Index: hiển thị tin tuyển dụng nổi bật, công ty Hot, thống kê nhanh...
+//   • Error: trang lỗi chung khi có exception (dùng bởi app.UseExceptionHandler
+//     trong Program.cs khi chạy production).
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;

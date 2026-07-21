@@ -1,4 +1,8 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng HỒ SƠ NHÂN VIÊN nội bộ (Admin/Staff quản trị hệ thống) — gắn với 1 User
+// (ApplicationUser) qua ApplicationUserId. Lưu mã nhân viên, chức vụ, phòng ban,
+// trạng thái làm việc. Staff có thể xử lý Report, SupportTicket và có ActivityLog riêng.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

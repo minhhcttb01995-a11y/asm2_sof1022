@@ -1,3 +1,5 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho form đăng ký tài khoản ỨNG VIÊN (AccountController.Register).
 using System.ComponentModel.DataAnnotations;
 
 namespace JobConnect.ViewModels;

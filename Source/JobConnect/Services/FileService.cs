@@ -1,3 +1,17 @@
+// [[SERVICE-IMPL-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// FileService — cài đặt IFileService: mọi thao tác đọc/ghi FILE TRÊN Ổ ĐĨA của
+// ứng dụng (thư mục wwwroot/uploads/...). Các nhóm chức năng chính:
+//   • SaveImageFromDataUriAsync: nhận ảnh dạng base64 (data:image/...;base64,...)
+//     do JS gửi lên (thường từ crop ảnh phía client), giải mã và lưu thành file
+//     .jpg trong wwwroot, trả về đường dẫn tương đối để lưu vào DB.
+//   • UploadCvAsync / SetDefaultCvAsync / DeleteCvAsync: quản lý file CV của
+//     ứng viên — lưu ý DeleteCvAsync sẽ KIỂM TRA CV có đang được dùng trong 1
+//     Application (đơn ứng tuyển) hay không trước khi cho xóa (trả CvDeleteResult.InUse).
+//   • SaveAvatarAsync: lưu ảnh đại diện người dùng upload trực tiếp qua form (IFormFile).
+//   • GetContentType: tra MIME type theo phần mở rộng file để trả file đúng định dạng.
+// Toàn bộ đường dẫn vật lý được tính từ IWebHostEnvironment.WebRootPath (thư mục wwwroot).
+// ═══════════════════════════════════════════════════════════════════════════
 using Microsoft.AspNetCore.Hosting;
 using JobConnect.Data;
 using JobConnect.Models;
@@ -139,13 +153,19 @@ public class FileService : IFileService
         return true;
     }
 
-    public async Task<bool> DeleteCvAsync(int cvId, int userId)
+    public async Task<CvDeleteResult> DeleteCvAsync(int cvId, int userId)
     {
         var cv = await _db.CvFiles
             .Include(c => c.Profile)
             .FirstOrDefaultAsync(c => c.Cvid == cvId && c.Profile != null && c.Profile.UserId == userId);
 
-        if (cv == null) return false;
+        if (cv == null) return CvDeleteResult.NotFound;
+
+        // Không cho xóa CV đã được dùng để nộp cho 1 hoặc nhiều đơn ứng tuyển
+        // (tránh vi phạm khóa ngoại FK_Applications_Cv, đồng thời giữ nguyên hồ sơ NTD đã xem).
+        var isUsedInApplication = await _db.Applications.AnyAsync(a => a.Cvid == cvId);
+        if (isUsedInApplication)
+            return CvDeleteResult.InUse;
 
         // Xóa file vật lý
         var fullPath = Path.Combine(_env.WebRootPath,
@@ -172,7 +192,7 @@ public class FileService : IFileService
             }
         }
 
-        return true;
+        return CvDeleteResult.Success;
     }
 
     public async Task<string> SaveAvatarAsync(IFormFile avatarFile, int userId)

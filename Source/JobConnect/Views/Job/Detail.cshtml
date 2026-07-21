@@ -1,10 +1,12 @@
-﻿@using JobConnect.Models
+@* [VIEW-HEADER-ADDED]
+   View cho action "Detail" trong khu vực tìm kiếm/ứng tuyển việc làm (JobController).
+*@
+@using JobConnect.Models
 @using JobConnect.Extensions
 @model JobPost
 @{
     ViewData["Title"] = Model.Title;
     Layout = "_Layout";
-    bool isExpired = Model.Deadline.HasValue && Model.Deadline.Value < DateTime.Now;
 }
 
 <style>
@@ -22,21 +24,31 @@
         margin-bottom: 0.35rem;
     }
 
+    /* Nội dung Mô tả/Yêu cầu/Quyền lợi được lưu dạng HTML từ trình soạn thảo rich-text.
+       Trình soạn thảo có nền tối nên khi employer bấm đổi màu chữ, các thẻ <p>/<span> có thể
+       bị gắn sẵn inline style="color:..." sáng màu (để đọc được trên nền đen) — khi đưa ra trang
+       chi tiết (nền trắng) thì đúng những màu đó lại làm chữ bị MỜ/khó đọc. Dùng !important để
+       ép toàn bộ nội dung .prose theo đúng bảng màu của trang sáng, bất kể style gốc là gì.
+       => Đây chính là nguyên nhân "chữ bị mờ khi ra ngoài trang kia" đã nêu. */
+    .prose, .prose p, .prose li, .prose span, .prose div {
+        color: #334155 !important; /* slate-700 - đủ đậm, rõ trên nền trắng */
+    }
+
     .prose p {
         margin-bottom: 0.75rem;
-        color: #94a3b8;
     }
 
-    .prose h2, .prose h3 {
-        color: #f1f5f9;
+    .prose h1, .prose h2, .prose h3, .prose h4 {
+        color: #0f172a !important; /* slate-900 */
     }
 
-    .prose strong {
-        color: #f1f5f9;
+    .prose strong, .prose b {
+        color: #0f172a !important;
+        font-weight: 700;
     }
 
     .prose a {
-        color: #60a5fa;
+        color: #2563eb !important; /* blue-600 */
         text-decoration: underline;
     }
 
@@ -44,28 +56,35 @@
         border-left: 4px solid #3b82f6;
         padding-left: 1rem;
         font-style: italic;
-        color: #94a3b8;
+        color: #64748b !important;
         margin: 1.5rem 0;
     }
 
     .prose code {
-        background: #1e293b;
-        color: #60a5fa;
+        background: #f1f5f9;
+        color: #2563eb !important;
         padding: 0.15rem 0.4rem;
         border-radius: 4px;
         font-size: 0.8rem;
     }
 
+    .overview-tag {
+        padding: 0.3rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
     .section-card {
-        background: rgba(255,255,255,0.03);
+        background: #ffffff;
         border-radius: 1rem;
-        border: 1px solid #1e293b;
+        border: 1px solid #e2e8f0; /* slate-200 - khớp với phần còn lại của trang (nền sáng) */
         padding: 1.5rem;
-        backdrop-filter: blur(4px);
     }
 
         .section-card:hover {
-            border-color: #334155;
+            border-color: #cbd5e1; /* slate-300 */
             transition: border-color 0.2s;
         }
 </style>
@@ -119,20 +138,10 @@
                                     class="px-6 py-3 bg-green-500/10 text-green-600 border border-green-500/20 rounded-xl text-sm font-bold text-center flex items-center justify-center gap-2 hover:bg-green-500/20 transition-colors @((bool)(ViewBag.HasApplied ?? false) ? "" : "hidden")">
                                 <span class="material-symbols-outlined text-sm">check_circle</span> Đã ứng tuyển
                             </button>
-                            @if (isExpired && !(bool)(ViewBag.HasApplied ?? false))
-                            {
-                                <button type="button" disabled title="Tin tuyển dụng đã hết hạn nộp hồ sơ"
-                                        class="px-6 py-3 bg-slate-200 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed flex items-center justify-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">event_busy</span> Đã hết hạn nộp hồ sơ
-                                </button>
-                            }
-                            else
-                            {
-                                <button type="button" id="applyBtnDesktop" onclick="document.getElementById('applyModal').classList.remove('hidden')"
-                                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20 @((bool)(ViewBag.HasApplied ?? false) ? "hidden" : "")">
-                                    Ứng tuyển ngay
-                                </button>
-                            }
+                            <button type="button" id="applyBtnDesktop" onclick="document.getElementById('applyModal').classList.remove('hidden')"
+                                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20 @((bool)(ViewBag.HasApplied ?? false) ? "hidden" : "")">
+                                Ứng tuyển ngay
+                            </button>
                             <form asp-controller="Job" asp-action="ToggleSave" method="post">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="jobId" value="@Model.JobId" />
@@ -145,20 +154,10 @@
                         }
                         else if (!User.Identity!.IsAuthenticated)
                         {
-                            @if (isExpired)
-                            {
-                                <button type="button" disabled title="Tin tuyển dụng đã hết hạn nộp hồ sơ"
-                                        class="px-6 py-3 bg-slate-200 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed">
-                                    Đã hết hạn nộp hồ sơ
-                                </button>
-                            }
-                            else
-                            {
-                                <a href="#" onclick="jcOpenAuth(event, 'login', '@Html.Raw(Context.Request.Path)?openApply=1')"
-                                   class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 text-center transition-all">
-                                    Ứng tuyển ngay
-                                </a>
-                            }
+                            <a href="#" onclick="jcOpenAuth(event, 'login', '@Html.Raw(Context.Request.Path)?openApply=1')"
+                               class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 text-center transition-all">
+                                Ứng tuyển ngay
+                            </a>
                         }
                         <button type="button" onclick="document.getElementById('reportModal').classList.remove('hidden')"
                                 class="w-full px-6 py-3 bg-red-600/20 hover:bg-red-600/30 text-red-600 border border-red-500/30 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2">
@@ -191,13 +190,7 @@
                         <span class="material-symbols-outlined text-slate-500 text-lg">event</span>
                         <div>
                             <div class="text-xs text-slate-500">Hạn nộp</div>
-                            <div class="font-semibold text-slate-700">
-                                @(Model.Deadline?.ToString("dd/MM/yyyy") ?? "Không giới hạn")
-                                @if (isExpired)
-                                {
-                                    <span class="text-red-600 text-xs font-bold">(Đã hết hạn)</span>
-                                }
-                            </div>
+                            <div class="font-semibold text-slate-700">@(Model.Deadline?.ToString("dd/MM/yyyy") ?? "Không giới hạn")</div>
                         </div>
                     </div>
                     @if (!string.IsNullOrEmpty(Model.Employer?.CompanySize))
@@ -220,20 +213,10 @@
                                 class="flex-1 py-2.5 bg-green-500/10 text-green-600 border border-green-500/20 rounded-xl text-sm font-bold text-center @((bool)(ViewBag.HasApplied ?? false) ? "" : "hidden")">
                             ✓ Đã ứng tuyển
                         </button>
-                        @if (isExpired && !(bool)(ViewBag.HasApplied ?? false))
-                        {
-                            <button type="button" disabled
-                                    class="flex-1 py-2.5 bg-slate-200 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed">
-                                Đã hết hạn nộp
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" id="applyBtnMobile" onclick="document.getElementById('applyModal').classList.remove('hidden')"
-                                    class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold @((bool)(ViewBag.HasApplied ?? false) ? "hidden" : "")">
-                                Ứng tuyển ngay
-                            </button>
-                        }
+                        <button type="button" id="applyBtnMobile" onclick="document.getElementById('applyModal').classList.remove('hidden')"
+                                class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold @((bool)(ViewBag.HasApplied ?? false) ? "hidden" : "")">
+                            Ứng tuyển ngay
+                        </button>
                         <form asp-controller="Job" asp-action="ToggleSave" method="post" class="inline">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="jobId" value="@Model.JobId" />
@@ -244,20 +227,10 @@
                     }
                     else if (!User.Identity!.IsAuthenticated)
                     {
-                        @if (isExpired)
-                        {
-                            <button type="button" disabled
-                                    class="flex-1 py-2.5 bg-slate-200 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed">
-                                Đã hết hạn nộp
-                            </button>
-                        }
-                        else
-                        {
-                            <a href="#" onclick="jcOpenAuth(event, 'login', '@Html.Raw(Context.Request.Path)?openApply=1')"
-                               class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold text-center">
-                                Ứng tuyển ngay
-                            </a>
-                        }
+                        <a href="#" onclick="jcOpenAuth(event, 'login', '@Html.Raw(Context.Request.Path)?openApply=1')"
+                           class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-bold text-center">
+                            Ứng tuyển ngay
+                        </a>
                     }
                     <button type="button" onclick="document.getElementById('reportModal').classList.remove('hidden')"
                             class="px-4 py-2.5 bg-red-600/20 border border-red-500/30 rounded-xl text-sm text-red-600">
@@ -265,6 +238,52 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Tổng quan (tag nhanh Yêu cầu / Quyền lợi / Chuyên môn) -->
+            @{
+                var overview = ViewBag.Overview as JobOverview;
+            }
+            @if (overview != null && overview.HasAny)
+            {
+                <div class="section-card">
+                    <h2 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span class="w-1 h-5 bg-blue-500 rounded-full inline-block"></span>
+                        Tổng quan
+                    </h2>
+                    <div class="space-y-3">
+                        @if (overview.RequirementTags.Any())
+                        {
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-sm font-semibold text-slate-500 shrink-0">Yêu cầu:</span>
+                                @foreach (var tag in overview.RequirementTags)
+                                {
+                                    <span class="overview-tag bg-blue-50 text-blue-700 border border-blue-100">@tag</span>
+                                }
+                            </div>
+                        }
+                        @if (overview.BenefitTags.Any())
+                        {
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-sm font-semibold text-slate-500 shrink-0">Quyền lợi:</span>
+                                @foreach (var tag in overview.BenefitTags)
+                                {
+                                    <span class="overview-tag bg-green-50 text-green-700 border border-green-100">@tag</span>
+                                }
+                            </div>
+                        }
+                        @if (overview.ExpertiseTags.Any())
+                        {
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-sm font-semibold text-slate-500 shrink-0">Chuyên môn:</span>
+                                @foreach (var tag in overview.ExpertiseTags)
+                                {
+                                    <span class="overview-tag bg-slate-100 text-slate-700 border border-slate-200">@tag</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
 
             <!-- Description -->
             @if (!string.IsNullOrEmpty(Model.Description))
@@ -274,7 +293,31 @@
                         <span class="w-1 h-5 bg-blue-500 rounded-full inline-block"></span>
                         Mô tả công việc
                     </h2>
-                    <div class="prose text-sm text-slate-500 leading-relaxed">@Html.Raw(Model.Description)</div>
+                    <div class="prose text-sm leading-relaxed">@Html.Raw(Model.Description)</div>
+                </div>
+            }
+
+            <!-- Requirements (trước đây bị thiếu, chỉ có Description hiển thị) -->
+            @if (!string.IsNullOrEmpty(Model.Requirements))
+            {
+                <div class="section-card">
+                    <h2 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span class="w-1 h-5 bg-indigo-500 rounded-full inline-block"></span>
+                        Yêu cầu ứng viên
+                    </h2>
+                    <div class="prose text-sm leading-relaxed">@Html.Raw(Model.Requirements)</div>
+                </div>
+            }
+
+            <!-- Benefits (trước đây bị thiếu, chỉ có Description hiển thị) -->
+            @if (!string.IsNullOrEmpty(Model.Benefits))
+            {
+                <div class="section-card">
+                    <h2 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span class="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
+                        Quyền lợi ứng viên
+                    </h2>
+                    <div class="prose text-sm leading-relaxed">@Html.Raw(Model.Benefits)</div>
                 </div>
             }
         </div>
@@ -316,7 +359,7 @@
                 <h3 class="font-bold text-slate-900 mb-3">Thông tin chung</h3>
                 <dl class="space-y-3">
                     @foreach (var (icon, label, value) in new[]{
-                        ("event", "Hạn nộp hồ sơ", (Model.Deadline?.ToString("dd/MM/yyyy") ?? "Không giới hạn") + (isExpired ? " (đã hết hạn)" : "")),
+                        ("event", "Hạn nộp hồ sơ", Model.Deadline?.ToString("dd/MM/yyyy") ?? "Không giới hạn"),
                         ("work", "Hình thức", Model.JobType ?? "–"),
                         ("stairs", "Cấp bậc", Model.ExperienceLevel ?? "–"),
                         ("visibility", "Lượt xem", Model.ViewCount.ToString("N0")),
@@ -328,7 +371,7 @@
                                 <span class="material-symbols-outlined text-base text-slate-500">@icon</span>
                                 @label
                             </span>
-                            <span class="font-semibold @(label == "Hạn nộp hồ sơ" && isExpired ? "text-red-600" : "text-slate-700")">@value</span>
+                            <span class="font-semibold text-slate-700">@value</span>
                         </div>
                     }
                 </dl>
@@ -526,7 +569,7 @@
     <script>
         // Sau khi đăng nhập xong, quay lại đúng trang Job/Detail này (không về Trang chủ).
         // Nếu có cờ ?openApply=1 thì tự mở lại popup Ứng tuyển để người dùng tiếp tục thao tác dở.
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('openApply') === '1') {
                 const applyModal = document.getElementById('applyModal');
@@ -556,11 +599,11 @@
             el.className = 'flash-msg fixed top-20 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ' + (colors[type] || colors.success);
             el.innerHTML = '<span class="material-symbols-outlined text-base">' + (icons[type] || icons.success) + '</span>' + message;
             document.body.appendChild(el);
-            setTimeout(function () {
+            setTimeout(function() {
                 el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
                 el.style.opacity = '0';
                 el.style.transform = 'translate(-50%, -10px)';
-                setTimeout(function () { el.remove(); }, 400);
+                setTimeout(function() { el.remove(); }, 400);
             }, 3000);
         }
 
@@ -569,7 +612,7 @@
                 ['applyBtnDesktop', 'appliedBtnDesktop'],
                 ['applyBtnMobile', 'appliedBtnMobile']
             ];
-            pairs.forEach(function ([applyId, appliedId]) {
+            pairs.forEach(function([applyId, appliedId]) {
                 const applyBtn = document.getElementById(applyId);
                 const appliedBtn = document.getElementById(appliedId);
                 if (applyBtn) applyBtn.classList.toggle('hidden', applied);
@@ -580,7 +623,7 @@
         // Gửi đơn ứng tuyển bằng AJAX: modal không đóng trang, chỉ hiện kết quả tại chỗ.
         const applyForm = document.getElementById('applyForm');
         if (applyForm) {
-            applyForm.addEventListener('submit', async function (e) {
+            applyForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const errorEl = document.getElementById('applyFormError');
@@ -644,7 +687,7 @@
         // Hủy ứng tuyển bằng AJAX, tương tự như trên.
         const withdrawForm = document.getElementById('withdrawForm');
         if (withdrawForm) {
-            withdrawForm.addEventListener('submit', async function (e) {
+            withdrawForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const submitBtn = document.getElementById('withdrawSubmitBtn');
                 submitBtn.disabled = true;

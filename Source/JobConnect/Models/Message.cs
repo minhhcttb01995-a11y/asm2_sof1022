@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng TIN NHẮN riêng giữa 2 User (VD: nhà tuyển dụng nhắn ứng viên), có thể gắn
+// với 1 JobPost cụ thể (JobId) để biết tin nhắn liên quan tới tin tuyển dụng nào.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

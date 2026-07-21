@@ -1,4 +1,7 @@
-﻿@model JobConnect.Models.JobPost
+@* [VIEW-HEADER-ADDED]
+   View cho action "PostJob" trong khu vực trang quản lý Nhà tuyển dụng (EmployerController).
+*@
+@model JobConnect.Models.JobPost
 @{
     ViewData["Title"] = "Đăng tin tuyển dụng";
     Layout = "_LayoutEmployer";
@@ -161,6 +164,32 @@
                             Hỗ trợ định dạng văn bản, heading, danh sách, link và hình ảnh
                         </p>
                     </div>
+
+                    <div class="space-y-1 mt-5">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Yêu cầu ứng viên <span class="text-red-500">*</span>
+                        </label>
+                        <input type="hidden" asp-for="Requirements" id="requirementsHidden" />
+                        <div id="requirementsEditor" class="rounded-xl overflow-hidden border border-slate-700"></div>
+                        <span asp-validation-for="Requirements" class="text-red-500 text-xs mt-1 block"></span>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            VD: số năm kinh nghiệm, bằng cấp, kỹ năng bắt buộc, ngoại ngữ...
+                        </p>
+                    </div>
+
+                    <div class="space-y-1 mt-5">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Quyền lợi ứng viên <span class="text-red-500">*</span>
+                        </label>
+                        <input type="hidden" asp-for="Benefits" id="benefitsHidden" />
+                        <div id="benefitsEditor" class="rounded-xl overflow-hidden border border-slate-700"></div>
+                        <span asp-validation-for="Benefits" class="text-red-500 text-xs mt-1 block"></span>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            VD: lương thưởng, bảo hiểm, lộ trình thăng tiến, chế độ nghỉ phép...
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -276,10 +305,38 @@
     }
     });
 
+    const simpleToolbar = [
+    [{ header: [3, 4, false] }],
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link'],
+    ['clean']
+    ];
+
+    const requirementsQuill = new Quill('#requirementsEditor', {
+    theme: 'snow',
+    placeholder: 'VD: Có 2-4 năm kinh nghiệm ở vị trí tương đương. Thành thạo ... Tốt nghiệp Đại học chuyên ngành liên quan...',
+    modules: { toolbar: simpleToolbar }
+    });
+
+    const benefitsQuill = new Quill('#benefitsEditor', {
+    theme: 'snow',
+    placeholder: 'VD: Lương thỏa thuận theo năng lực. Thưởng hiệu suất theo quý. BHXH/BHYT/BHTN đầy đủ. Lộ trình thăng tiến rõ ràng...',
+    modules: { toolbar: simpleToolbar }
+    });
+
     // Nếu có nội dung cũ (khi sửa tin) thì nạp lại vào editor
     const descriptionHidden = document.getElementById('descriptionHidden');
     if (descriptionHidden && descriptionHidden.value) {
     descriptionQuill.root.innerHTML = descriptionHidden.value;
+    }
+    const requirementsHidden = document.getElementById('requirementsHidden');
+    if (requirementsHidden && requirementsHidden.value) {
+    requirementsQuill.root.innerHTML = requirementsHidden.value;
+    }
+    const benefitsHidden = document.getElementById('benefitsHidden');
+    if (benefitsHidden && benefitsHidden.value) {
+    benefitsQuill.root.innerHTML = benefitsHidden.value;
     }
 
     // Đồng bộ nội dung Quill → hidden input trước khi submit
@@ -289,6 +346,18 @@
     alert('Vui lòng nhập mô tả công việc!');
     return;
     }
+    if (requirementsQuill.getText().trim().length === 0) {
+    e.preventDefault();
+    alert('Vui lòng nhập yêu cầu ứng viên!');
+    return;
+    }
+    if (benefitsQuill.getText().trim().length === 0) {
+    e.preventDefault();
+    alert('Vui lòng nhập quyền lợi ứng viên!');
+    return;
+    }
     document.getElementById('descriptionHidden').value = descriptionQuill.root.innerHTML;
+    document.getElementById('requirementsHidden').value = requirementsQuill.root.innerHTML;
+    document.getElementById('benefitsHidden').value = benefitsQuill.root.innerHTML;
     });
 </script>

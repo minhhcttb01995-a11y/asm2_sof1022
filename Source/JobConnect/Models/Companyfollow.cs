@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng lưu việc 1 User (ứng viên) BẤM THEO DÕI (follow) 1 công ty (Employer) —
+// dùng để gợi ý/thông báo khi công ty đó đăng tin tuyển dụng mới.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

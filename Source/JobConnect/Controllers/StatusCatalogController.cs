@@ -1,3 +1,11 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// StatusCatalogController — [Authorize(Roles = "Admin")]: trang Admin quản lý DANH MỤC
+// TRẠNG THÁI tùy chỉnh (xem Models/StatusCatalog.cs + Services/StatusCatalogService.cs):
+//   • Index/Create/Edit/Delete/ToggleActive: CRUD danh mục trạng thái.
+//   • ByEntityType: API nhỏ trả về danh sách trạng thái theo loại đối tượng (dùng AJAX
+//     để đổ vào dropdown khi tạo/sửa 1 trạng thái mới, tránh trùng Code).
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;

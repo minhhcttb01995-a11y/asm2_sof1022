@@ -1,3 +1,20 @@
+// [[SERVICE-IMPL-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// StatusCatalogService — cài đặt IStatusCatalogService: quản lý bảng
+// StatusCatalog (xem thêm comment ở Models/StatusCatalog.cs) — nơi Admin tự
+// định nghĩa các trạng thái áp dụng cho Candidate/Employer/Staff/Company/
+// JobPost/BlogPost thay vì hard-code trong code. Các hàm chính:
+//   • GetAllAsync/GetByIdAsync: liệt kê / xem chi tiết 1 trạng thái (có lọc theo
+//     loại đối tượng + từ khóa tìm kiếm).
+//   • CreateAsync/UpdateAsync/DeleteAsync: CRUD — DeleteAsync trả về kèm số bản
+//     ghi đang dùng trạng thái này (RecordCount) để cảnh báo trước khi xóa, và
+//     KHÔNG cho xóa nếu là trạng thái hệ thống (IsSystem = true).
+//   • GetDisplayNameAsync: tra tên hiển thị (tiếng Việt) theo EntityType + Code,
+//     dùng để in badge trạng thái ở khắp nơi trong giao diện.
+//   • GetPublicVisibleCodesAsync: trả về danh sách Code có ShowPublicly = true,
+//     dùng để LỌC dữ liệu hiển thị công khai (VD: JobService.SearchAsync chỉ
+//     hiển thị tin có Status nằm trong danh sách này).
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using Microsoft.EntityFrameworkCore;

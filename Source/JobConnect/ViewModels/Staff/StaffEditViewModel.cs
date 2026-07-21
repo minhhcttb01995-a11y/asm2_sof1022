@@ -1,3 +1,5 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho form CHỈNH SỬA thông tin nhân viên (StaffController.Edit).
 using System.ComponentModel.DataAnnotations;
 using JobConnect.Models;
 

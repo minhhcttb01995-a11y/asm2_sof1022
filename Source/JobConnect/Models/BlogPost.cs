@@ -1,4 +1,9 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng BÀI VIẾT BLOG (tin tức/chia sẻ) do User (thường là Staff/Admin) đăng.
+// Có slug (đường dẫn URL thân thiện), trạng thái xuất bản (IsPublished/Status)
+// và ngày xuất bản (PublishedAt). Các property viết hoa (PostID, CoverURL...)
+// chỉ là alias tương thích ngược cho code/view cũ.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

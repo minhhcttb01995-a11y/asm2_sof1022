@@ -1,4 +1,12 @@
-﻿using System.Net;
+// [[SERVICE-IMPL-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// EmailService — cài đặt IEmailService, gửi email qua SMTP Gmail.
+// Đọc cấu hình từ appsettings.json (mục "EmailSettings": SmtpServer, SmtpPort,
+// SenderEmail, SenderPassword — đây phải là "Mật khẩu ứng dụng" (App Password)
+// của Gmail, KHÔNG phải mật khẩu đăng nhập thường). Dùng để gửi mã OTP xác thực
+// email khi đăng ký/quên mật khẩu (xem AccountController).
+// ═══════════════════════════════════════════════════════════════════════════
+using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 

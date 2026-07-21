@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho form đăng nhập (AccountController.Login) — các thuộc tính có gắn
+// DataAnnotation ([Required], [EmailAddress]...) để ASP.NET Core tự validate form.
 using System.ComponentModel.DataAnnotations;
 
 namespace JobConnect.ViewModels;

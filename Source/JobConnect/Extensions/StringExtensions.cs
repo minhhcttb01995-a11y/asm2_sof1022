@@ -1,4 +1,7 @@
-﻿namespace JobConnect.Extensions
+// [[FILE-HEADER-ADDED]]
+// Vài extension method nhỏ cho string (VD: cắt chuỗi kèm dấu "...", viết hoa chữ cái đầu...)
+// dùng chung trong các View để hiển thị văn bản gọn gàng.
+namespace JobConnect.Extensions
 {
     public static class StringExtensions
     {

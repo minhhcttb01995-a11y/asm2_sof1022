@@ -1,4 +1,7 @@
-﻿namespace JobConnect.Services;
+// [SERVICE-IFACE-HEADER-ADDED]
+// Interface cho dịch vụ sinh MÃ ĐỊNH DANH (UserCode, CompanyCode, JobCode, BlogCode,
+// StaffCode) hiển thị cho người dùng dễ nhớ hơn là ID số. Cài đặt bởi CodeGeneratorService.cs.
+namespace JobConnect.Services;
 
 /// <summary>
 /// Sinh mã định danh cho các loại đối tượng trong hệ thống.

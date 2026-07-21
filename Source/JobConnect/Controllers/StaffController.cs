@@ -1,3 +1,15 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// StaffController — [Authorize(Roles = "Admin")]: CHỈ ADMIN mới được QUẢN LÝ NHÂN VIÊN
+// (Staff) — khác StaffDashboardController là nơi Staff tự làm việc hàng ngày:
+//   • Index/Details: danh sách & xem chi tiết 1 nhân viên.
+//   • Create/Edit/Delete/DeleteConfirmed: CRUD hồ sơ nhân viên.
+//   • Lock/Unlock/ChangeStatus: khóa/mở khóa tài khoản nhân viên.
+//   • Deleted/Restore: xem danh sách đã xóa mềm + khôi phục.
+//   • ResetPassword: Admin đặt lại mật khẩu cho 1 nhân viên.
+//   • ActivityLog: xem lịch sử hoạt động (ActivityLog) của 1 nhân viên.
+//   • SetRole: đổi vai trò tài khoản (VD: nâng lên Admin).
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;

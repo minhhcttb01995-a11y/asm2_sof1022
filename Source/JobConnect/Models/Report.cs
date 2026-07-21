@@ -1,4 +1,8 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng BÁO CÁO VI PHẠM: User báo cáo 1 JobPost hoặc 1 Company (Employer) vi phạm
+// (spam, lừa đảo, nội dung không phù hợp...). Report được Staff xử lý (ProcessedByStaff),
+// có ghi chú xử lý (ProcessNote) và trạng thái (Status: Pending/InProgress/Resolved/Rejected).
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

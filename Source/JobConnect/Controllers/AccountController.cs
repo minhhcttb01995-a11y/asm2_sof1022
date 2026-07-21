@@ -1,3 +1,15 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// AccountController — TOÀN BỘ luồng XÁC THỰC người dùng, không phân biệt vai trò:
+//   • Login/Register/RegisterEmployer: đăng nhập, đăng ký Ứng viên / Nhà tuyển dụng.
+//   • Logout, Settings: quản lý phiên đăng nhập (Cookie Authentication).
+//   • ChangePassword/ChangeEmail/DeleteAccount: tự quản lý tài khoản (yêu cầu [Authorize]).
+//   • ExternalLogin/GoogleResponse: đăng nhập bằng Google OAuth.
+//   • ForgotPassword/VerifyOtp/ResetPassword: quên mật khẩu qua email OTP.
+//   • VerifyEmailOtp/ResendEmailOtp: xác thực email bằng mã OTP gửi qua IEmailService.
+// Phụ thuộc: IAuthService (đăng nhập/đăng ký), IEmailService (gửi OTP), AppDbContext trực tiếp
+// cho các thao tác đọc/ghi User cụ thể của luồng xác thực.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;

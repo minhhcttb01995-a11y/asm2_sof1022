@@ -1,3 +1,15 @@
+// [[SERVICE-IMPL-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// SkillService — cài đặt ISkillService, chia làm 2 nhóm (đánh dấu bằng #region):
+//   • Admin Operations: CRUD danh mục Kỹ năng dùng chung toàn hệ thống (Admin
+//     quản lý ở trang quản trị) — GetAllAsync/GetActiveAsync/CreateAsync/
+//     UpdateAsync/DeleteAsync/ToggleActiveAsync (bật/tắt hiển thị)/ExistsAsync
+//     (kiểm tra trùng tên trước khi tạo/sửa).
+//   • Candidate Operations: ứng viên gắn kỹ năng vào hồ sơ cá nhân của mình
+//     (CandidateSkill: kỹ năng + mức độ thành thạo + số năm kinh nghiệm), và
+//     GetProfileCompletionPercentageAsync tính % hoàn thiện hồ sơ (dùng để nhắc
+//     ứng viên bổ sung thông tin còn thiếu).
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using Microsoft.EntityFrameworkCore;

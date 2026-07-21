@@ -1,4 +1,10 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng DANH MỤC TRẠNG THÁI DÙNG CHUNG do Admin tự cấu hình (thêm/sửa/xóa) cho
+// nhiều loại đối tượng (Candidate/Employer/Staff/Company/JobPost/BlogPost) — thay vì
+// hard-code cứng trạng thái trong code, hệ thống tra bảng này để biết: trạng thái đó
+// tên hiển thị là gì, màu badge gì, có chặn đăng nhập không (BlocksLogin), có hiển thị
+// công khai không (ShowPublicly). Class StatusEntityTypes bên dưới là hằng số tiện dùng.
+using System;
 
 namespace JobConnect.Models;
 

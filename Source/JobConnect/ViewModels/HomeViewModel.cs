@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho trang chủ (HomeController.Index): gom tin nổi bật, tin mới nhất,
+// công ty hàng đầu, danh mục ngành nghề/địa điểm và vài số liệu thống kê tổng quan.
 using JobConnect.Models;
 
 namespace JobConnect.ViewModels;

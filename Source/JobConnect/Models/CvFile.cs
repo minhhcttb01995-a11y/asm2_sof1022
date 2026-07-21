@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng FILE CV mà ứng viên tải lên (PDF/DOCX). 1 CandidateProfile có thể có
+// nhiều CV, và có thể chọn 1 CV làm mặc định (IsDefault) khi ứng tuyển nhanh.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

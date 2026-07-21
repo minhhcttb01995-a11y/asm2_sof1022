@@ -1,0 +1,35 @@
+@* [VIEW-HEADER-ADDED]
+   Partial view dùng chung: dropdown chuông thông báo trên thanh header (gọi AJAX tới
+// NotificationController để lấy dữ liệu).
+*@
+@model List<JobConnect.Models.Notification>
+
+@if (!Model.Any())
+{
+    <div style="padding:32px 16px;text-align:center;color:#94a3b8;">
+        <span class="material-symbols-outlined" style="font-size:2rem;color:#cbd5e1;">notifications_off</span>
+        <p style="font-size:0.85rem;margin-top:6px;">Chưa có thông báo nào.</p>
+    </div>
+}
+else
+{
+    foreach (var n in Model)
+    {
+        <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;@(n.IsRead ? "" : "background:#eff6ff;")">
+            <div style="font-weight:700;font-size:0.85rem;color:#1e293b;">@n.Title</div>
+            @if (!string.IsNullOrWhiteSpace(n.Content))
+            {
+                <div style="font-size:0.8rem;color:#64748b;margin-top:2px;white-space:pre-line;">@n.Content</div>
+            }
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">@n.CreatedAt.ToString("HH:mm dd/MM/yyyy")</div>
+        </div>
+    }
+
+    @if ((bool)(ViewBag.ShowViewAllLink ?? false))
+    {
+        <a asp-controller="Candidate" asp-action="Notifications"
+           style="display:block;text-align:center;padding:10px;font-size:0.82rem;font-weight:700;color:#3b82f6;text-decoration:none;border-top:1px solid #f1f5f9;">
+            Xem tất cả
+        </a>
+    }
+}

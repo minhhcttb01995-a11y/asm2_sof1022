@@ -1,3 +1,12 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// SupportTicketController — [Authorize(Roles = "Staff,Admin")]: xử lý PHIẾU HỖ TRỢ
+// (SupportTicket) do người dùng gửi lên:
+//   • Index/Details: danh sách & chi tiết 1 ticket.
+//   • Assign: Staff nhận xử lý 1 ticket.
+//   • Respond: Staff trả lời/phản hồi ticket.
+//   • Resolve/Close: đánh dấu đã giải quyết / đóng ticket.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using Microsoft.AspNetCore.Authorization;

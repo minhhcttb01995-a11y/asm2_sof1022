@@ -1,3 +1,16 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// CandidateController — [Authorize(Roles = "Candidate")]: TRANG CÁ NHÂN CỦA ỨNG VIÊN
+// sau khi đăng nhập (khác với JobController là trang public tìm việc):
+//   • Profile/UpdateProfile: xem/sửa hồ sơ cá nhân.
+//   • CvManager/UploadCv/SetDefaultCv/DeleteCv: quản lý các file CV đã tải lên.
+//   • Applications: xem danh sách đơn đã ứng tuyển + trạng thái xử lý.
+//   • SavedJobs/FollowedCompanies: tin đã lưu + công ty đang theo dõi.
+//   • Skills/AddSkill/RemoveSkill: quản lý danh sách kỹ năng trong hồ sơ.
+//   • Notifications/MarkRead: thông báo cá nhân.
+//   • AiCvBuilder: tính năng AI hỗ trợ sinh nội dung CV (dùng IGeminiService).
+// Chú ý: các action đều dùng [Route("Candidate/...")] tường minh thay vì route mặc định.
+// ═══════════════════════════════════════════════════════════════════════════
 using System.Security.Claims;
 using JobConnect.Data;
 using JobConnect.Models;
@@ -13,11 +26,17 @@ public class CandidateController : Controller
 {
     private readonly AppDbContext _db;
     private readonly IFileService _fileService;
+    private readonly IGeminiService _aiService;
+    private readonly IWebHostEnvironment _env;
+    private readonly ICvTextExtractionService _cvTextExtractor;
 
-    public CandidateController(AppDbContext db, IFileService fileService)
+    public CandidateController(AppDbContext db, IFileService fileService, IGeminiService aiService, IWebHostEnvironment env, ICvTextExtractionService cvTextExtractor)
     {
         _db = db;
         _fileService = fileService;
+        _aiService = aiService;
+        _env = env;
+        _cvTextExtractor = cvTextExtractor;
     }
 
     private int CurrentUserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -184,12 +203,14 @@ public class CandidateController : Controller
     [Route("Candidate/DeleteCv")]
     public async Task<IActionResult> DeleteCv(int cvId)
     {
-        var success = await _fileService.DeleteCvAsync(cvId, CurrentUserId);
+        var result = await _fileService.DeleteCvAsync(cvId, CurrentUserId);
 
-        if (success)
-            TempData["Success"] = "Xóa CV thành công!";
-        else
-            TempData["Error"] = "Không thể xóa CV.";
+        TempData[result == JobConnect.Services.CvDeleteResult.Success ? "Success" : "Error"] = result switch
+        {
+            JobConnect.Services.CvDeleteResult.Success => "Xóa CV thành công!",
+            JobConnect.Services.CvDeleteResult.InUse => "Bạn đã dùng CV này để ứng tuyển nên không thể xóa. Hãy đặt CV khác làm mặc định nếu muốn dùng CV khác cho các đơn ứng tuyển mới.",
+            _ => "Không thể xóa CV."
+        };
 
         return RedirectToAction("CvManager");
     }
@@ -375,6 +396,86 @@ public class CandidateController : Controller
         }
 
         return RedirectToAction("Notifications");
+    }
+
+    #endregion
+
+    #region AI - Tạo CV & Kiểm tra độ phù hợp
+
+    [Route("Candidate/AiCvBuilder")]
+    public async Task<IActionResult> AiCvBuilder()
+    {
+        var profile = await _db.CandidateProfiles
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId);
+
+        var model = new JobConnect.ViewModels.AiCvBuilderViewModel
+        {
+            FullName = profile?.FullName ?? profile?.User?.FullName ?? "",
+            JobTitle = profile?.JobTitle ?? "",
+            ExperienceYears = profile?.ExperienceYears ?? 0,
+            Email = profile?.User?.Email,
+            Phone = profile?.Phone ?? profile?.User?.PhoneNumber,
+            Address = profile?.Address,
+            PhotoUrl = profile?.Avatar
+        };
+
+        return View(model);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Route("Candidate/AiCvBuilder")]
+    public async Task<IActionResult> AiCvBuilder(JobConnect.ViewModels.AiCvBuilderViewModel model)
+    {
+        // Lưu ảnh đại diện (nếu người dùng chọn ảnh mới) — chỉ dùng để hiển thị trên CV,
+        // không ghi đè avatar chính của tài khoản.
+        if (model.PhotoFile != null && model.PhotoFile.Length > 0)
+        {
+            var ext = Path.GetExtension(model.PhotoFile.FileName).ToLowerInvariant();
+            var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (allowedExts.Contains(ext) && model.PhotoFile.Length <= 3 * 1024 * 1024)
+            {
+                var fileName = $"cv_{CurrentUserId}_{Guid.NewGuid()}{ext}";
+                var relativePath = Path.Combine("uploads/cv-photos", fileName).Replace("\\", "/");
+                var fullPath = Path.Combine(_env.WebRootPath, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await model.PhotoFile.CopyToAsync(stream);
+                }
+                model.PhotoUrl = "/" + relativePath;
+            }
+        }
+
+        var request = new AiCvRequest
+        {
+            FullName = model.FullName,
+            JobTitle = model.JobTitle,
+            ExperienceYears = model.ExperienceYears,
+            Skills = model.Skills,
+            Education = model.Education,
+            WorkHistory = model.WorkHistory,
+            Achievements = model.Achievements,
+            Languages = model.Languages
+        };
+
+        var result = await _aiService.GenerateCvAsync(request);
+
+        // References KHÔNG qua AI (tránh AI bịa thông tin người tham chiếu thật) — chỉ tách dòng người dùng nhập.
+        model.ReferenceLines = (model.References ?? "")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        if (!result.Success)
+        {
+            model.ErrorMessage = result.Error;
+        }
+        else
+        {
+            model.Result = result;
+        }
+
+        return View(model);
     }
 
     #endregion

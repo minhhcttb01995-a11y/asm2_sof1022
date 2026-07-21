@@ -1,4 +1,8 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng ghi log hoạt động của NHÂN VIÊN (Staff) trong hệ thống quản trị:
+// mỗi khi Staff thực hiện 1 hành động quan trọng (khóa tài khoản, duyệt tin...),
+// hệ thống lưu lại Action + mô tả + IP + trình duyệt vào bảng này để tra soát sau này.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

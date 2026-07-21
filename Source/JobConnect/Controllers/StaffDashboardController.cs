@@ -1,3 +1,21 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// StaffDashboardController — [Authorize(Roles = "Staff,Admin")]: TRANG LÀM VIỆC HÀNG NGÀY
+// của Staff (và Admin cũng dùng chung được) — đây là controller LỚN NHẤT hệ thống (>1300
+// dòng), chia thành nhiều nhóm chức năng:
+//   • Index: dashboard tổng quan việc cần xử lý.
+//   • Candidates/Employers/UserDetail/ToggleUserStatus/ToggleEmployerLock: quản lý
+//     người dùng (nhẹ hơn AdminController, không có quyền xóa vĩnh viễn).
+//   • PendingCompanies/ApproveCompany/RejectCompany: DUYỆT công ty mới đăng ký.
+//   • PendingJobs/JobDetail/ApproveJob/RejectJob/HideJob: DUYỆT tin tuyển dụng mới đăng.
+//   • Reports/ReportDetail/ProcessReport: xử lý báo cáo vi phạm.
+//   • Tickets/TicketDetail/AssignTicket/ReplyTicket/CloseTicket: xử lý phiếu hỗ trợ (SupportTicket).
+//   • Categories/CreateCategory/EditCategory/DeleteCategory: quản lý danh mục ngành nghề.
+//   • Skills/CreateSkill/ToggleSkill/DeleteSkill: quản lý danh mục kỹ năng.
+//   • Blog/BlogEditor/SaveBlog/ToggleBlogPublish/DeleteBlog: quản lý bài viết Blog.
+//   • SendNotification: Staff gửi thông báo hàng loạt tới người dùng.
+//   • Profile: hồ sơ cá nhân của chính nhân viên đang đăng nhập.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Extensions;
 using JobConnect.Models;

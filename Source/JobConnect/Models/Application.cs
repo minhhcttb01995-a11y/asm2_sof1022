@@ -1,4 +1,9 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng HỒ SƠ ỨNG TUYỂN: đại diện cho việc 1 ứng viên (CandidateProfile) nộp CV
+// (CvFile) vào 1 tin tuyển dụng (JobPost). Có Status (đang chờ/đã duyệt/từ chối...)
+// và có thể phát sinh nhiều buổi phỏng vấn (Interview). Các property Profile/CvFile
+// bên dưới chỉ là "alias" (bí danh, [NotMapped]) để code cũ gọi tên khác vẫn chạy được.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

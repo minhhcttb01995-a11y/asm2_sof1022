@@ -1,9 +1,78 @@
-﻿@using JobConnect.Models
+@* [VIEW-HEADER-ADDED]
+   View cho action "Companies" trong khu vực trang quản trị Admin (AdminController).
+*@
+@using JobConnect.Models
 @model IEnumerable<Employer>
 @{
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "Quản lý công ty";
 }
+
+<!-- Modal thêm công ty mới -->
+<div id="modalCreateCompany" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-lg font-bold text-on-surface">Thêm công ty mới</h2>
+            <button onclick="closeCreateCompanyModal()" class="text-secondary hover:text-on-surface">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form asp-action="CreateCompany" method="post" class="space-y-4">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="block text-sm font-medium text-on-surface mb-1">Tên công ty *</label>
+                <input name="companyName" required type="text" placeholder="Công ty CP Ví dụ Việt Nam"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Ngành nghề</label>
+                    <input name="industry" type="text" placeholder="Công nghệ thông tin"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Mã số thuế</label>
+                    <input name="taxCode" type="text" placeholder="0123456789"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-on-surface mb-1">Địa chỉ</label>
+                <input name="address" type="text" placeholder="Số 1 đường ABC, Quận X, Thành phố Y"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <hr class="border-outline-variant" />
+            <p class="text-xs text-secondary -mt-2">Tài khoản đăng nhập của người đại diện công ty (nhà tuyển dụng):</p>
+            <div>
+                <label class="block text-sm font-medium text-on-surface mb-1">Họ tên người liên hệ *</label>
+                <input name="contactName" required type="text" placeholder="Nguyễn Văn A"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Email *</label>
+                    <input name="email" required type="email" placeholder="email@congty.vn"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-on-surface mb-1">Mật khẩu *</label>
+                    <input name="password" required type="password" placeholder="Tối thiểu 6 ký tự"
+                           class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeCreateCompanyModal()"
+                        class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                    Huỷ
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+                    Tạo công ty
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Modal xác nhận xóa -->
 <div id="modalDelete" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
@@ -44,13 +113,44 @@
             <h1 class="text-xl font-bold text-on-surface">Quản lý công ty</h1>
             <p class="text-sm text-secondary">Tổng: <strong>@Model.Count()</strong> công ty đã đăng ký</p>
         </div>
+        <button onclick="openCreateCompanyModal()"
+                class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+            <span class="material-symbols-outlined text-base">domain_add</span>
+            Thêm công ty
+        </button>
     </div>
+
+    @{
+        var orphanCount = (int)(ViewBag.OrphanEmployerCount ?? 0);
+    }
+    @if (orphanCount > 0)
+    {
+        <div class="px-4 py-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600 text-base">warning</span>
+                Có <strong>@orphanCount</strong> tài khoản nhà tuyển dụng đã tạo nhưng chưa có hồ sơ công ty (bị thiếu công ty).
+            </div>
+            <form asp-action="FixOrphanEmployers" method="post" onsubmit="return confirm('Hệ thống sẽ tự tạo hồ sơ công ty tạm (trạng thái Chờ duyệt) cho các tài khoản này. Bạn có thể sửa lại tên/thông tin công ty sau. Tiếp tục?')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700">
+                    Khắc phục ngay
+                </button>
+            </form>
+        </div>
+    }
 
     @if (TempData["Success"] != null)
     {
         <div class="px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
             <span class="material-symbols-outlined text-base">check_circle</span>
             @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            @TempData["Error"]
         </div>
     }
 
@@ -233,6 +333,18 @@
 </div>
 
 <script>
+    function openCreateCompanyModal() {
+        document.getElementById('modalCreateCompany').classList.remove('hidden');
+        document.getElementById('modalCreateCompany').classList.add('flex');
+    }
+    function closeCreateCompanyModal() {
+        document.getElementById('modalCreateCompany').classList.add('hidden');
+        document.getElementById('modalCreateCompany').classList.remove('flex');
+    }
+    document.getElementById('modalCreateCompany').addEventListener('click', function(e) {
+        if (e.target === this) closeCreateCompanyModal();
+    });
+
     function openDeleteModal(id, name) {
         document.getElementById('deleteCompanyId').value = id;
         document.getElementById('deleteCompanyName').textContent = name;
@@ -256,23 +368,23 @@
             },
             body: `employerId=${employerId}&newStatus=${newStatus}&__RequestVerificationToken=${token}`
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Không thể thay đổi trạng thái');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Không thể thay đổi trạng thái');
+                    selectElement.value = selectElement.getAttribute('data-original-value');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi thay đổi trạng thái');
                 selectElement.value = selectElement.getAttribute('data-original-value');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi thay đổi trạng thái');
-            selectElement.value = selectElement.getAttribute('data-original-value');
-        });
+            });
     }
 
-    document.getElementById('modalDelete').addEventListener('click', function (e) {
+    document.getElementById('modalDelete').addEventListener('click', function(e) {
         if (e.target === this) closeDeleteModal();
     });
 </script>

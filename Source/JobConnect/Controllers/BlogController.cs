@@ -1,3 +1,10 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// BlogController — trang BLOG công khai + quản lý bài viết (dành cho Admin/Staff):
+//   • Index/Detail: trang public — danh sách bài viết đã xuất bản + xem chi tiết theo slug.
+//   • AdminIndex/Create/Edit/Delete/ChangeStatus: [Authorize(Roles = "Admin,Staff")] —
+//     CRUD bài viết Blog (tiêu đề, nội dung, ảnh bìa, trạng thái xuất bản).
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;

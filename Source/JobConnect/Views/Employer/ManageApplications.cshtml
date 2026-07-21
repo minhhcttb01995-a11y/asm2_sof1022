@@ -1,3 +1,6 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "ManageApplications" trong khu vực trang quản lý Nhà tuyển dụng (EmployerController).
+*@
 @using JobConnect.Models
 @model List<Application>
 @{
@@ -6,7 +9,14 @@
 
     var job = ViewBag.Job as JobPost;
 
-    var statuses = new[] { "Tất cả", "Pending", "Reviewing", "Interview", "Rejected" };
+    var statuses = new[]
+    {
+        ("Tất cả", "Tất cả"),
+        ("Pending", "Chờ xét duyệt"),
+        ("Reviewing", "Đang xem xét"),
+        ("Interview", "Mời phỏng vấn"),
+        ("Rejected", "Từ chối")
+    };
     var filterParam = Context.Request.Query["status"].ToString();
     var currentFilter = string.IsNullOrEmpty(filterParam) ? "Tất cả" : filterParam;
     var filteredApps = (currentFilter == "Tất cả")
@@ -14,7 +24,47 @@
         : Model.Where(a => a.Status == currentFilter).ToList();
 }
 
-<div class="max-w-[1600px] mx-auto px-6 py-8">
+<form id="__ajaxTokenForm" class="hidden">@Html.AntiForgeryToken()</form>
+
+<!-- Modal xem trước CV (không tải về) -->
+<div id="cvViewerModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4">
+    <div class="bg-[#1e293b] border border-slate-700 rounded-xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-700">
+            <h3 id="cvViewerTitle" class="text-white font-semibold text-sm truncate pr-4">CV</h3>
+            <div class="flex items-center gap-2 shrink-0">
+                <a id="cvViewerDownloadLink" href="#" download
+                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-400 border border-blue-500/20 rounded-lg hover:bg-blue-500/10 transition-colors">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                    Tải về
+                </a>
+                <button type="button" onclick="closeCvViewer()"
+                        class="inline-flex items-center justify-center w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 bg-slate-900 rounded-b-xl overflow-hidden relative">
+            <div id="cvViewerLoading" class="absolute inset-0 flex items-center justify-center text-slate-400 text-sm gap-2">
+                <span class="material-symbols-outlined animate-spin">progress_activity</span>
+                Đang tải CV...
+            </div>
+            <div id="cvViewerError" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center gap-3 px-6">
+                <span class="material-symbols-outlined text-4xl text-slate-500">description</span>
+                <p id="cvViewerErrorText" class="text-slate-400 text-sm max-w-sm">
+                    Không thể xem trước file này. Vui lòng tải về để xem.
+                </p>
+                <a id="cvViewerErrorDownload" href="#" download
+                   class="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                    Tải về
+                </a>
+            </div>
+            <iframe id="cvViewerFrame" src="about:blank" class="hidden w-full h-full border-0"></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="w-full px-6 py-8">
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-white">Quản lý đơn ứng tuyển</h1>
@@ -23,11 +73,6 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <a asp-action="ExportApplicationsCsv" asp-route-jobId="@job?.JobId" asp-route-status="@filterParam"
-               class="px-4 py-2 border border-green-700 text-green-400 rounded-lg text-sm font-medium hover:bg-green-500/10 inline-flex items-center gap-1">
-                <span class="material-symbols-outlined text-base">table_view</span>
-                Xuất Excel
-            </a>
             <a asp-action="PrintApplications" asp-route-jobId="@job?.JobId" asp-route-status="@filterParam" target="_blank"
                class="px-4 py-2 border border-red-700 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/10 inline-flex items-center gap-1">
                 <span class="material-symbols-outlined text-base">picture_as_pdf</span>
@@ -55,7 +100,11 @@
         </div>
     }
 
-    @if (!Model.Any())
+    @{
+        var totalApplicationsCount = ViewBag.TotalApplicationsCount is int tc ? tc : Model.Count;
+    }
+
+    @if (totalApplicationsCount == 0)
     {
         <div class="text-center py-12">
             <span class="material-icons text-slate-400 text-6xl mb-4">inbox</span>
@@ -64,110 +113,329 @@
     }
     else
     {
-        <!-- Lọc theo trạng thái -->
-        <div class="flex flex-wrap gap-2 mb-5">
-            @foreach (var status in statuses)
-            {
-                <a asp-action="ManageApplications" asp-route-jobId="@job?.JobId" asp-route-status="@(status == "Tất cả" ? "" : status)"
-                   class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-                    @(currentFilter == status ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700")">
-                    @status
-                </a>
-            }
-        </div>
-
-        <!-- Danh sách ứng viên -->
-        <div class="bg-[#1e293b] rounded-xl border border-slate-700 overflow-hidden shadow-sm">
-            <table class="w-full text-left">
-                <thead class="bg-[#0f172a] border-b border-slate-700">
-                    <tr>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Ứng viên</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Ngày nộp</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Trạng thái</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @foreach (var app in filteredApps)
+        <!-- Tìm kiếm theo thông tin ứng viên và trạng thái (luôn hiển thị, kể cả khi lọc không ra kết quả) -->
+        <div class="mb-5 flex flex-wrap items-center gap-3">
+            <div class="relative flex-1 min-w-[240px] max-w-sm">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+                <input type="text" id="candidateSearch"
+                       placeholder="Tìm theo tên, email hoặc số điện thoại..."
+                       oninput="filterApplicantsTable()"
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); filterApplicantsTable(); }"
+                       class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-200 placeholder-slate-500 rounded-lg text-sm outline-none focus:border-blue-500" />
+            </div>
+            <div class="relative min-w-[220px]">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">filter_alt</span>
+                <select id="statusSearch"
+                        class="w-full pl-10 pr-8 py-2.5 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg text-sm font-medium outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                        onchange="filterByStatus(this.value)">
+                    @foreach (var status in statuses)
                     {
-                        <tr class="hover:bg-[#0f172a] transition-colors">
-                            <td class="px-5 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                                        @((app.CandidateProfile?.User?.FullName?[0].ToString().ToUpper() ?? "U"))
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-white">@app.CandidateProfile?.User?.FullName</div>
-                                        <div class="text-xs text-slate-400">@app.CandidateProfile?.User?.Email</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-5 py-3 text-slate-300 text-sm">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="px-5 py-3">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium
-                                    @(app.Status == "Pending" ? "bg-yellow-100 text-yellow-700" :
-                                              app.Status == "Reviewing" ? "bg-blue-100 text-blue-300" :
-                                              app.Status == "Interview" ? "bg-purple-100 text-purple-700" :
-                                              app.Status == "Accepted" ? "bg-green-100 text-green-700" :
-                                              app.Status == "Rejected" ? "bg-red-100 text-red-400" :
-                                              "bg-slate-800 text-slate-300")">
-                                    @(app.Status == "Pending" ? "Chờ xét duyệt" :
-                                      app.Status == "Reviewing" ? "Đang xem xét" :
-                                      app.Status == "Interview" ? "Mời phỏng vấn" :
-                                      app.Status == "Accepted" ? "Đã nhận" :
-                                      app.Status == "Rejected" ? "Từ chối" : app.Status)
-                                </span>
-                            </td>
-                            <td class="px-5 py-3">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    @* Tải CV *@
-                                    @if (app.CvFile != null)
-                                    {
-                                        <a asp-action="DownloadCv" asp-route-cvId="@app.Cvid"
-                                           class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-500/10 transition-colors">
-                                            <span class="material-symbols-outlined text-sm">download</span>
-                                            Tải CV
-                                        </a>
-                                    }
-
-                                    @* Nút Mời phỏng vấn — chỉ hiện nếu chưa reject hoặc chưa phỏng vấn *@
-                                    @if (app.Status != "Rejected" && app.Status != "Interview" && app.Status != "Accepted")
-                                    {
-                                        <a asp-action="ScheduleInterview" asp-route-appId="@app.AppID"
-                                           class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                                            <span class="material-symbols-outlined text-sm">event</span>
-                                            Mời phỏng vấn
-                                        </a>
-                                    }
-                                    @if (app.Status == "Interview")
-                                    {
-                                        <a asp-action="ScheduleInterview" asp-route-appId="@app.AppID"
-                                           class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
-                                            <span class="material-symbols-outlined text-sm">edit_calendar</span>
-                                            Cập nhật lịch
-                                        </a>
-                                    }
-
-                                    @* Nút Từ chối *@
-                                    @if (app.Status != "Rejected")
-                                    {
-                                        <form asp-action="RejectApplication" method="post" class="inline"
-                                              onsubmit="return confirm('Bạn có chắc muốn từ chối ứng viên này?')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="appId" value="@app.AppID" />
-                                            <button type="submit"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors">
-                                                <span class="material-symbols-outlined text-sm">cancel</span>
-                                                Từ chối
-                                            </button>
-                                        </form>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
+                        <option value="@(status.Item1 == "Tất cả" ? "" : status.Item1)" selected="@(currentFilter == status.Item1 ? "selected" : null)">
+                            Tìm theo trạng thái: @status.Item2
+                        </option>
                     }
-                </tbody>
-            </table>
+                </select>
+            </div>
         </div>
+
+        @if (!filteredApps.Any())
+        {
+            <p class="text-center text-slate-400 text-sm py-12">
+                Không có đơn ứng tuyển nào khớp với bộ lọc hiện tại.
+            </p>
+        }
+        else
+        {
+            <p id="candidateSearchEmpty" class="hidden text-center text-slate-400 text-sm py-8">
+                Không tìm thấy ứng viên phù hợp.
+            </p>
+
+            <!-- Danh sách ứng viên -->
+            <div id="applicantsTableWrapper" class="bg-[#1e293b] rounded-xl border border-slate-700 overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-[#0f172a] border-b border-slate-700">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Ứng viên</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Số điện thoại</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Ngày nộp</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Trạng thái</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Độ phù hợp</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-slate-300">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach (var app in filteredApps)
+                        {
+                            var searchBlob = $"{app.CandidateProfile?.User?.FullName} {app.CandidateProfile?.User?.Email} {app.CandidateProfile?.Phone} {app.CandidateProfile?.User?.PhoneNumber}".ToLowerInvariant();
+                            <tr class="hover:bg-[#0f172a] transition-colors" data-search="@searchBlob">
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                                            @((app.CandidateProfile?.User?.FullName?[0].ToString().ToUpper() ?? "U"))
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-white">@app.CandidateProfile?.User?.FullName</div>
+                                            <div class="text-xs text-slate-400">@app.CandidateProfile?.User?.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3 text-slate-300 text-sm">
+                                    @{
+                                        var phoneNumber = app.CandidateProfile?.Phone;
+                                        if (string.IsNullOrWhiteSpace(phoneNumber))
+                                        {
+                                            phoneNumber = app.CandidateProfile?.User?.PhoneNumber;
+                                        }
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(phoneNumber))
+                                    {
+                                        <a href="tel:@phoneNumber" class="hover:text-blue-400 hover:underline">@phoneNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-slate-500">—</span>
+                                    }
+                                </td>
+                                <td class="px-5 py-3 text-slate-300 text-sm">@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="px-5 py-3">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                                        @(app.Status == "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                                  app.Status == "Reviewing" ? "bg-blue-100 text-blue-300" :
+                                                  app.Status == "Interview" ? "bg-purple-100 text-purple-700" :
+                                                  app.Status == "Accepted" ? "bg-green-100 text-green-700" :
+                                                  app.Status == "Rejected" ? "bg-red-100 text-red-400" :
+                                                  "bg-slate-800 text-slate-300")">
+                                        @(app.Status == "Pending" ? "Chờ xét duyệt" :
+                                          app.Status == "Reviewing" ? "Đang xem xét" :
+                                          app.Status == "Interview" ? "Mời phỏng vấn" :
+                                          app.Status == "Accepted" ? "Đã nhận" :
+                                          app.Status == "Rejected" ? "Từ chối" : app.Status)
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3">
+                                    @{
+                                        var quickResult = ((Dictionary<int, JobConnect.Services.LocalCvMatchResult>)ViewBag.QuickMatchResults)[app.AppID];
+                                    }
+                                    @if (!quickResult.LooksLikeCv)
+                                    {
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-400" title="@quickResult.Reason">
+                                            @(quickResult.Reason != null && quickResult.Reason.Contains("không giống") ? "⚠ Không giống CV" : "—")
+                                        </span>
+                                    }
+                                    else if (quickResult.MatchPercent == null)
+                                    {
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-400" title="@quickResult.Reason">
+                                            Chưa đủ dữ liệu
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        var mp = quickResult.MatchPercent.Value;
+                                        var matchColor = mp >= 70 ? "bg-green-100 text-green-700" : mp >= 40 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-500";
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold @matchColor" title="Ước tính nhanh theo mức trùng khớp kỹ năng với yêu cầu công việc, không dùng AI">
+                                            @mp%
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        @* Xem CV (xem trước, có nút tải về bên trong modal) *@
+                                        @if (app.CvFile != null)
+                                        {
+                                            <button type="button"
+                                                    onclick="openCvViewer(@app.Cvid, '@Html.Raw(System.Text.Json.JsonEncodedText.Encode(app.CvFile.FileName ?? "CV"))')"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/10 transition-colors">
+                                                <span class="material-symbols-outlined text-sm">visibility</span>
+                                                Xem CV
+                                            </button>
+                                        }
+
+                                        @* Xem chi tiết ứng viên *@
+                                        <a asp-action="CandidateDetail" asp-route-appId="@app.AppID"
+                                           class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-400 border border-blue-500/20 rounded-lg hover:bg-blue-500/10 transition-colors">
+                                            <span class="material-symbols-outlined text-sm">visibility</span>
+                                            Xem chi tiết
+                                        </a>
+
+                                        @* Nút Mời phỏng vấn — chỉ hiện nếu chưa reject hoặc chưa phỏng vấn *@
+                                        @if (app.Status != "Rejected" && app.Status != "Interview" && app.Status != "Accepted")
+                                        {
+                                            <a asp-action="ScheduleInterview" asp-route-appId="@app.AppID"
+                                               class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                                                <span class="material-symbols-outlined text-sm">event</span>
+                                                Mời phỏng vấn
+                                            </a>
+                                        }
+                                        @if (app.Status == "Interview")
+                                        {
+                                            <a asp-action="ScheduleInterview" asp-route-appId="@app.AppID"
+                                               class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
+                                                <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                                                Cập nhật lịch
+                                            </a>
+                                        }
+
+                                        @* Nút Từ chối *@
+                                        @if (app.Status != "Rejected")
+                                        {
+                                            <form asp-action="RejectApplication" method="post" class="inline"
+                                                  onsubmit="return confirm('Bạn có chắc muốn từ chối ứng viên này?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="appId" value="@app.AppID" />
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors">
+                                                    <span class="material-symbols-outlined text-sm">cancel</span>
+                                                    Từ chối
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
+
+<script>
+    // Xem trước CV trong modal, không tải về
+    let cvViewerObjectUrl = null; // lưu blob URL hiện tại để giải phóng khi đóng modal
+
+    async function openCvViewer(cvId, fileName) {
+        const modal = document.getElementById('cvViewerModal');
+        const frame = document.getElementById('cvViewerFrame');
+        const title = document.getElementById('cvViewerTitle');
+        const downloadLink = document.getElementById('cvViewerDownloadLink');
+        const loadingEl = document.getElementById('cvViewerLoading');
+        const errorEl = document.getElementById('cvViewerError');
+        const errorTextEl = document.getElementById('cvViewerErrorText');
+        const errorDownloadEl = document.getElementById('cvViewerErrorDownload');
+
+        title.textContent = fileName || 'CV';
+        downloadLink.href = '/Employer/DownloadCv?cvId=' + cvId;
+        errorDownloadEl.href = '/Employer/DownloadCv?cvId=' + cvId;
+
+        // Reset trạng thái modal
+        frame.classList.add('hidden');
+        frame.src = 'about:blank';
+        errorEl.classList.add('hidden');
+        loadingEl.classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        try {
+            const response = await fetch('/Employer/ViewCv?cvId=' + cvId, { credentials: 'same-origin' });
+
+            if (!response.ok) {
+                let detail = '';
+                try { detail = await response.text(); } catch (_) { }
+                console.error('ViewCv lỗi:', response.status, response.statusText, detail);
+                throw new Error('HTTP_' + response.status);
+            }
+
+            const blob = await response.blob();
+            const contentType = (blob.type || '').toLowerCase();
+
+            // Trình duyệt chỉ xem trước trực tiếp được PDF (và ảnh, nếu có)
+            const previewable = contentType.includes('pdf') || contentType.startsWith('image/');
+
+            if (!previewable) {
+                loadingEl.classList.add('hidden');
+                errorTextEl.textContent = 'Định dạng file này (Word/khác) trình duyệt không xem trước trực tiếp được. Vui lòng tải về để xem.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (cvViewerObjectUrl) {
+                URL.revokeObjectURL(cvViewerObjectUrl);
+            }
+            cvViewerObjectUrl = URL.createObjectURL(blob);
+
+            frame.src = cvViewerObjectUrl;
+            loadingEl.classList.add('hidden');
+            frame.classList.remove('hidden');
+        } catch (err) {
+            console.error('Lỗi khi tải CV:', err);
+            loadingEl.classList.add('hidden');
+
+            const msg = String(err && err.message || '');
+            if (msg === 'HTTP_401' || msg === 'HTTP_403') {
+                errorTextEl.textContent = 'Bạn không có quyền xem CV này, hoặc phiên đăng nhập đã hết hạn. Vui lòng tải lại trang.';
+            } else if (msg === 'HTTP_404') {
+                errorTextEl.textContent = 'Không tìm thấy file CV trên server.';
+            } else {
+                errorTextEl.textContent = 'Không tải được CV (có thể do lỗi mạng hoặc file không tồn tại). Vui lòng thử tải về.';
+            }
+            errorEl.classList.remove('hidden');
+        }
+    }
+
+    function closeCvViewer() {
+        const modal = document.getElementById('cvViewerModal');
+        const frame = document.getElementById('cvViewerFrame');
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        frame.src = 'about:blank'; // dừng render khi đóng modal
+
+        if (cvViewerObjectUrl) {
+            URL.revokeObjectURL(cvViewerObjectUrl);
+            cvViewerObjectUrl = null;
+        }
+    }
+
+    // Đóng modal khi click ra ngoài hoặc nhấn Esc
+    document.getElementById('cvViewerModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCvViewer();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeCvViewer();
+    });
+
+    // Tìm kiếm / lọc đơn ứng tuyển theo trạng thái
+    function filterByStatus(status) {
+        const url = new URL(window.location.href);
+        if (status) {
+            url.searchParams.set('status', status);
+        } else {
+            url.searchParams.delete('status');
+        }
+        window.location.href = url.toString();
+    }
+
+    // Tìm kiếm theo tên / email / số điện thoại ứng viên (lọc ngay trên bảng đang hiển thị)
+    // Chuẩn hóa chuỗi tiếng Việt để so khớp tìm kiếm không phân biệt dấu/hoa-thường
+    // (khắc phục lỗi gõ dấu tiếng Việt không khớp do khác chuẩn Unicode NFC/NFD,
+    // và cho phép tìm không cần gõ dấu, ví dụ "phuong" vẫn ra "Phương").
+    function normalizeSearchText(str) {
+        return (str || '')
+            .normalize('NFC')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // bỏ dấu thanh (sắc, huyền, hỏi, ngã, nặng, mũ...)
+            .replace(/đ/g, 'd')
+            .trim();
+    }
+
+    function filterApplicantsTable() {
+        const rawKeyword = document.getElementById('candidateSearch').value;
+        const keyword = normalizeSearchText(rawKeyword);
+        const rows = document.querySelectorAll('#applicantsTableWrapper tbody tr[data-search]');
+        const emptyEl = document.getElementById('candidateSearchEmpty');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowText = normalizeSearchText(row.getAttribute('data-search'));
+            const match = !keyword || rowText.includes(keyword);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        emptyEl.classList.toggle('hidden', visibleCount !== 0 || rows.length === 0);
+    }
+
+</script>

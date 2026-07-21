@@ -1,4 +1,15 @@
-﻿using System;
+﻿// ═══════════════════════════════════════════════════════════════════════════
+// AppDbContext — CẦU NỐI giữa code C# và Database SQL Server (Entity Framework Core).
+// File này được SCAFFOLD (sinh tự động) từ database có sẵn bằng lệnh:
+//     dotnet ef dbcontext scaffold ... (mô hình Database First — xem ghi chú
+//     trong Program.cs, phần "Database First: KHÔNG migrate").
+// Mỗi DbSet<T> bên dưới tương ứng với 1 BẢNG trong database, và mỗi class Model
+// (JobConnect.Models.*) tương ứng với cấu trúc 1 dòng dữ liệu của bảng đó.
+// KHÔNG nên sửa tay các quan hệ khóa ngoại trong OnModelCreating (nếu có) — nếu
+// cần đổi cấu trúc bảng, sửa trực tiếp trong SQL Server rồi scaffold lại.
+// Được đăng ký làm dịch vụ (Scoped) trong Program.cs: AddDbContext<AppDbContext>.
+// ═══════════════════════════════════════════════════════════════════════════
+using System;
 using System.Collections.Generic;
 using JobConnect.Models;
 using Microsoft.EntityFrameworkCore;
@@ -50,8 +61,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CompanyFollow> CompanyFollows { get; set; }
 
-    public virtual DbSet<ServicePackage> ServicePackages { get; set; }
-
     public virtual DbSet<Skill> Skills { get; set; }
 
     public virtual DbSet<StatusCatalog> StatusCatalogs { get; set; }
@@ -61,8 +70,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<SupportTicket> SupportTickets { get; set; }
 
     public virtual DbSet<SystemLog> SystemLogs { get; set; }
-
-    public virtual DbSet<Transaction> Transactions { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -443,16 +450,6 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_CompanyFollows_Employer");
         });
 
-        modelBuilder.Entity<ServicePackage>(entity =>
-        {
-            entity.HasKey(e => e.PackageId).HasName("PK__ServiceP__322035EC608B3677");
-
-            entity.Property(e => e.PackageId).HasColumnName("PackageID");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Name).HasMaxLength(150);
-            entity.Property(e => e.Price).HasColumnType("decimal(15, 0)");
-        });
-
         modelBuilder.Entity<StatusCatalog>(entity =>
         {
             entity.ToTable("StatusCatalog");
@@ -557,32 +554,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.SystemLogs)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_SystemLogs_User");
-        });
-
-        modelBuilder.Entity<Transaction>(entity =>
-        {
-            entity.HasKey(e => e.TransId).HasName("PK__Transact__9E5DDB1C4600C2FD");
-
-            entity.HasIndex(e => e.EmployerId, "IX_Transactions_EmployerId");
-
-            entity.HasIndex(e => e.PackageId, "IX_Transactions_PackageID");
-
-            entity.Property(e => e.TransId).HasColumnName("TransID");
-            entity.Property(e => e.Amount).HasColumnType("decimal(15, 0)");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
-            entity.Property(e => e.PackageId).HasColumnName("PackageID");
-            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
-            entity.Property(e => e.Status).HasMaxLength(50);
-
-            entity.HasOne(d => d.Employer).WithMany(p => p.Transactions)
-                .HasForeignKey(d => d.EmployerId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Transactions_Employer");
-
-            entity.HasOne(d => d.Package).WithMany(p => p.Transactions)
-                .HasForeignKey(d => d.PackageId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Transactions_Package");
         });
 
         modelBuilder.Entity<User>(entity =>

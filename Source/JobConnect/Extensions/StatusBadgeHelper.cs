@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// Hàm tiện ích trả về class CSS (màu badge Tailwind) tương ứng với 1 giá trị Status,
+// dùng để hiển thị nhãn trạng thái có màu sắc nhất quán trên toàn bộ giao diện.
 using JobConnect.Data;
 using JobConnect.Models;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;

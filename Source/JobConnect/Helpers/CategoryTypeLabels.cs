@@ -1,4 +1,7 @@
-﻿namespace JobConnect.Helpers;
+// [[FILE-HEADER-ADDED]]
+// Bảng tra tên hiển thị (tiếng Việt) cho các loại Category (Type = "Industry", "Location"...),
+// tránh phải viết if/switch lặp lại ở nhiều View khác nhau.
+namespace JobConnect.Helpers;
 
 /// <summary>
 /// Ánh xạ giá trị Type của Category (lưu trong DB, giữ nguyên tiếng Anh để tương thích code cũ)

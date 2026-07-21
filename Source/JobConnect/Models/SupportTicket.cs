@@ -1,4 +1,9 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng PHIẾU HỖ TRỢ (support ticket): User gửi yêu cầu hỗ trợ (kỹ thuật, thanh toán,
+// vấn đề tài khoản...), Staff tiếp nhận xử lý (AssignedToStaff) và phản hồi (StaffResponse).
+// Type/Status lưu dạng int, có thêm 2 property enum (TypeEnum/StatusEnum) để code/view
+// dùng tên gợi nhớ thay vì số.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

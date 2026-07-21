@@ -1,3 +1,12 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// ReportController — [Authorize]: TÍNH NĂNG BÁO CÁO VI PHẠM (report) 1 tin tuyển dụng
+// hoặc 1 công ty:
+//   • Create/CreateAjax: người dùng gửi báo cáo (dạng form thường / dạng AJAX popup).
+//   • Index/Details: [Authorize(Roles = "Staff,Admin")] — Staff xem danh sách & chi tiết
+//     report cần xử lý.
+//   • Process/Close: Staff xử lý report (đổi trạng thái, ghi chú xử lý) hoặc đóng report.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using Microsoft.AspNetCore.Antiforgery;

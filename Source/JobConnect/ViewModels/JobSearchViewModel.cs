@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel nhận THAM SỐ TÌM KIẾM/LỌC tin tuyển dụng từ query string (JobController.Index,
+// CompanyController...) — truyền vào IJobService.SearchAsync để build câu truy vấn EF Core.
 namespace JobConnect.ViewModels;
 
 public class JobSearchViewModel

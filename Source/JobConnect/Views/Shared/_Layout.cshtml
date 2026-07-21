@@ -1,3 +1,7 @@
+@* [VIEW-HEADER-ADDED]
+   LAYOUT CHÍNH (khung trang chung) cho các trang PUBLIC — header, footer, menu điều
+// hướng. Mọi View public khác (Home, Job, Company, Blog...) đều kế thừa layout này.
+*@
 @using System.Security.Claims
 @{
     var isAuthed = User.Identity?.IsAuthenticated == true;
@@ -21,6 +25,19 @@
                 font-family: 'Inter','Segoe UI',sans-serif;
                 background: #f8fafc;
                 color: #1e293b;
+                /* Đảm bảo footer luôn nằm ở đáy trang, không bị "kéo lên" để lộ khoảng trắng
+                               khi nội dung trang ngắn hơn chiều cao màn hình. */
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .jc-main-content {
+                flex: 1 0 auto;
+            }
+
+            .jc-footer {
+                flex-shrink: 0;
             }
 
             .jc-navbar {
@@ -115,6 +132,71 @@
             .jc-user-menu {
                 position: relative;
             }
+
+            .jc-notif-bell {
+                position: relative;
+            }
+
+            .jc-notif-trigger {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 999px;
+                background: #f1f5f9;
+                border: none;
+                cursor: pointer;
+                color: #1e293b;
+                transition: background 0.15s;
+            }
+
+                .jc-notif-trigger:hover {
+                    background: #e2e8f0;
+                }
+
+                .jc-notif-trigger .material-symbols-outlined {
+                    font-size: 1.35rem;
+                }
+
+            .jc-notif-badge {
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                min-width: 18px;
+                height: 18px;
+                padding: 0 4px;
+                border-radius: 999px;
+                background: #ef4444;
+                color: #fff;
+                font-size: 0.68rem;
+                font-weight: 800;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid #fff;
+                line-height: 1;
+            }
+
+            .jc-notif-dropdown {
+                display: none;
+                position: absolute;
+                top: calc(100% + 10px);
+                right: 0;
+                width: 340px;
+                max-width: 90vw;
+                background: #fff;
+                border-radius: 14px;
+                box-shadow: 0 12px 32px rgba(15,23,42,0.16);
+                border: 1px solid #f1f5f9;
+                overflow: hidden;
+                z-index: 200;
+            }
+
+                .jc-notif-dropdown.open {
+                    display: block;
+                }
 
             .jc-user-trigger {
                 display: flex;
@@ -253,6 +335,21 @@
             <div class="jc-navbar-actions">
                 @if (isAuthed)
                 {
+                    <div class="jc-notif-bell">
+                        <button type="button" class="jc-notif-trigger" onclick="jcToggleNotifDropdown()">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span id="jcNotifBadge" class="jc-notif-badge" style="display:none;">0</span>
+                        </button>
+                        <div class="jc-notif-dropdown" id="jcNotifDropdown">
+                            <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-weight:800;color:#1e293b;font-size:0.9rem;">
+                                Thông báo
+                            </div>
+                            <div id="jcNotifList" style="max-height:360px;overflow-y:auto;">
+                                <div style="padding:24px;text-align:center;color:#94a3b8;font-size:0.85rem;">Đang tải...</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="jc-user-menu">
                         <button type="button" class="jc-user-trigger" onclick="document.getElementById('jcUserDropdown').classList.toggle('open')">
                             @await Html.PartialAsync("_Avatar", new JobConnect.Helpers.AvatarViewModel { ImageUrl = avatarUrl, Name = userName, SizePx = 32 })
@@ -311,9 +408,11 @@
     @{
         ViewData["FlashInline"] = true;
     }
-    <partial name="_FlashMessages" />
+    <main class="jc-main-content">
+        <partial name="_FlashMessages" />
 
-    @RenderBody()
+        @RenderBody()
+    </main>
 
     <footer class="jc-footer">
         <div class="jc-footer-inner">
@@ -357,208 +456,217 @@
     </div>
 
     <style>
-        .jc-auth-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,.55);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: flex-start;
-            justify-content: center;
-            overflow-y: auto;
-            padding: 40px 16px;
-        }
+            .jc-auth-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15,23,42,.55);
+                backdrop-filter: blur(4px);
+                z-index: 1000;
+                align-items: flex-start;
+                justify-content: center;
+                overflow-y: auto;
+                padding: 40px 16px;
+            }
 
-        .jc-auth-overlay.open {
-            display: flex;
-        }
+                .jc-auth-overlay.open {
+                    display: flex;
+                }
 
-        .jc-auth-modal {
-            position: relative;
-            background: #ffffff;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 480px;
-            padding: 32px;
-            box-shadow: 0 30px 60px -12px rgba(15,23,42,.35);
-            animation: jc-pop .18s ease;
-        }
+            .jc-auth-modal {
+                position: relative;
+                background: #ffffff;
+                border-radius: 20px;
+                width: 100%;
+                max-width: 480px;
+                padding: 32px;
+                box-shadow: 0 30px 60px -12px rgba(15,23,42,.35);
+                animation: jc-pop .18s ease;
+            }
 
-        .jc-auth-modal.jc-auth-wide {
-            max-width: 620px;
-        }
+                .jc-auth-modal.jc-auth-wide {
+                    max-width: 620px;
+                }
 
-        .jc-auth-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: none;
-            background: #f1f5f9;
-            color: #475569;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
+            .jc-auth-close {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: none;
+                background: #f1f5f9;
+                color: #475569;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
 
-        .jc-auth-close:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
+                .jc-auth-close:hover {
+                    background: #e2e8f0;
+                    color: #1e293b;
+                }
 
-        .jc-auth-header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+            .jc-auth-header {
+                text-align: center;
+                margin-bottom: 24px;
+            }
 
-        .jc-auth-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 800;
-            font-size: 1.15rem;
-            color: #1e293b;
-            text-decoration: none;
-        }
+            .jc-auth-logo {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 800;
+                font-size: 1.15rem;
+                color: #1e293b;
+                text-decoration: none;
+            }
 
-        .jc-auth-title {
-            margin-top: 10px;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #1e293b;
-        }
+            .jc-auth-title {
+                margin-top: 10px;
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #1e293b;
+            }
 
-        .jc-auth-loading {
-            display: flex;
-            justify-content: center;
-            padding: 40px 0;
-        }
+            .jc-auth-loading {
+                display: flex;
+                justify-content: center;
+                padding: 40px 0;
+            }
 
-        @@keyframes jc-pop {
-            from { opacity: 0; transform: scale(.96) translateY(6px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
+            @@keyframes jc-pop {
+                from {
+                    opacity: 0;
+                    transform: scale(.96) translateY(6px);
+                }
 
-        @@keyframes jc-spin {
-            to { transform: rotate(360deg); }
-        }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
 
-        body.jc-modal-open {
-            overflow: hidden;
-        }
+            @@keyframes jc-spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            body.jc-modal-open {
+                overflow: hidden;
+            }
     </style>
 
     <script>
-        const jcAuthOverlay = document.getElementById('jcAuthOverlay');
-        const jcAuthBody = document.getElementById('jcAuthBody');
-        const jcAuthTitle = document.getElementById('jcAuthTitle');
-        const jcAuthModal = document.querySelector('.jc-auth-modal');
+            const jcAuthOverlay = document.getElementById('jcAuthOverlay');
+            const jcAuthBody = document.getElementById('jcAuthBody');
+            const jcAuthTitle = document.getElementById('jcAuthTitle');
+            const jcAuthModal = document.querySelector('.jc-auth-modal');
 
-        const jcAuthConfig = {
-            'login': { url: '/Account/Login', title: 'Đăng nhập', wide: false },
-            'register': { url: '/Account/Register', title: 'Đăng ký ứng viên', wide: false },
-            'register-employer': { url: '/Account/RegisterEmployer', title: 'Đăng ký Nhà tuyển dụng', wide: true }
-        };
+            const jcAuthConfig = {
+                'login': { url: '/Account/Login', title: 'Đăng nhập', wide: false },
+                'register': { url: '/Account/Register', title: 'Đăng ký ứng viên', wide: false },
+                'register-employer': { url: '/Account/RegisterEmployer', title: 'Đăng ký Nhà tuyển dụng', wide: true }
+            };
 
-        async function jcOpenAuth(e, type) {
-            if (e) e.preventDefault();
-            const cfg = jcAuthConfig[type];
-            if (!cfg) return;
+            async function jcOpenAuth(e, type) {
+                if (e) e.preventDefault();
+                const cfg = jcAuthConfig[type];
+                if (!cfg) return;
 
-            jcAuthTitle.textContent = cfg.title;
-            jcAuthModal.classList.toggle('jc-auth-wide', !!cfg.wide);
-            jcAuthBody.innerHTML = '<div class="jc-auth-loading"><span class="material-symbols-outlined" style="font-size:2rem;color:#94a3b8;animation:jc-spin 1s linear infinite;">progress_activity</span></div>';
+                jcAuthTitle.textContent = cfg.title;
+                jcAuthModal.classList.toggle('jc-auth-wide', !!cfg.wide);
+                jcAuthBody.innerHTML = '<div class="jc-auth-loading"><span class="material-symbols-outlined" style="font-size:2rem;color:#94a3b8;animation:jc-spin 1s linear infinite;">progress_activity</span></div>';
 
-            document.body.classList.add('jc-modal-open');
-            jcAuthOverlay.classList.add('open');
-
-            try {
-                const res = await fetch(cfg.url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                const contentType = res.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                    const data = await res.json();
-                    if (data.redirectUrl) window.location.href = data.redirectUrl;
-                    return;
-                }
-                jcAuthBody.innerHTML = await res.text();
-                jcBindAuthForm(type);
-            } catch (err) {
-                jcAuthBody.innerHTML = '<p class="text-rose-600 text-sm text-center">Không thể tải form. Vui lòng thử lại.</p>';
-            }
-        }
-
-        function jcCloseAuth() {
-            jcAuthOverlay.classList.remove('open');
-            document.body.classList.remove('jc-modal-open');
-        }
-
-        function jcTogglePwd(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
-            if (!input || !icon) return;
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.textContent = 'visibility';
-            } else {
-                input.type = 'password';
-                icon.textContent = 'visibility_off';
-            }
-        }
-
-        function jcBindAuthForm(type) {
-            const form = document.getElementById('authForm');
-            if (!form) return;
-
-            // Bật lại jQuery Unobtrusive Validation cho form vừa load qua AJAX (nếu có)
-            if (window.jQuery && $.validator && $.validator.unobtrusive) {
-                $.validator.unobtrusive.parse(form);
-            }
-
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalHtml = submitBtn ? submitBtn.innerHTML : null;
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1" style="animation:jc-spin 1s linear infinite;">progress_activity</span> Đang xử lý...';
-                }
+                document.body.classList.add('jc-modal-open');
+                jcAuthOverlay.classList.add('open');
 
                 try {
-                    const res = await fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form),
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
+                    const res = await fetch(cfg.url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                     const contentType = res.headers.get('content-type') || '';
-
                     if (contentType.includes('application/json')) {
                         const data = await res.json();
-                        if (data.success) {
-                            window.location.href = data.redirectUrl || '/';
-                            return;
-                        }
+                        if (data.redirectUrl) window.location.href = data.redirectUrl;
+                        return;
                     }
-
-                    // Trả lại HTML (có lỗi validate / lỗi nghiệp vụ) -> render lại form trong modal
                     jcAuthBody.innerHTML = await res.text();
                     jcBindAuthForm(type);
                 } catch (err) {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalHtml;
-                    }
-                    alert('Có lỗi xảy ra, vui lòng thử lại.');
+                    jcAuthBody.innerHTML = '<p class="text-rose-600 text-sm text-center">Không thể tải form. Vui lòng thử lại.</p>';
                 }
-            });
-        }
+            }
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && jcAuthOverlay.classList.contains('open')) jcCloseAuth();
-        });
+            function jcCloseAuth() {
+                jcAuthOverlay.classList.remove('open');
+                document.body.classList.remove('jc-modal-open');
+            }
+
+            function jcTogglePwd(inputId, iconId) {
+                const input = document.getElementById(inputId);
+                const icon = document.getElementById(iconId);
+                if (!input || !icon) return;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.textContent = 'visibility';
+                } else {
+                    input.type = 'password';
+                    icon.textContent = 'visibility_off';
+                }
+            }
+
+            function jcBindAuthForm(type) {
+                const form = document.getElementById('authForm');
+                if (!form) return;
+
+                // Bật lại jQuery Unobtrusive Validation cho form vừa load qua AJAX (nếu có)
+                if (window.jQuery && $.validator && $.validator.unobtrusive) {
+                    $.validator.unobtrusive.parse(form);
+                }
+
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalHtml = submitBtn ? submitBtn.innerHTML : null;
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1" style="animation:jc-spin 1s linear infinite;">progress_activity</span> Đang xử lý...';
+                    }
+
+                    try {
+                        const res = await fetch(form.action, {
+                            method: 'POST',
+                            body: new FormData(form),
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const contentType = res.headers.get('content-type') || '';
+
+                        if (contentType.includes('application/json')) {
+                            const data = await res.json();
+                            if (data.success) {
+                                window.location.href = data.redirectUrl || '/';
+                                return;
+                            }
+                        }
+
+                        // Trả lại HTML (có lỗi validate / lỗi nghiệp vụ) -> render lại form trong modal
+                        jcAuthBody.innerHTML = await res.text();
+                        jcBindAuthForm(type);
+                    } catch (err) {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHtml;
+                        }
+                        alert('Có lỗi xảy ra, vui lòng thử lại.');
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && jcAuthOverlay.classList.contains('open')) jcCloseAuth();
+            });
     </script>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -566,14 +674,75 @@
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/site.js"></script>
     <script>
-        document.addEventListener('click', function (e) {
-        var dropdown = document.getElementById('jcUserDropdown');
-        var trigger = document.querySelector('.jc-user-trigger');
-        if (!dropdown) return;
-        if (trigger && trigger.contains(e.target)) return;
-        if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
-        });
+            document.addEventListener('click', function(e) {
+                var dropdown = document.getElementById('jcUserDropdown');
+                var trigger = document.querySelector('.jc-user-trigger');
+                if (!dropdown) return;
+                if (trigger && trigger.contains(e.target)) return;
+                if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+            });
     </script>
+    @if (isAuthed)
+    {
+        <script>
+                function jcRefreshNotifBadge() {
+                    fetch('/Notification/UnreadCount')
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            var badge = document.getElementById('jcNotifBadge');
+                            if (!badge) return;
+                            if (data.count > 0) {
+                                badge.style.display = 'flex';
+                                badge.textContent = data.count > 99 ? '99+' : data.count;
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        })
+                        .catch(function() { });
+                }
+
+                function jcToggleNotifDropdown() {
+                    var dropdown = document.getElementById('jcNotifDropdown');
+                    var isOpening = !dropdown.classList.contains('open');
+                    dropdown.classList.toggle('open');
+
+                    if (isOpening) {
+                        var list = document.getElementById('jcNotifList');
+                        list.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:0.85rem;">Đang tải...</div>';
+
+                        fetch('/Notification/Recent')
+                            .then(function(res) { return res.text(); })
+                            .then(function(html) {
+                                list.innerHTML = html;
+
+                                // Đánh dấu đã đọc sau khi xem, rồi làm mờ badge.
+                                var token = document.querySelector('input[name="__RequestVerificationToken"]');
+                                fetch('/Notification/MarkAllRead', {
+                                    method: 'POST',
+                                    headers: token ? { 'RequestVerificationToken': token.value } : {}
+                                }).then(function() {
+                                    var badge = document.getElementById('jcNotifBadge');
+                                    if (badge) badge.style.display = 'none';
+                                });
+                            })
+                            .catch(function() {
+                                list.innerHTML = '<div style="padding:24px;text-align:center;color:#ef4444;font-size:0.85rem;">Không tải được thông báo.</div>';
+                            });
+                    }
+                }
+
+                document.addEventListener('click', function(e) {
+                    var dropdown = document.getElementById('jcNotifDropdown');
+                    var trigger = document.querySelector('.jc-notif-trigger');
+                    if (!dropdown) return;
+                    if (trigger && trigger.contains(e.target)) return;
+                    if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+                });
+
+                jcRefreshNotifBadge();
+                setInterval(jcRefreshNotifBadge, 30000); // cập nhật badge mỗi 30s
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

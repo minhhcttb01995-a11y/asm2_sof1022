@@ -1,3 +1,19 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// Program.cs — ĐIỂM KHỞI ĐỘNG (entry point) của ứng dụng JobConnect.
+//
+// Đây là ứng dụng ASP.NET Core MVC (mô hình Database First) cho một website
+// tuyển dụng/tìm việc. File này làm 2 việc chính, theo đúng thứ tự bắt buộc
+// của ASP.NET Core:
+//   1) "builder" section: ĐĂNG KÝ (Dependency Injection) tất cả dịch vụ mà
+//      ứng dụng cần: kết nối database (EF Core + SQL Server), đăng nhập
+//      (Cookie + Google OAuth), phân quyền (Admin/Staff), và các Service
+//      nghiệp vụ (JobService, FileService, GeminiService AI, v.v...).
+//   2) "app" section: THIẾT LẬP PIPELINE xử lý HTTP request (middleware) theo
+//      đúng thứ tự: static files -> routing -> authentication -> authorization
+//      -> map route -> chạy app.
+//
+// Cách chạy dự án: xem hướng dẫn "HUONG_DAN_CHAY_DU_AN.md" ở thư mục gốc.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -5,6 +21,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+// Tạo "builder" — đối tượng dùng để cấu hình ứng dụng trước khi nó chạy
+// (đọc appsettings.json, đăng ký service, cấu hình logging...).
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Configuration ──────────────────────────────────────────────
@@ -66,6 +84,12 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IStatusCatalogService, StatusCatalogService>();
 builder.Services.AddScoped<ICodeGeneratorService, CodeGeneratorService>();
+builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddScoped<ICvTextExtractionService, CvTextExtractionService>();
+builder.Services.AddScoped<ILocalCvMatchService, LocalCvMatchService>();
 
 // ── MVC ────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();

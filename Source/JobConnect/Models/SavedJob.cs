@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng TIN ĐÃ LƯU: User bấm "lưu tin" cho 1 JobPost để xem lại sau, không phải là
+// ứng tuyển (khác với bảng Application).
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

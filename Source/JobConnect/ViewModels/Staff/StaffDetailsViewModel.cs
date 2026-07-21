@@ -1,3 +1,5 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho trang xem chi tiết 1 nhân viên (StaffController.Details).
 using JobConnect.Models;
 
 namespace JobConnect.ViewModels.Staff;

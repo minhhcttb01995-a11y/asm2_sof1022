@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// Hàm tiện ích tính TOÁN ĐƯỜNG DẪN/NỘI DUNG ảnh đại diện mặc định — khi User chưa
+// upload avatar, hiển thị chữ cái đầu tên (kiểu "avatar chữ") thay vì ảnh trống.
 namespace JobConnect.Helpers;
 
 public static class AvatarHelper

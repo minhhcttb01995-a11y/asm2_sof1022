@@ -1,3 +1,5 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho form đăng/sửa tin tuyển dụng phía Nhà tuyển dụng (EmployerController.PostJob/EditJob).
 namespace JobConnect.ViewModels;
 
 public class PostJobViewModel

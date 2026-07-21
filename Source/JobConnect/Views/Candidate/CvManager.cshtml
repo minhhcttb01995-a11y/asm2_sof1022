@@ -1,4 +1,7 @@
-﻿@using JobConnect.Models
+@* [VIEW-HEADER-ADDED]
+   View cho action "CvManager" trong khu vực trang cá nhân Ứng viên (CandidateController).
+*@
+@using JobConnect.Models
 @using JobConnect.Extensions
 @model CandidateProfile
 @{
@@ -11,7 +14,12 @@
         <a asp-action="Profile" class="text-secondary hover:text-primary transition-colors">
             <span class="material-symbols-outlined align-middle">arrow_back</span>
         </a>
-        <h1 class="text-2xl font-bold text-on-surface">Quản lý CV</h1>
+        <h1 class="text-2xl font-bold text-on-surface flex-1">Quản lý CV</h1>
+        <a asp-action="AiCvBuilder"
+           class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 flex items-center gap-2">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            AI Tạo CV
+        </a>
     </div>
 
     <!-- Thông báo -->

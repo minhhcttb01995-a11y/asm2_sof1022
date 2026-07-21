@@ -1,3 +1,10 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// CompanyController — trang CÔNG KHAI danh sách & chi tiết CÔNG TY (Employer):
+//   • Index: danh sách công ty, lọc theo từ khóa/ngành nghề.
+//   • Detail: trang chi tiết 1 công ty (thông tin, tin đang tuyển, why-work-here...).
+//   • ToggleFollow: người dùng đã đăng nhập bấm theo dõi/bỏ theo dõi công ty.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;

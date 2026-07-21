@@ -1,3 +1,19 @@
+// [[SERVICE-IMPL-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// JobService — cài đặt IJobService: TOÀN BỘ NGHIỆP VỤ liên quan TIN TUYỂN DỤNG,
+// đây là service lớn và quan trọng nhất của hệ thống (dùng bởi JobController,
+// EmployerController, HomeController...). Các nhóm chức năng chính:
+//   • SearchAsync: tìm kiếm/lọc tin theo từ khóa, danh mục, loại hình, mức lương...
+//     CHỈ trả về tin có Status + Employer.Status nằm trong danh sách "hiển thị công
+//     khai" (tra qua IStatusCatalogService) — tránh lộ tin của công ty bị khóa/chưa duyệt.
+//   • GetByIdAsync: lấy chi tiết 1 tin (kèm Employer, Category) để hiển thị trang chi tiết.
+//   • ApplyAsync / ToggleApplyAsync: ứng viên nộp đơn ứng tuyển; Toggle cho phép
+//     bấm nút 1 lần nữa để RÚT ĐƠN đã nộp trước đó (xem enum ApplyToggleResult).
+//   • ToggleSaveAsync: lưu/bỏ lưu tin yêu thích (SavedJob).
+//   • GetByEmployerAsync / CreateAsync / UpdateAsync: nhà tuyển dụng xem danh sách
+//     tin đã đăng, đăng tin mới (tự sinh JobCode qua ICodeGeneratorService), sửa tin.
+//   • SaveImageFromDataUriAsync: ủy quyền (delegate) qua IFileService để lưu ảnh minh họa tin.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.ViewModels;
@@ -138,7 +154,7 @@ public class JobService : IJobService
     {
         var job = await _db.JobPosts
             .Include(j => j.Employer).ThenInclude(e => e.User)
-            .Include(j => j.Category)
+            .Include(j => j.Category).ThenInclude(c => c!.Parent)
             .Include(j => j.Applications)
             .FirstOrDefaultAsync(j => j.JobId == id);
 

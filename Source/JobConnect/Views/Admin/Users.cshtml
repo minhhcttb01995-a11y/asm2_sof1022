@@ -1,4 +1,7 @@
-﻿@using JobConnect.Models
+@* [VIEW-HEADER-ADDED]
+   View cho action "Users" trong khu vực trang quản trị Admin (AdminController).
+*@
+@using JobConnect.Models
 @model List<User>
 @{
     ViewData["Title"] = "Quản lý người dùng";
@@ -14,9 +17,8 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form id="createUserForm" asp-action="CreateUser" method="post" class="space-y-4">
+        <form asp-action="CreateUser" method="post" class="space-y-4">
             @Html.AntiForgeryToken()
-            <div id="createUserError" class="hidden px-4 py-2.5 bg-red-100 text-red-700 rounded-xl text-sm font-medium"></div>
             <div>
                 <label class="block text-sm font-medium text-on-surface mb-1">Họ tên</label>
                 <input name="fullName" required type="text" placeholder="Nguyễn Văn A"
@@ -34,17 +36,24 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-on-surface mb-1">Vai trò</label>
-                <select name="role" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                <select name="role" id="createUserRole" onchange="toggleCompanyField()"
+                        class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
                     <option value="Candidate">Ứng viên</option>
                     <option value="Employer">Nhà tuyển dụng</option>
                 </select>
+            </div>
+            <div id="createUserCompanyField" class="hidden">
+                <label class="block text-sm font-medium text-on-surface mb-1">Tên công ty</label>
+                <input name="companyName" type="text" placeholder="Công ty CP Ví dụ Việt Nam"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+                <p class="text-xs text-secondary mt-1">Bắt buộc nhập nếu vai trò là Nhà tuyển dụng, nếu không tài khoản sẽ không có công ty đi kèm.</p>
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="closeModal()"
                         class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
                     Huỷ
                 </button>
-                <button type="submit" id="createUserSubmitBtn"
+                <button type="submit"
                         class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
                     Tạo tài khoản
                 </button>
@@ -273,8 +282,13 @@
 </div>
 
 <script>
+    function toggleCompanyField() {
+        const role = document.getElementById('createUserRole').value;
+        const field = document.getElementById('createUserCompanyField');
+        field.classList.toggle('hidden', role !== 'Employer');
+    }
+
     function openModal() {
-        document.getElementById('createUserError').classList.add('hidden');
         document.getElementById('modalCreate').classList.remove('hidden');
         document.getElementById('modalCreate').classList.add('flex');
     }
@@ -282,42 +296,6 @@
         document.getElementById('modalCreate').classList.add('hidden');
         document.getElementById('modalCreate').classList.remove('flex');
     }
-
-    // Submit form Tạo tài khoản bằng AJAX để hiển thị lỗi (VD: trùng email)
-    // ngay trong modal thay vì chuyển hẳn sang trang khác.
-    document.getElementById('createUserForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const form = e.target;
-        const errorBox = document.getElementById('createUserError');
-        const submitBtn = document.getElementById('createUserSubmitBtn');
-        errorBox.classList.add('hidden');
-        submitBtn.disabled = true;
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Đang xử lý...';
-
-        try {
-            const res = await fetch(form.action, {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: new FormData(form)
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                location.reload();
-            } else {
-                errorBox.textContent = data.message || 'Có lỗi xảy ra, vui lòng thử lại.';
-                errorBox.classList.remove('hidden');
-            }
-        } catch (err) {
-            errorBox.textContent = 'Không thể kết nối máy chủ, vui lòng thử lại.';
-            errorBox.classList.remove('hidden');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
-    });
-
     function openDeleteModal(userId, userName) {
         document.getElementById('deleteUserId').value = userId;
         document.getElementById('deleteUserName').textContent = userName;
@@ -341,28 +319,28 @@
             },
             body: `userId=${userId}&newStatus=${newStatus}&__RequestVerificationToken=${token}`
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Reload the page to show updated status
-                location.reload();
-            } else {
-                alert(data.message || 'Không thể thay đổi trạng thái');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the page to show updated status
+                    location.reload();
+                } else {
+                    alert(data.message || 'Không thể thay đổi trạng thái');
+                    selectElement.value = selectElement.getAttribute('data-original-value');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi thay đổi trạng thái');
                 selectElement.value = selectElement.getAttribute('data-original-value');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi thay đổi trạng thái');
-            selectElement.value = selectElement.getAttribute('data-original-value');
-        });
+            });
     }
 
     // Đóng modal khi click nền
-    document.getElementById('modalCreate').addEventListener('click', function (e) {
+    document.getElementById('modalCreate').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
-    document.getElementById('modalDelete').addEventListener('click', function (e) {
+    document.getElementById('modalDelete').addEventListener('click', function(e) {
         if (e.target === this) closeDeleteModal();
     });
 </script>

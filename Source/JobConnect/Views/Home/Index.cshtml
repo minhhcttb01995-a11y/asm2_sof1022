@@ -1,4 +1,7 @@
-﻿@using JobConnect.Extensions
+@* [VIEW-HEADER-ADDED]
+   View cho action "Index" trong khu vực trang chủ (HomeController).
+*@
+@using JobConnect.Extensions
 @model JobConnect.ViewModels.HomeViewModel
 @{
     ViewData["Title"] = "Trang chủ";
@@ -70,37 +73,37 @@
 </style>
 
 <!-- HERO SECTION -->
-<section class="hero-bg relative overflow-hidden py-16 md:py-24 border-b border-slate-200">
+<section class="hero-bg relative overflow-hidden py-24 md:py-32 border-b border-slate-200">
     <!-- Orbs trang trí như login/register -->
     <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
-        <div class="inline-flex items-center gap-2 bg-white backdrop-blur-md border border-blue-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-blue-600 mb-6 shadow-sm">
-            <span class="material-symbols-outlined text-sm animate-pulse">bolt</span>
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
+        <div class="inline-flex items-center gap-2 bg-white backdrop-blur-md border border-blue-500/30 px-5 py-2 rounded-full text-sm font-bold text-blue-600 mb-8 shadow-sm">
+            <span class="material-symbols-outlined text-base animate-pulse">bolt</span>
             @Model.TotalJobs.ToString("N0")+ việc làm đang tuyển
         </div>
 
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-4 leading-tight tracking-tight">
+        <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
             Kết nối sự nghiệp<br />
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">tương lai</span> của bạn
         </h1>
-        <p class="text-slate-600 text-base md:text-lg mb-10 max-w-xl font-medium">
+        <p class="text-slate-600 text-lg md:text-2xl mb-12 max-w-3xl font-medium">
             Hàng ngàn cơ hội việc làm hấp dẫn từ những công ty hàng đầu đang chờ đón bạn.
         </p>
 
         <!-- Search Bar - Glassmorphism -->
         <form asp-controller="Job" asp-action="Index" method="get"
-              class="w-full max-w-3xl bg-white backdrop-blur-md rounded-2xl shadow-2xl border border-blue-500/30 p-2 flex flex-col md:flex-row gap-2 items-stretch relative z-20">
-            <div class="flex items-center gap-3 flex-1 px-4 py-2 md:py-0 border-b md:border-b-0 md:border-r border-slate-200">
-                <span class="material-symbols-outlined text-slate-600 text-xl">search</span>
+              class="w-full max-w-5xl bg-white backdrop-blur-md rounded-2xl shadow-2xl border border-blue-500/30 p-3 flex flex-col md:flex-row gap-2 items-stretch relative z-20">
+            <div class="flex items-center gap-3 flex-1 px-5 py-3 md:py-0 border-b md:border-b-0 md:border-r border-slate-200">
+                <span class="material-symbols-outlined text-slate-600 text-2xl">search</span>
                 <input name="Keyword" type="text" placeholder="Vị trí, kỹ năng hoặc công ty..."
-                       class="w-full border-none outline-none text-sm bg-transparent placeholder-slate-400 text-slate-700 font-medium" />
+                       class="w-full border-none outline-none text-base bg-transparent placeholder-slate-400 text-slate-700 font-medium" />
             </div>
-            <div class="flex items-center gap-3 flex-1 px-4 py-2 md:py-0">
-                <span class="material-symbols-outlined text-slate-600 text-xl">location_on</span>
-                <select name="Location" class="w-full border-none outline-none text-sm bg-transparent text-slate-600 font-medium cursor-pointer">
+            <div class="flex items-center gap-3 flex-1 px-5 py-3 md:py-0">
+                <span class="material-symbols-outlined text-slate-600 text-2xl">location_on</span>
+                <select name="Location" class="w-full border-none outline-none text-base bg-transparent text-slate-600 font-medium cursor-pointer">
                     <option value="" class="bg-white text-slate-600">Tất cả địa điểm</option>
                     @foreach (var loc in Model.Locations)
                     {
@@ -109,34 +112,34 @@
                 </select>
             </div>
             <button type="submit"
-                    class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all whitespace-nowrap shadow-lg shadow-blue-900/30">
+                    class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-xl text-base font-bold hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all whitespace-nowrap shadow-lg shadow-blue-900/30">
                 Tìm kiếm ngay
             </button>
         </form>
 
         <!-- Trending tags -->
-        <div class="flex flex-wrap justify-center items-center gap-2 mt-6 text-xs text-slate-600">
+        <div class="flex flex-wrap justify-center items-center gap-3 mt-8 text-sm text-slate-600">
             <span class="font-bold text-slate-600">🔥 Xu hướng:</span>
             @foreach (var tag in new[] { "Frontend Developer", "UI/UX Designer", "Data Analyst", "Marketing" })
             {
                 <a asp-controller="Job" asp-action="Index" asp-route-Keyword="@tag"
-                   class="bg-white hover:bg-blue-600 hover:text-white px-3 py-1 rounded-lg transition-all font-medium border border-slate-200 backdrop-blur-sm">@tag</a>
+                   class="bg-white hover:bg-blue-600 hover:text-white px-4 py-1.5 rounded-lg transition-all font-medium border border-slate-200 backdrop-blur-sm">@tag</a>
             }
         </div>
 
         <!-- Stats - Glassmorphism -->
-        <div class="grid grid-cols-3 gap-4 sm:gap-12 mt-12 bg-white backdrop-blur-md border border-blue-500/20 rounded-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[500px] shadow-sm">
+        <div class="grid grid-cols-3 gap-6 sm:gap-16 mt-16 bg-white backdrop-blur-md border border-blue-500/20 rounded-2xl p-6 sm:p-10 min-w-[320px] sm:min-w-[640px] shadow-sm">
             <div class="flex flex-col items-center">
-                <span class="text-xl sm:text-2xl font-black text-slate-900">@Model.TotalJobs.ToString("N0")</span>
-                <span class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mt-0.5">Việc làm</span>
+                <span class="text-3xl sm:text-4xl font-black text-slate-900">@Model.TotalJobs.ToString("N0")</span>
+                <span class="text-xs sm:text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">Việc làm</span>
             </div>
             <div class="flex flex-col items-center border-x border-blue-500/20">
-                <span class="text-xl sm:text-2xl font-black text-slate-900">@Model.TotalCompanies.ToString("N0")</span>
-                <span class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mt-0.5">Công ty</span>
+                <span class="text-3xl sm:text-4xl font-black text-slate-900">@Model.TotalCompanies.ToString("N0")</span>
+                <span class="text-xs sm:text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">Công ty</span>
             </div>
             <div class="flex flex-col items-center">
-                <span class="text-xl sm:text-2xl font-black text-slate-900">@Model.TotalCandidates.ToString("N0")</span>
-                <span class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mt-0.5">Ứng viên</span>
+                <span class="text-3xl sm:text-4xl font-black text-slate-900">@Model.TotalCandidates.ToString("N0")</span>
+                <span class="text-xs sm:text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">Ứng viên</span>
             </div>
         </div>
     </div>
@@ -474,7 +477,7 @@
 
 @section Scripts {
     <script>
-        (function () {
+        (function() {
             var PAGE_SIZE = 12; // 3 cột x 4 hàng
             var grid = document.getElementById('featJobsGrid');
             if (!grid) return;
@@ -498,7 +501,7 @@
             }
 
             function getFilteredCards() {
-                return allCards.filter(function (c) { return matchesFilter(c, currentFilter); });
+                return allCards.filter(function(c) { return matchesFilter(c, currentFilter); });
             }
 
             function render() {
@@ -510,15 +513,15 @@
                 var start = (currentPage - 1) * PAGE_SIZE;
                 var end = start + PAGE_SIZE;
 
-                allCards.forEach(function (c) { c.style.display = 'none'; });
-                filtered.slice(start, end).forEach(function (c) { c.style.display = ''; });
+                allCards.forEach(function(c) { c.style.display = 'none'; });
+                filtered.slice(start, end).forEach(function(c) { c.style.display = ''; });
 
                 if (pageLabel) pageLabel.textContent = currentPage + ' / ' + totalPages + ' trang';
 
                 var atFirst = currentPage <= 1;
                 var atLast = currentPage >= totalPages;
-                prevBtns.forEach(function (b) { if (b) b.disabled = atFirst; if (b) b.classList.toggle('opacity-40', atFirst); });
-                nextBtns.forEach(function (b) { if (b) b.disabled = atLast; if (b) b.classList.toggle('opacity-40', atLast); });
+                prevBtns.forEach(function(b) { if (b) b.disabled = atFirst; if (b) b.classList.toggle('opacity-40', atFirst); });
+                nextBtns.forEach(function(b) { if (b) b.disabled = atLast; if (b) b.classList.toggle('opacity-40', atLast); });
 
                 if (filtered.length === 0 && grid) {
                     if (!document.getElementById('featJobsEmpty')) {
@@ -534,11 +537,11 @@
                 }
             }
 
-            filterBtns.forEach(function (btn) {
-                btn.addEventListener('click', function () {
+            filterBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
                     currentFilter = btn.dataset.filter;
                     currentPage = 1;
-                    filterBtns.forEach(function (b) {
+                    filterBtns.forEach(function(b) {
                         b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'font-bold');
                         b.classList.add('bg-white', 'text-slate-600', 'border-slate-300', 'font-semibold');
                     });
@@ -548,15 +551,15 @@
                 });
             });
 
-            prevBtns.forEach(function (b) {
+            prevBtns.forEach(function(b) {
                 if (!b) return;
-                b.addEventListener('click', function () {
+                b.addEventListener('click', function() {
                     if (currentPage > 1) { currentPage--; render(); }
                 });
             });
-            nextBtns.forEach(function (b) {
+            nextBtns.forEach(function(b) {
                 if (!b) return;
-                b.addEventListener('click', function () {
+                b.addEventListener('click', function() {
                     var filtered = getFilteredCards();
                     var totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
                     if (currentPage < totalPages) { currentPage++; render(); }

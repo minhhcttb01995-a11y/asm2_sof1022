@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng LOG HỆ THỐNG chung (khác với ActivityLog chỉ dành cho Staff): ghi lại hành
+// động của BẤT KỲ User nào (đăng nhập, đăng ký...) kèm IP và chi tiết, phục vụ audit/debug.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

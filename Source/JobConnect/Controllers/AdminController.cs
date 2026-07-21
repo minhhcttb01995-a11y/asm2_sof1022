@@ -1,3 +1,23 @@
+// [[CONTROLLER-HEADER-ADDED]]
+// ═══════════════════════════════════════════════════════════════════════════
+// AdminController — [Authorize(Roles = "Admin")]: TRANG QUẢN TRỊ DÀNH RIÊNG CHO ADMIN
+// (quyền cao nhất hệ thống, khác StaffDashboardController dùng chung cho cả Staff).
+// Các nhóm chức năng chính:
+//   • Dashboard: thống kê tổng quan hệ thống theo khoảng thời gian (period).
+//   • Users/UserDetail/CreateUser/BanUser/DeleteUser/DeletedUsers/RestoreUser/
+//     PermanentDeleteUser: quản lý toàn bộ tài khoản người dùng (xóa mềm + khôi phục
+//     + xóa vĩnh viễn).
+//   • Jobs/DeleteJob/SetJobStatus/FixOrphanEmployers: quản lý tin tuyển dụng ở tầm hệ thống.
+//   • Companies/CreateCompany/CompanyDetail/ApproveCompany/SuspendCompany/LockCompany/
+//     DeleteCompany: duyệt/khóa/xóa công ty (Employer).
+//   • Hot/ToggleJobFeatured/ToggleCompanyFeatured: quản lý mục "Hot" trên trang chủ
+//     (tin/công ty nổi bật).
+//   • PostJobForEmployer: Admin đăng tin THAY cho 1 nhà tuyển dụng cụ thể.
+//   • EmployerApplications/FixCvApplication: xử lý sự cố liên quan hồ sơ ứng tuyển.
+//   • Blog/BlogCreate/BlogEdit/BlogPublish: quản lý bài viết Blog.
+// Đây là 1 trong các controller lớn nhất hệ thống (>1600 dòng) — nên khi sửa, tìm
+// đúng action bằng tên method thay vì đọc tuần tự toàn bộ file.
+// ═══════════════════════════════════════════════════════════════════════════
 using JobConnect.Data;
 using JobConnect.Extensions;
 using JobConnect.Models;
@@ -301,63 +321,58 @@ public class AdminController : Controller
 
     public IActionResult CreateUser() => View();
 
-    [HttpPost]
-    public async Task<IActionResult> CreateUser(string fullName, string email, string password, string role)
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateUser(string fullName, string email, string password, string role, string? companyName)
     {
-        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
-
-        try
+        if (await _db.Users.AnyAsync(u => u.Email == email))
         {
-            try { await _antiforgery.ValidateRequestAsync(HttpContext); }
-            catch (AntiforgeryValidationException)
-            {
-                const string tokenMsg = "Phiên làm việc đã hết hạn, vui lòng tải lại trang và thử lại.";
-                if (isAjax) return Json(new { success = false, message = tokenMsg });
-                ModelState.AddModelError("", tokenMsg);
-                return View();
-            }
-
-            if (await _db.Users.AnyAsync(u => u.Email == email))
-            {
-                const string msg = "Email đã tồn tại.";
-                if (isAjax) return Json(new { success = false, message = msg });
-                ModelState.AddModelError("", msg);
-                return View();
-            }
-
-            var user = new User
-            {
-                FullName = fullName,
-                Email = email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                Role = role,
-                Status = "Active",
-                CreatedAt = DateTime.Now
-            };
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
-
-            // Mã người dùng: tự tăng theo UserId
-            user.UserCode = _codeGen.GenerateUserCode(role, user.UserId);
-            await _db.SaveChangesAsync();
-
-            if (role == "Candidate")
-            {
-                _db.CandidateProfiles.Add(new CandidateProfile { UserId = user.UserId, FullName = fullName });
-                await _db.SaveChangesAsync();
-            }
-
-            var successMsg = $"Đã tạo tài khoản {email} thành công!";
-            if (isAjax) return Json(new { success = true, message = successMsg });
-            TempData["Success"] = successMsg;
+            ModelState.AddModelError("", "Email đã tồn tại.");
+            return View();
+        }
+        if (role == "Employer" && string.IsNullOrWhiteSpace(companyName))
+        {
+            TempData["Error"] = "Vui lòng nhập tên công ty khi tạo tài khoản Nhà tuyển dụng.";
             return RedirectToAction("Users");
         }
-        catch (Exception ex)
+
+        var user = new User
         {
-            var detail = ex.InnerException?.Message ?? ex.Message;
-            if (isAjax) return Json(new { success = false, message = "Có lỗi xảy ra ở server: " + detail });
-            throw;
+            FullName = fullName,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = role,
+            Status = "Active",
+            CreatedAt = DateTime.Now
+        };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        // Mã người dùng: tự tăng theo UserId
+        user.UserCode = _codeGen.GenerateUserCode(role, user.UserId);
+        await _db.SaveChangesAsync();
+
+        if (role == "Candidate")
+        {
+            _db.CandidateProfiles.Add(new CandidateProfile { UserId = user.UserId, FullName = fullName });
+            await _db.SaveChangesAsync();
         }
+        else if (role == "Employer")
+        {
+            // QUAN TRỌNG: tạo user Employer bắt buộc phải có Employer (hồ sơ công ty) đi kèm,
+            // nếu không công ty sẽ "biến mất" khỏi trang Quản lý công ty dù tài khoản vẫn tồn tại.
+            _db.Employers.Add(new Employer
+            {
+                UserId = user.UserId,
+                CompanyCode = await _codeGen.GenerateCompanyCodeAsync(),
+                CompanyName = companyName!.Trim(),
+                IsVerified = false,
+                Status = "Pending",
+                CreatedAt = DateTime.Now
+            });
+            await _db.SaveChangesAsync();
+        }
+        TempData["Success"] = $"Đã tạo tài khoản {email} thành công!";
+        return RedirectToAction("Users");
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -540,6 +555,40 @@ public class AdminController : Controller
 
     // ====================== COMPANIES ======================
 
+    /// <summary>
+    /// Khắc phục dữ liệu cũ: các tài khoản Role=Employer được tạo trước khi có logic bắt buộc
+    /// tạo kèm Employer (công ty) sẽ bị "mồ côi" — có tài khoản đăng nhập nhưng không xuất hiện
+    /// trong Quản lý công ty. Hàm này quét và tự tạo hồ sơ công ty placeholder (trạng thái Pending)
+    /// cho các tài khoản đó để admin vào sửa lại thông tin công ty cho đúng.
+    /// </summary>
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> FixOrphanEmployers()
+    {
+        var orphanUsers = await _db.Users
+            .Where(u => u.Role == "Employer" && !_db.Employers.Any(e => e.UserId == u.UserId))
+            .ToListAsync();
+
+        foreach (var u in orphanUsers)
+        {
+            _db.Employers.Add(new Employer
+            {
+                UserId = u.UserId,
+                CompanyCode = await _codeGen.GenerateCompanyCodeAsync(),
+                CompanyName = $"[Chưa đặt tên] {u.FullName}",
+                IsVerified = false,
+                Status = "Pending",
+                CreatedAt = DateTime.Now
+            });
+        }
+
+        if (orphanUsers.Count > 0) await _db.SaveChangesAsync();
+
+        TempData["Success"] = orphanUsers.Count > 0
+            ? $"Đã tạo hồ sơ công ty cho {orphanUsers.Count} tài khoản nhà tuyển dụng bị thiếu công ty. Vui lòng vào từng công ty để cập nhật lại tên/thông tin cho đúng."
+            : "Không có tài khoản nhà tuyển dụng nào bị thiếu công ty.";
+        return RedirectToAction("Companies");
+    }
+
     public async Task<IActionResult> Companies(string? q, string? status, int page = 1)
     {
         var query = _db.Employers.Include(c => c.User).Include(c => c.JobPosts).AsQueryable();
@@ -555,7 +604,59 @@ public class AdminController : Controller
         // Load status options from StatusCatalog for Employer
         ViewBag.EmployerStatuses = await _statusSvc.GetActiveByEntityTypeAsync(StatusEntityTypes.Employer);
 
+        // Số tài khoản Employer bị "mồ côi" (thiếu Employer/công ty) để cảnh báo admin trên UI
+        ViewBag.OrphanEmployerCount = await _db.Users
+            .Where(u => u.Role == "Employer" && !_db.Employers.Any(e => e.UserId == u.UserId))
+            .CountAsync();
+
         return View(await query.OrderByDescending(c => c.EmployerId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync());
+    }
+
+    // GET: hiển thị modal tạo công ty mới (dùng chung view Companies, chỉ cần action POST)
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateCompany(string contactName, string email, string password, string companyName, string? industry, string? address, string? taxCode)
+    {
+        if (await _db.Users.AnyAsync(u => u.Email == email))
+        {
+            TempData["Error"] = "Email này đã được sử dụng cho tài khoản khác.";
+            return RedirectToAction("Companies");
+        }
+        if (string.IsNullOrWhiteSpace(companyName))
+        {
+            TempData["Error"] = "Vui lòng nhập tên công ty.";
+            return RedirectToAction("Companies");
+        }
+
+        var user = new User
+        {
+            FullName = contactName,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = "Employer",
+            Status = "Active",
+            CreatedAt = DateTime.Now
+        };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        user.UserCode = _codeGen.GenerateUserCode("Employer", user.UserId);
+
+        _db.Employers.Add(new Employer
+        {
+            UserId = user.UserId,
+            CompanyCode = await _codeGen.GenerateCompanyCodeAsync(),
+            CompanyName = companyName.Trim(),
+            Industry = industry,
+            Address = address,
+            TaxCode = taxCode,
+            IsVerified = false,
+            Status = "Pending",
+            CreatedAt = DateTime.Now
+        });
+        await _db.SaveChangesAsync();
+
+        TempData["Success"] = $"Đã tạo công ty \"{companyName}\" và tài khoản nhà tuyển dụng {email} thành công!";
+        return RedirectToAction("Companies");
     }
 
     public async Task<IActionResult> CompanyDetail(int id)

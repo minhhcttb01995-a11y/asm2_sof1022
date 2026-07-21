@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho form TẠO MỚI nhân viên (StaffController.Create) — có validate
+// chi tiết cho CCCD, số điện thoại, email, mật khẩu tối thiểu.
 using System.ComponentModel.DataAnnotations;
 
 namespace JobConnect.ViewModels.Staff;

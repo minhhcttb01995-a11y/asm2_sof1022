@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho form đăng ký tài khoản NHÀ TUYỂN DỤNG (AccountController.RegisterEmployer) —
+// gồm cả thông tin tài khoản (email/mật khẩu) và thông tin công ty ban đầu.
 using System.ComponentModel.DataAnnotations;
 
 namespace JobConnect.ViewModels;

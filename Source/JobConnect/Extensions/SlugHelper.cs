@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// Hàm chuyển văn bản tiếng Việt có dấu thành SLUG (đường dẫn URL thân thiện, không dấu,
+// cách nhau bằng dấu gạch ngang) — dùng khi tạo Category, BlogPost...
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;

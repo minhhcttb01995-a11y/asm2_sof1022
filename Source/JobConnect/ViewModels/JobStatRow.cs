@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel 1 dòng thống kê hiệu quả của 1 tin tuyển dụng (lượt xem, số lượt ứng
+// tuyển, tỉ lệ chuyển đổi) — dùng trong EmployerController.JobStats.
 namespace JobConnect.ViewModels;
 
 public class JobStatRow

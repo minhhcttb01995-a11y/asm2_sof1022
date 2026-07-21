@@ -1,4 +1,7 @@
-﻿using System;
+// [MODEL-HEADER-ADDED]
+// Bảng danh mục KỸ NĂNG (VD: "C#", "Thiết kế đồ họa"...), thuộc 1 Category, dùng
+// để gắn vào hồ sơ ứng viên (CandidateSkill) và lọc/tìm kiếm ứng viên phù hợp.
+using System;
 using System.Collections.Generic;
 
 namespace JobConnect.Models;

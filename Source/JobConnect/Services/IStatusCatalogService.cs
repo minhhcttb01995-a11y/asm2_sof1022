@@ -1,3 +1,8 @@
+// [SERVICE-IFACE-HEADER-ADDED]
+// Interface cho dịch vụ quản lý DANH MỤC TRẠNG THÁI tùy chỉnh (xem thêm comment ở
+// Models/StatusCatalog.cs). Cho phép Admin CRUD trạng thái, và cho các phần khác
+// của hệ thống tra cứu tên hiển thị / danh sách trạng thái công khai. Cài đặt bởi
+// StatusCatalogService.cs.
 using JobConnect.Models;
 
 namespace JobConnect.Services;

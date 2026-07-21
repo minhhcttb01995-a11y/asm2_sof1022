@@ -1,3 +1,5 @@
+// [[FILE-HEADER-ADDED]]
+// ViewModel cho trang DANH SÁCH nhân viên có phân trang/lọc (StaffController.Index).
 using JobConnect.Models;
 
 namespace JobConnect.ViewModels.Staff;

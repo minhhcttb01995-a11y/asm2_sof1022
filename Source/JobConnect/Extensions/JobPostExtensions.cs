@@ -1,3 +1,6 @@
+// [[FILE-HEADER-ADDED]]
+// Extension method tiện ích cho JobPost (VD: định dạng khoảng lương hiển thị, kiểm tra
+// tin đã hết hạn hay chưa...) — gọi trực tiếp như job.XyzMethod() trong View/Controller.
 using JobConnect.Models;
 
 namespace JobConnect.Extensions;
