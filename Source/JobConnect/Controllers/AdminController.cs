@@ -326,8 +326,11 @@ public class AdminController : Controller
     {
         if (await _db.Users.AnyAsync(u => u.Email == email))
         {
-            ModelState.AddModelError("", "Email đã tồn tại.");
-            return View();
+            // [ĐÃ SỬA] Form "Thêm người dùng mới" là modal nằm trên trang Users, không có
+            // view CreateUser.cshtml riêng nên return View() ở đây sẽ ném lỗi
+            // "The view 'CreateUser' was not found". Phải TempData lỗi rồi quay lại trang Users.
+            TempData["Error"] = "Email này đã được sử dụng, vui lòng nhập email khác.";
+            return RedirectToAction("Users");
         }
         if (role == "Employer" && string.IsNullOrWhiteSpace(companyName))
         {

@@ -6,6 +6,8 @@
 @model List<JobPost>
 @{
     var f = ViewBag.Filter as JobConnect.ViewModels.JobSearchViewModel;
+    var savedJobIds = ViewBag.SavedJobIds as HashSet<int> ?? new HashSet<int>();
+    var appliedJobIds = ViewBag.AppliedJobIds as HashSet<int> ?? new HashSet<int>();
 }
 
 <div id="resultsContainer">
@@ -31,7 +33,17 @@
     <div class="space-y-3">
         @foreach (var job in Model)
         {
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 job-card flex flex-col md:flex-row gap-4">
+            bool isSaved = savedJobIds.Contains(job.JobId);
+            bool hasApplied = appliedJobIds.Contains(job.JobId);
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 job-card flex flex-col md:flex-row gap-4 cursor-pointer relative"
+                 onclick="location.href='@Url.Action("Detail", "Job", new { id = job.JobId })'">
+                @if (hasApplied)
+                {
+                    <span class="absolute top-3 right-3 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">check_circle</span> Đã ứng tuyển
+                    </span>
+                }
                 <!-- Logo -->
                 <div class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
                     @if (!string.IsNullOrEmpty(job.Employer?.LogoURL))
@@ -49,17 +61,17 @@
                     <div class="flex justify-between items-start gap-2">
                         <div>
                             <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId"
+                               onclick="event.stopPropagation()"
                                class="font-bold text-slate-900 hover:text-blue-600 transition-colors text-base block leading-snug">
                                 @job.Title
                             </a>
                             <a asp-controller="Company" asp-action="Detail" asp-route-id="@job.Employer?.EmployerId"
+                               onclick="event.stopPropagation()"
                                class="text-blue-600 text-sm font-semibold hover:underline">
                                 @job.Employer?.CompanyName
                             </a>
                         </div>
-                        <button type="button" class="text-slate-300 hover:text-rose-600 transition-colors shrink-0">
-                            <span class="material-symbols-outlined">favorite_border</span>
-                        </button>
+                        <!-- [ĐÃ BỎ] Nút thả tim (lưu việc làm) từng nằm ở đây -->
                     </div>
 
                     <div class="flex flex-wrap gap-4 mt-2.5 text-sm text-slate-600">

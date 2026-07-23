@@ -320,13 +320,23 @@
                 bool _isMienBac = _loc.Contains("hà nội") || _loc.Contains("hải phòng") || _loc.Contains("bắc ninh") || _loc.Contains("quảng ninh") || _loc.Contains("thái nguyên");
                 bool _isMienNam = _loc.Contains("hồ chí minh") || _loc.Contains("cần thơ") || _loc.Contains("bình dương") || _loc.Contains("đồng nai") || _loc.Contains("vũng tàu");
 
-                <div class="feat-job-card bg-white rounded-xl p-4 border @(isTop ? "border-blue-500 ring-1 ring-blue-500/30" : "border-slate-200") hover:shadow-md hover:border-blue-400 transition-all group relative"
-                     data-region="@_region" data-mien-bac="@_isMienBac.ToString().ToLower()" data-mien-nam="@_isMienNam.ToString().ToLower()">
+                bool _isSaved = Model.SavedJobIds.Contains(job.JobId);
+                bool _hasApplied = Model.AppliedJobIds.Contains(job.JobId);
+
+                <div class="feat-job-card bg-white rounded-xl p-4 border @(isTop ? "border-blue-500 ring-1 ring-blue-500/30" : "border-slate-200") hover:shadow-md hover:border-blue-400 transition-all group relative cursor-pointer"
+                     data-region="@_region" data-mien-bac="@_isMienBac.ToString().ToLower()" data-mien-nam="@_isMienNam.ToString().ToLower()"
+                     onclick="location.href='@Url.Action("Detail", "Job", new { id = job.JobId })'">
 
                     @if (isTop)
                     {
                         <span class="absolute -top-2.5 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                             <span class="material-symbols-outlined text-[11px]">favorite</span> TOP
+                        </span>
+                    }
+                    @if (_hasApplied)
+                    {
+                        <span class="absolute -top-2.5 right-4 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[11px]">check_circle</span> Đã ứng tuyển
                         </span>
                     }
 
@@ -356,16 +366,24 @@
                                 </span>
                             }
                             <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId"
-                               title="@job.Title"
+                               title="@job.Title" onclick="event.stopPropagation()"
                                class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors block text-sm leading-snug line-clamp-2">
                                 @job.Title
                             </a>
-                            <p class="text-slate-500 text-xs mt-1 truncate">@(job.Employer?.CompanyName ?? "Đang cập nhật")</p>
+                            @if (job.Employer != null)
+                            {
+                                <a asp-controller="Company" asp-action="Detail" asp-route-id="@job.Employer.EmployerId"
+                                   onclick="event.stopPropagation()"
+                                   class="text-slate-500 text-xs mt-1 truncate block hover:text-blue-600 hover:underline">
+                                    @(job.Employer.CompanyName ?? "Đang cập nhật")
+                                </a>
+                            }
+                            else
+                            {
+                                <p class="text-slate-500 text-xs mt-1 truncate">Đang cập nhật</p>
+                            }
                         </div>
-
-                        <button class="text-slate-300 hover:text-rose-500 transition-colors shrink-0">
-                            <span class="material-symbols-outlined text-xl">favorite_border</span>
-                        </button>
+                        <!-- [ĐÃ BỎ] Nút thả tim (lưu việc làm) từng nằm ở đây -->
                     </div>
 
                     <div class="flex flex-wrap gap-1.5 mt-3">

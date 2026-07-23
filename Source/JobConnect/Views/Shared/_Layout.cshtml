@@ -26,7 +26,7 @@
                 background: #f8fafc;
                 color: #1e293b;
                 /* Đảm bảo footer luôn nằm ở đáy trang, không bị "kéo lên" để lộ khoảng trắng
-                               khi nội dung trang ngắn hơn chiều cao màn hình. */
+                                                       khi nội dung trang ngắn hơn chiều cao màn hình. */
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
@@ -275,32 +275,127 @@
             .jc-footer {
                 background: #0f172a;
                 color: #94a3b8;
-                padding: 40px 24px 24px;
+                padding: 48px 24px 24px;
                 margin-top: 60px;
             }
 
             .jc-footer-inner {
                 max-width: 1600px;
                 margin: 0 auto;
-                display: flex;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 24px;
+                display: grid;
+                grid-template-columns: 1.6fr 1fr 1fr 1fr;
+                gap: 32px;
+            }
+
+            .jc-footer-col a {
+                display: block;
+                color: #94a3b8;
+                text-decoration: none;
+                font-size: 0.875rem;
+                line-height: 2.1;
+                transition: color .15s;
+            }
+
+                .jc-footer-col a:hover {
+                    color: #3b82f6;
+                }
+
+            .jc-footer-heading {
+                color: #fff;
+                font-weight: 600;
+                margin-bottom: 12px;
+                font-size: 0.95rem;
             }
 
             .jc-footer-brand {
                 color: #fff;
                 font-weight: 700;
-                font-size: 1.1rem;
+                font-size: 1.3rem;
             }
+
+            .jc-footer-slogan {
+                color: #cbd5e1;
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-top: 6px;
+            }
+
+            .jc-footer-desc {
+                font-size: 0.825rem;
+                line-height: 1.7;
+                margin-top: 10px;
+                max-width: 340px;
+            }
+
+            .jc-footer-contact {
+                margin-top: 20px;
+            }
+
+            .jc-footer-contact-title {
+                color: #fff;
+                font-weight: 600;
+                font-size: 0.875rem;
+                margin-bottom: 8px;
+            }
+
+            .jc-footer-contact-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+                font-size: 0.825rem;
+                line-height: 1.6;
+                margin-bottom: 6px;
+            }
+
+                .jc-footer-contact-item .material-symbols-outlined {
+                    font-size: 1.05rem;
+                    color: #3b82f6;
+                    flex-shrink: 0;
+                    margin-top: 1px;
+                }
+
+            .jc-footer-social {
+                display: flex;
+                gap: 10px;
+                margin-top: 18px;
+            }
+
+                .jc-footer-social a {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: #1e293b;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #cbd5e1;
+                    transition: background .15s, color .15s;
+                }
+
+                    .jc-footer-social a:hover {
+                        background: #3b82f6;
+                        color: #fff;
+                    }
 
             .jc-footer-bottom {
                 max-width: 1600px;
-                margin: 24px auto 0;
+                margin: 32px auto 0;
                 padding-top: 20px;
                 border-top: 1px solid #1e293b;
                 font-size: 0.825rem;
                 text-align: center;
+            }
+
+            @@media (max-width: 900px) {
+                .jc-footer-inner {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+
+            @@media (max-width: 560px) {
+                .jc-footer-inner {
+                    grid-template-columns: 1fr;
+                }
             }
 
             @@media (max-width: 900px) {
@@ -386,7 +481,7 @@
                                 <a asp-controller="Chat" asp-action="Index"><span class="material-symbols-outlined" style="font-size:1.1rem;">support_agent</span> Tin nhắn hỗ trợ</a>
                             }
                             <a asp-controller="Account" asp-action="Settings"><span class="material-symbols-outlined" style="font-size:1.1rem;">settings</span> Cài đặt tài khoản</a>
-                            <form asp-controller="Account" asp-action="Logout" method="post">
+                            <form asp-controller="Account" asp-action="Logout" method="post" id="jcLogoutForm">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" style="color:#ef4444;"><span class="material-symbols-outlined" style="font-size:1.1rem;">logout</span> Đăng xuất</button>
                             </form>
@@ -416,17 +511,65 @@
 
     <footer class="jc-footer">
         <div class="jc-footer-inner">
-            <div style="max-width:320px;">
-                <div class="jc-footer-brand">JobConnect</div>
-                <p style="font-size:0.875rem;line-height:1.6;margin-top:8px;">Nền tảng kết nối ứng viên và nhà tuyển dụng hàng đầu Việt Nam.</p>
-            </div>
-            <div>
-                <div style="color:#fff;font-weight:600;margin-bottom:10px;">Khám phá</div>
-                <div style="display:flex;flex-direction:column;gap:6px;font-size:0.875rem;">
-                    <a asp-controller="Job" asp-action="Index" style="color:#94a3b8;text-decoration:none;">Việc làm</a>
-                    <a asp-controller="Company" asp-action="Index" style="color:#94a3b8;text-decoration:none;">Công ty</a>
-                    <a asp-controller="Blog" asp-action="Index" style="color:#94a3b8;text-decoration:none;">Blog</a>
+            <div class="jc-footer-col jc-footer-brand-col">
+                <div class="jc-footer-brand">
+                    <span class="material-symbols-outlined" style="font-size:1.6rem;vertical-align:-4px;color:#3b82f6;">bolt</span>
+                    JobConnect
                 </div>
+                <p class="jc-footer-slogan">Kết nối cơ hội, xây dựng sự nghiệp.</p>
+                <p class="jc-footer-desc">
+                    Nền tảng tuyển dụng trực tuyến giúp ứng viên tìm việc phù hợp và
+                    doanh nghiệp tiếp cận nguồn nhân lực chất lượng trên khắp Việt Nam.
+                </p>
+
+                <div class="jc-footer-contact">
+                    <div class="jc-footer-contact-title">Liên hệ</div>
+                    <div class="jc-footer-contact-item">
+                        <span class="material-symbols-outlined">call</span>
+                        Hotline: <strong>1900 1234</strong> (giờ hành chính)
+                    </div>
+                    <div class="jc-footer-contact-item">
+                        <span class="material-symbols-outlined">mail</span>
+                        Email: <strong>hotro@jobconnect.vn</strong>
+                    </div>
+                    <div class="jc-footer-contact-item">
+                        <span class="material-symbols-outlined">location_on</span>
+                        Tầng 5, Tòa nhà JobConnect, Quận 1, TP. Hồ Chí Minh
+                    </div>
+                </div>
+
+                <div class="jc-footer-social">
+                    <a href="#" aria-label="Facebook" title="Facebook"><span class="material-symbols-outlined">thumb_up</span></a>
+                    <a href="#" aria-label="Youtube" title="Youtube"><span class="material-symbols-outlined">smart_display</span></a>
+                    <a href="#" aria-label="LinkedIn" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+                    <a href="#" aria-label="TikTok" title="TikTok"><span class="material-symbols-outlined">music_note</span></a>
+                </div>
+            </div>
+
+            <div class="jc-footer-col">
+                <div class="jc-footer-heading">Khám phá</div>
+                <a asp-controller="Job" asp-action="Index">Tất cả việc làm</a>
+                <a asp-controller="Job" asp-action="Index" asp-route-ExperienceLevel="Senior">Việc làm Senior</a>
+                <a asp-controller="Job" asp-action="Index" asp-route-JobType="Remote">Việc làm Remote</a>
+                <a asp-controller="Job" asp-action="Index" asp-route-JobType="PartTime">Việc làm bán thời gian</a>
+                <a asp-controller="Job" asp-action="Index" asp-route-JobType="Intern">Thực tập sinh</a>
+                <a asp-controller="Company" asp-action="Index">Danh sách công ty</a>
+                <a asp-controller="Blog" asp-action="Index">Blog nghề nghiệp</a>
+            </div>
+
+            <div class="jc-footer-col">
+                <div class="jc-footer-heading">Dành cho ứng viên</div>
+                <a asp-controller="Account" asp-action="Register">Tạo tài khoản ứng viên</a>
+                <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                <a asp-controller="Job" asp-action="Index" asp-route-SortBy="newest">Việc làm mới nhất</a>
+                <a asp-controller="Account" asp-action="ForgotPassword">Quên mật khẩu</a>
+            </div>
+
+            <div class="jc-footer-col">
+                <div class="jc-footer-heading">Dành cho nhà tuyển dụng</div>
+                <a asp-controller="Account" asp-action="RegisterEmployer">Đăng ký tài khoản doanh nghiệp</a>
+                <a asp-controller="Account" asp-action="Login">Đăng nhập nhà tuyển dụng</a>
+                <a asp-controller="Company" asp-action="Index">Xem các công ty đang tuyển</a>
             </div>
         </div>
         <div class="jc-footer-bottom">
@@ -571,6 +714,8 @@
                 'register': { url: '/Account/Register', title: 'Đăng ký ứng viên', wide: false },
                 'register-employer': { url: '/Account/RegisterEmployer', title: 'Đăng ký Nhà tuyển dụng', wide: true }
             };
+
+            // [ĐÃ BỎ] Hàm toggleSaveJob (thả tim lưu việc làm) từng nằm ở đây.
 
             async function jcOpenAuth(e, type) {
                 if (e) e.preventDefault();

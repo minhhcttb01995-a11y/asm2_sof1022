@@ -657,13 +657,29 @@ public class AccountController : Controller
             await _db.SaveChangesAsync();
 
             // Khởi tạo Profile đi kèm
+            // [ĐÃ SỬA] Trước đây chỉ gán UserId mà không gán FullName, khiến các trang
+            // hiển thị (VD: Lịch phỏng vấn, Danh sách ứng viên...) đọc từ CandidateProfile.FullName
+            // bị trống dù User.FullName đã có tên lấy từ Google.
             var profile = new CandidateProfile
             {
-                UserId = user.UserId
+                UserId = user.UserId,
+                FullName = name ?? email
             };
 
             _db.CandidateProfiles.Add(profile);
             await _db.SaveChangesAsync();
+        }
+        else
+        {
+            // [ĐÃ SỬA] Vá lại các tài khoản Google đã tạo TRƯỚC khi sửa lỗi ở trên,
+            // đang có CandidateProfile.FullName bị trống (hiển thị "U" không tên trong
+            // danh sách ứng viên/lịch phỏng vấn bên nhà tuyển dụng).
+            var existingProfile = await _db.CandidateProfiles.FirstOrDefaultAsync(p => p.UserId == user.UserId);
+            if (existingProfile != null && string.IsNullOrWhiteSpace(existingProfile.FullName))
+            {
+                existingProfile.FullName = name ?? user.FullName ?? email;
+                await _db.SaveChangesAsync();
+            }
         }
 
         // Kiểm tra nếu tài khoản đang ở trạng thái bị chặn đăng nhập

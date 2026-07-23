@@ -5,6 +5,7 @@
 //   • Error: trang lỗi chung khi có exception (dùng bởi app.UseExceptionHandler
 //     trong Program.cs khi chạy production).
 // ═══════════════════════════════════════════════════════════════════════════
+using System.Security.Claims;
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;
@@ -54,6 +55,27 @@ public class HomeController : Controller
             Industries = await _db.Categories.Where(c => c.Type == "Industry").ToListAsync(),
             Locations = await _db.Categories.Where(c => c.Type == "Location").OrderBy(c => c.Name).ToListAsync()
         };
+
+        // [ADDED] Lấy danh sách JobId đã lưu / đã ứng tuyển của user hiện tại (nếu đã đăng nhập)
+        // để hiển thị icon trái tim đã tô màu và nhãn "Đã ứng tuyển" trên các thẻ job.
+        if (User.Identity?.IsAuthenticated == true &&
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+        {
+            vm.SavedJobIds = (await _db.SavedJobs
+                .Where(s => s.UserId == userId)
+                .Select(s => s.JobId)
+                .ToListAsync()).ToHashSet();
+
+            var profile = await _db.CandidateProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile != null)
+            {
+                vm.AppliedJobIds = (await _db.Applications
+                    .Where(a => a.ProfileId == profile.ProfileId && a.Status != "Rejected")
+                    .Select(a => a.JobId)
+                    .ToListAsync()).ToHashSet();
+            }
+        }
+
         return View(vm);
     }
 

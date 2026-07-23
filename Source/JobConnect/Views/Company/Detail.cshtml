@@ -151,7 +151,7 @@
             {
                 <div class="section-card">
                     <h2 class="font-bold text-blue-600 text-lg mb-3">Tổng quan về công ty</h2>
-                    <div class="text-sm text-slate-500 leading-relaxed">@Html.Raw(Model.Description)</div>
+                    <div class="text-sm text-slate-500 leading-relaxed whitespace-pre-line">@Model.Description</div>
                 </div>
             }
 
@@ -234,9 +234,6 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex justify-between items-start gap-2">
                                         <p class="font-bold text-sm text-slate-700 group-hover:text-blue-600 transition-colors">@job.Title</p>
-                                        <span class="text-slate-500 hover:text-red-600 shrink-0 transition-colors">
-                                            <span class="material-symbols-outlined text-base">favorite</span>
-                                        </span>
                                     </div>
                                     <p class="text-xs text-blue-600 font-semibold">@Model.CompanyName</p>
                                     <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-500">

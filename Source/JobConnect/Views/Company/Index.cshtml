@@ -26,7 +26,7 @@
             border-color: #3b82f6;
         }
 
-                    /* Scrollbar */
+    /* Scrollbar */
     ::-webkit-scrollbar {
         width: 8px;
     }
@@ -189,9 +189,7 @@
                                         <span class="material-symbols-outlined text-slate-600 text-2xl">business</span>
                                     }
                                 </div>
-                                <button class="text-slate-600 hover:text-rose-600 transition-colors" onclick="event.preventDefault();">
-                                    <span class="material-symbols-outlined">favorite_border</span>
-                                </button>
+                                <!-- [ĐÃ BỎ] Nút thả tim (favorite) từng nằm ở đây -->
                             </div>
 
                             <!-- Name + verified -->
@@ -284,7 +282,7 @@
 @section Scripts {
     <script>
         // Hiệu ứng mưa
-                // Auto submit filter when checkbox changes
+        // Auto submit filter when checkbox changes
         document.querySelectorAll('#filterForm input[type="checkbox"]').forEach(el => {
             el.addEventListener('change', () => {
                 document.getElementById('filterForm').submit();
@@ -298,5 +296,5 @@
             window.location.href = currentUrl.toString();
         });
 
-        </script>
+    </script>
 }

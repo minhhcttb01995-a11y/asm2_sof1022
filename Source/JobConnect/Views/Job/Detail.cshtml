@@ -293,7 +293,7 @@
                         <span class="w-1 h-5 bg-blue-500 rounded-full inline-block"></span>
                         Mô tả công việc
                     </h2>
-                    <div class="prose text-sm leading-relaxed">@Html.Raw(Model.Description)</div>
+                    <div class="prose text-sm leading-relaxed whitespace-pre-line">@Model.Description</div>
                 </div>
             }
 
@@ -305,7 +305,7 @@
                         <span class="w-1 h-5 bg-indigo-500 rounded-full inline-block"></span>
                         Yêu cầu ứng viên
                     </h2>
-                    <div class="prose text-sm leading-relaxed">@Html.Raw(Model.Requirements)</div>
+                    <div class="prose text-sm leading-relaxed whitespace-pre-line">@Model.Requirements</div>
                 </div>
             }
 
@@ -317,7 +317,7 @@
                         <span class="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
                         Quyền lợi ứng viên
                     </h2>
-                    <div class="prose text-sm leading-relaxed">@Html.Raw(Model.Benefits)</div>
+                    <div class="prose text-sm leading-relaxed whitespace-pre-line">@Model.Benefits</div>
                 </div>
             }
         </div>
@@ -330,7 +330,7 @@
                 <h3 class="font-bold text-slate-900 mb-3">Về @Model.Employer?.CompanyName</h3>
                 @if (!string.IsNullOrEmpty(Model.Employer?.Description))
                 {
-                    <p class="text-sm text-slate-500 leading-relaxed mb-3 line-clamp-4">@Model.Employer.Description</p>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-3 line-clamp-4 whitespace-pre-line">@Model.Employer.Description</p>
                 }
                 <div class="space-y-2 text-sm text-slate-500 mb-4">
                     @if (!string.IsNullOrEmpty(Model.Employer?.Website))

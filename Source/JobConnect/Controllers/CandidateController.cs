@@ -15,6 +15,8 @@ using System.Security.Claims;
 using JobConnect.Data;
 using JobConnect.Models;
 using JobConnect.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -130,6 +132,36 @@ public class CandidateController : Controller
         }
 
         await _db.SaveChangesAsync();
+
+        // [ĐÃ SỬA] Sau khi cập nhật hồ sơ (đặc biệt là ảnh đại diện), claim "AvatarURL"
+        // trong cookie đăng nhập vẫn đang giữ giá trị CŨ (được set từ lúc Login), nên
+        // header (Layout) không tự nhận ảnh mới cho tới khi đăng nhập lại. Ở đây ta
+        // đọc lại User mới nhất từ DB rồi re-sign-in để làm mới claim ngay lập tức.
+        var currentUser = profile.User ?? await _db.Users.FindAsync(CurrentUserId);
+        if (currentUser != null)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, currentUser.UserId.ToString()),
+                new Claim(ClaimTypes.Name, currentUser.FullName ?? currentUser.Email),
+                new Claim(ClaimTypes.Email, currentUser.Email),
+                new Claim(ClaimTypes.Role, currentUser.Role ?? "Candidate"),
+                new Claim("AvatarURL", currentUser.AvatarUrl ?? "")
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var newPrincipal = new ClaimsPrincipal(identity);
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = User.Identity?.IsAuthenticated == true,
+                ExpiresUtc = (await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme))
+                                .Properties?.ExpiresUtc
+            };
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, newPrincipal, authProperties);
+        }
+
         TempData["Success"] = "Cập nhật hồ sơ thành công!";
         return RedirectToAction("Profile");
     }

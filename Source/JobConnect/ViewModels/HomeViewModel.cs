@@ -15,4 +15,9 @@ public class HomeViewModel
     public int TotalJobs { get; set; }
     public int TotalCompanies { get; set; }
     public int TotalCandidates { get; set; }
+
+    // [ADDED] Danh sách JobId mà user hiện tại đã LƯU / đã ỨNG TUYỂN,
+    // dùng để hiển thị trạng thái (icon trái tim, nhãn "Đã ứng tuyển") trên thẻ job ở trang chủ.
+    public HashSet<int> SavedJobIds { get; set; } = new();
+    public HashSet<int> AppliedJobIds { get; set; } = new();
 }

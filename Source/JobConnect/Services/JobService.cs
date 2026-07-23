@@ -65,7 +65,20 @@ public class JobService : IJobService
             q = q.Where(j => j.ExperienceLevel == f.ExperienceLevel);
 
         if (f.Category != null && f.Category.Count > 0)
-            q = q.Where(j => j.CategoryId != null && f.Category.Contains(j.CategoryId.Value));
+        {
+            // Các checkbox "Ngành nghề" trên giao diện lưu ID của danh mục CHA (Type="Industry"),
+            // trong khi JobPost.CategoryId lại lưu ID của danh mục CON (VD: "Backend Developer").
+            // Nếu so khớp trực tiếp f.Category.Contains(j.CategoryId) sẽ luôn ra 0 kết quả.
+            // => Mở rộng danh sách sang toàn bộ ID con (và giữ luôn ID gốc) trước khi so khớp.
+            var selectedIds = f.Category;
+            var expandedIds = await _db.Categories
+                .Where(c => c.ParentId != null && selectedIds.Contains(c.ParentId.Value))
+                .Select(c => c.CategoryId)
+                .ToListAsync();
+            var allIds = selectedIds.Union(expandedIds).ToList();
+
+            q = q.Where(j => j.CategoryId != null && allIds.Contains(j.CategoryId.Value));
+        }
 
         q = f.SortBy switch
         {

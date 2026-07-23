@@ -54,6 +54,30 @@ namespace JobConnect.Controllers
                 .Where(c => c.Type == "Location")
                 .ToListAsync();
 
+            // [ADDED] Lấy danh sách JobId đã lưu / đã ứng tuyển của user hiện tại (nếu đã đăng nhập)
+            // để hiển thị icon trái tim đã tô màu và nhãn "Đã ứng tuyển" trên từng thẻ job.
+            var savedJobIds = new HashSet<int>();
+            var appliedJobIds = new HashSet<int>();
+            if (User.Identity?.IsAuthenticated == true &&
+                int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int curUserId))
+            {
+                savedJobIds = (await _db.SavedJobs
+                    .Where(s => s.UserId == curUserId)
+                    .Select(s => s.JobId)
+                    .ToListAsync()).ToHashSet();
+
+                var profile = await _db.CandidateProfiles.FirstOrDefaultAsync(p => p.UserId == curUserId);
+                if (profile != null)
+                {
+                    appliedJobIds = (await _db.Applications
+                        .Where(a => a.ProfileId == profile.ProfileId && a.Status != "Rejected")
+                        .Select(a => a.JobId)
+                        .ToListAsync()).ToHashSet();
+                }
+            }
+            ViewBag.SavedJobIds = savedJobIds;
+            ViewBag.AppliedJobIds = appliedJobIds;
+
             // Nếu là gọi AJAX (lọc/tìm kiếm/phân trang không tải lại cả trang),
             // chỉ trả về phần danh sách kết quả + phân trang.
             bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
@@ -243,6 +267,50 @@ namespace JobConnect.Controllers
             await _jobSvc.ToggleSaveAsync(userId, jobId);
 
             return RedirectToAction("Detail", new { id = jobId });
+        }
+
+        // [ADDED] Phiên bản AJAX của ToggleSave, dùng cho nút thả tim ở Trang chủ và
+        // trang danh sách Việc làm — trả JSON để không phải load lại trang.
+        // Validate antiforgery thủ công (không dùng [ValidateAntiForgeryToken]) theo
+        // đúng pattern của action Apply ở trên, để luôn trả JSON kể cả khi token lỗi.
+        [HttpPost]
+        public async Task<IActionResult> ToggleSaveAjax(int jobId)
+        {
+            try
+            {
+                try
+                {
+                    await _antiforgery.ValidateRequestAsync(HttpContext);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Json(new { success = false, message = "Phiên làm việc đã hết hạn, vui lòng tải lại trang." });
+                }
+
+                if (User.Identity?.IsAuthenticated != true)
+                {
+                    return Json(new { success = false, requireLogin = true, message = "Bạn cần đăng nhập để lưu việc làm." });
+                }
+
+                if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+                {
+                    return Json(new { success = false, requireLogin = true, message = "Bạn cần đăng nhập để lưu việc làm." });
+                }
+
+                bool saved = await _jobSvc.ToggleSaveAsync(userId, jobId);
+
+                return Json(new
+                {
+                    success = true,
+                    saved,
+                    message = saved ? "Đã lưu việc làm." : "Đã bỏ lưu việc làm."
+                });
+            }
+            catch (Exception ex)
+            {
+                var detail = ex.InnerException?.Message ?? ex.Message;
+                return Json(new { success = false, message = "Có lỗi xảy ra ở server: " + detail });
+            }
         }
     }
 }
