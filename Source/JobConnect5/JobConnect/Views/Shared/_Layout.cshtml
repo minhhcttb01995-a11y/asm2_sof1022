@@ -1,0 +1,718 @@
+@* [VIEW-HEADER-ADDED]
+   LAYOUT CHÍNH (khung trang chung) cho các trang PUBLIC — header, footer, menu điều
+// hướng. Mọi View public khác (Home, Job, Company, Blog...) đều kế thừa layout này.
+*@
+@using System.Security.Claims
+@{
+    var isAuthed = User.Identity?.IsAuthenticated == true;
+    var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+    var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var avatarUrl = User.FindFirst("AvatarURL")?.Value;
+    if (avatarUrl == "/img/default-avatar.png") avatarUrl = null; // avatar cũ chưa xóa -> coi như chưa có avatar
+    var currentPath = Context.Request.Path.Value ?? "";
+    bool IsActive(string path) => currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – JobConnect</title>
+    <partial name="_HeadAssets" />
+    <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/smooth-nav.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/loading-ui.css" asp-append-version="true" />
+    <style>
+            body {
+                margin: 0;
+                font-family: 'Inter','Segoe UI',sans-serif;
+                background: #f8fafc;
+                color: #1e293b;
+                /* Đảm bảo footer luôn nằm ở đáy trang, không bị "kéo lên" để lộ khoảng trắng
+                                                       khi nội dung trang ngắn hơn chiều cao màn hình. */
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .jc-main-content {
+                flex: 1 0 auto;
+            }
+
+            .jc-footer {
+                flex-shrink: 0;
+            }
+
+            .jc-navbar {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background: #ffffff;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .jc-navbar-inner {
+                max-width: 1600px;
+                margin: 0 auto;
+                padding: 0 24px;
+                height: 68px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 24px;
+            }
+
+            .jc-navbar-links {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .jc-navbar-link {
+                padding: 8px 14px;
+                border-radius: 8px;
+                font-weight: 500;
+                font-size: 0.925rem;
+                color: #475569;
+                text-decoration: none;
+                white-space: nowrap;
+            }
+
+                .jc-navbar-link:hover {
+                    background: #f1f5f9;
+                    color: #1e293b;
+                    text-decoration: none;
+                }
+
+                .jc-navbar-link.active {
+                    background: rgba(59,130,246,.1);
+                    color: #3b82f6;
+                }
+
+            .jc-navbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-shrink: 0;
+            }
+
+            .jc-btn {
+                padding: 8px 18px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+                border: none;
+            }
+
+            .jc-btn-primary {
+                background: #3b82f6;
+                color: #fff;
+            }
+
+                .jc-btn-primary:hover {
+                    background: #2563eb;
+                    color: #fff;
+                    text-decoration: none;
+                }
+
+            .jc-btn-ghost {
+                background: transparent;
+                color: #475569;
+                border: 1px solid #e2e8f0;
+            }
+
+                .jc-btn-ghost:hover {
+                    background: #f1f5f9;
+                    color: #1e293b;
+                    text-decoration: none;
+                }
+
+            .jc-user-menu {
+                position: relative;
+            }
+
+            .jc-user-trigger {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 6px 10px;
+                border-radius: 8px;
+            }
+
+                .jc-user-trigger:hover {
+                    background: #f1f5f9;
+                }
+
+            .jc-user-avatar {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                background: #e2e8f0;
+            }
+
+            .jc-user-dropdown {
+                display: none;
+                position: absolute;
+                right: 0;
+                top: calc(100% + 8px);
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                box-shadow: 0 12px 24px rgba(15,23,42,.12);
+                min-width: 200px;
+                padding: 6px;
+            }
+
+                .jc-user-dropdown.open {
+                    display: block;
+                }
+
+                .jc-user-dropdown a, .jc-user-dropdown button {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    width: 100%;
+                    padding: 9px 12px;
+                    border-radius: 8px;
+                    border: none;
+                    background: none;
+                    text-align: left;
+                    font-size: 0.875rem;
+                    color: #334155;
+                    text-decoration: none;
+                    cursor: pointer;
+                    font-family: inherit;
+                }
+
+                    .jc-user-dropdown a:hover, .jc-user-dropdown button:hover {
+                        background: #f1f5f9;
+                        text-decoration: none;
+                    }
+
+            .jc-mobile-toggle {
+                display: none;
+                width: 38px;
+                height: 38px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                background: #fff;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+
+            .jc-footer {
+                background: #0f172a;
+                color: #94a3b8;
+                padding: 48px 24px 24px;
+                margin-top: 60px;
+            }
+
+            .jc-footer-inner {
+                max-width: 1600px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: 1.4fr 1fr 1fr 1fr;
+                gap: 32px;
+            }
+
+            .jc-footer-brand {
+                color: #fff;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+
+            .jc-footer-col-title {
+                color: #fff;
+                font-weight: 600;
+                margin-bottom: 12px;
+                font-size: 0.925rem;
+            }
+
+            .jc-footer-links {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                font-size: 0.875rem;
+            }
+
+                .jc-footer-links a {
+                    color: #94a3b8;
+                    text-decoration: none;
+                }
+
+                    .jc-footer-links a:hover {
+                        color: #fff;
+                    }
+
+            .jc-footer-social {
+                display: flex;
+                gap: 10px;
+                margin-top: 16px;
+            }
+
+                .jc-footer-social a {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.08);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #fff;
+                    text-decoration: none;
+                    font-size: 1rem;
+                }
+
+                    .jc-footer-social a:hover {
+                        background: rgba(255,255,255,0.18);
+                    }
+
+            .jc-footer-bottom {
+                max-width: 1600px;
+                margin: 32px auto 0;
+                padding-top: 20px;
+                border-top: 1px solid #1e293b;
+                font-size: 0.825rem;
+                text-align: center;
+            }
+
+            @@media (max-width: 900px) {
+                .jc-footer-inner {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+
+            @@media (max-width: 560px) {
+                .jc-footer-inner {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @@media (max-width: 900px) {
+                .jc-navbar-links {
+                    display: none;
+                }
+
+                .jc-mobile-toggle {
+                    display: flex;
+                }
+            }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+    <partial name="_ResponsiveAndSkeleton" />
+</head>
+<body class="antialiased" data-jc-layout="public">
+    <nav class="jc-navbar">
+        <div class="jc-navbar-inner">
+            <div style="display:flex;align-items:center;gap:28px;min-width:0;">
+                <a asp-controller="Home" asp-action="Index" style="display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;">
+                    <span class="material-symbols-outlined" style="color:#3b82f6;font-size:1.75rem;">work</span>
+                    <span style="font-weight:800;font-size:1.15rem;color:#1e293b;">JobConnect</span>
+                </a>
+                <div class="jc-navbar-links">
+                    <a asp-controller="Home" asp-action="Index" class="jc-navbar-link @(currentPath == "/" ? "active" : "")">Trang chủ</a>
+                    <a asp-controller="Job" asp-action="Index" class="jc-navbar-link @(IsActive("/Job") ? "active" : "")">Việc làm</a>
+                    <a asp-controller="Company" asp-action="Index" class="jc-navbar-link @(IsActive("/Company") ? "active" : "")">Công ty</a>
+                    <a asp-controller="Blog" asp-action="Index" class="jc-navbar-link @(IsActive("/Blog") ? "active" : "")">Blog</a>
+                </div>
+            </div>
+
+            <div class="jc-navbar-actions">
+                @if (isAuthed)
+                {
+                    <div class="jc-notif-bell">
+                        <button type="button" class="jc-notif-trigger" onclick="jcToggleNotifDropdown()">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span id="jcNotifBadge" class="jc-notif-badge" style="display:none;">0</span>
+                        </button>
+                        <div class="jc-notif-dropdown" id="jcNotifDropdown">
+                            <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-weight:800;color:#1e293b;font-size:0.9rem;">
+                                Thông báo
+                            </div>
+                            <div id="jcNotifList" style="max-height:360px;overflow-y:auto;">
+                                <div style="padding:24px;text-align:center;color:#94a3b8;font-size:0.85rem;">Đang tải...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="jc-user-menu">
+                        <button type="button" class="jc-user-trigger" onclick="document.getElementById('jcUserDropdown').classList.toggle('open')">
+                            @await Html.PartialAsync("_Avatar", new JobConnect.Helpers.AvatarViewModel { ImageUrl = avatarUrl, Name = userName, SizePx = 32 })
+                            <span style="font-weight:600;font-size:0.9rem;color:#1e293b;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@userName</span>
+                            <span class="material-symbols-outlined" style="font-size:1.1rem;color:#94a3b8;">expand_more</span>
+                        </button>
+                        <div class="jc-user-dropdown" id="jcUserDropdown">
+                            <div style="padding:10px 12px 8px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;">
+                                <div style="font-weight:700;font-size:0.9rem;color:#1e293b;">@userName</div>
+                                <div style="font-size:0.8rem;color:#94a3b8;">
+                                    @(userRole == "Candidate" ? "Ứng viên" : userRole == "Employer" ? "Nhà tuyển dụng" : userRole == "Staff" ? "Nhân viên" : userRole == "Admin" ? "Quản trị viên" : userRole)
+                                </div>
+                            </div>
+                            @if (userRole == "Admin")
+                            {
+                                <a asp-controller="Admin" asp-action="Index"><span class="material-symbols-outlined" style="font-size:1.1rem;">admin_panel_settings</span> Trang quản trị</a>
+                            }
+                            else if (userRole == "Staff")
+                            {
+                                <a asp-controller="StaffDashboard" asp-action="Index"><span class="material-symbols-outlined" style="font-size:1.1rem;">badge</span> Trang nhân viên</a>
+                            }
+                            else if (userRole == "Employer")
+                            {
+                                <a asp-controller="Employer" asp-action="Dashboard"><span class="material-symbols-outlined" style="font-size:1.1rem;">apartment</span> Trang nhà tuyển dụng</a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Candidate" asp-action="Profile"><span class="material-symbols-outlined" style="font-size:1.1rem;">person</span> Hồ sơ của tôi</a>
+                                <a asp-controller="Candidate" asp-action="Skills"><span class="material-symbols-outlined" style="font-size:1.1rem;">psychology</span> Kỹ năng</a>
+                                <a asp-controller="Candidate" asp-action="Applications"><span class="material-symbols-outlined" style="font-size:1.1rem;">send</span> Đơn ứng tuyển</a>
+                                <a asp-controller="Candidate" asp-action="SavedJobs"><span class="material-symbols-outlined" style="font-size:1.1rem;">bookmark</span> Việc đã lưu</a>
+                                <a asp-controller="Candidate" asp-action="FollowedCompanies"><span class="material-symbols-outlined" style="font-size:1.1rem;">apartment</span> Công ty đang theo dõi</a>
+                                <a asp-controller="Candidate" asp-action="Notifications"><span class="material-symbols-outlined" style="font-size:1.1rem;">notifications</span> Thông báo</a>
+                                <a asp-controller="Chat" asp-action="Index"><span class="material-symbols-outlined" style="font-size:1.1rem;">support_agent</span> Tin nhắn hỗ trợ</a>
+                            }
+                            <a asp-controller="Account" asp-action="Settings"><span class="material-symbols-outlined" style="font-size:1.1rem;">settings</span> Cài đặt tài khoản</a>
+                            <form asp-controller="Account" asp-action="Logout" method="post" id="jcLogoutForm">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" style="color:#ef4444;"><span class="material-symbols-outlined" style="font-size:1.1rem;">logout</span> Đăng xuất</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="/Account/Login" class="jc-btn jc-btn-ghost" data-no-ajax onclick="jcOpenAuth(event, 'login')">Đăng nhập</a>
+                    <a href="/Account/Register" class="jc-btn jc-btn-primary" data-no-ajax onclick="jcOpenAuth(event, 'register')">Đăng ký</a>
+                }
+                <button type="button" class="jc-mobile-toggle" id="jcMobileToggle">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    @{
+        ViewData["FlashInline"] = true;
+    }
+    <main class="jc-main-content" data-jc-content>
+        <partial name="_FlashMessages" />
+
+        @RenderBody()
+    </main>
+
+    <footer class="jc-footer">
+        <div class="jc-footer-inner">
+            <div style="max-width:340px;">
+                <div class="jc-footer-brand">JobConnect</div>
+                <p style="font-size:0.875rem;line-height:1.6;margin-top:8px;">Nền tảng kết nối ứng viên và nhà tuyển dụng hàng đầu Việt Nam.</p>
+                <p style="font-size:0.825rem;line-height:1.8;margin-top:16px;">
+                    Email: support@jobconnect.vn<br />
+                    Địa chỉ: Hà Nội, Việt Nam
+                </p>
+                <div class="jc-footer-social">
+                    <a href="#" aria-label="Facebook"><span class="material-symbols-outlined" style="font-size:1.1rem;">thumb_up</span></a>
+                    <a href="#" aria-label="YouTube"><span class="material-symbols-outlined" style="font-size:1.1rem;">smart_display</span></a>
+                    <a href="#" aria-label="LinkedIn"><span class="material-symbols-outlined" style="font-size:1.1rem;">work</span></a>
+                    <a href="#" aria-label="TikTok"><span class="material-symbols-outlined" style="font-size:1.1rem;">music_note</span></a>
+                </div>
+            </div>
+            <div>
+                <div class="jc-footer-col-title">Khám phá</div>
+                <div class="jc-footer-links">
+                    <a asp-controller="Job" asp-action="Index">Việc làm</a>
+                    <a asp-controller="Company" asp-action="Index">Công ty</a>
+                    <a asp-controller="Blog" asp-action="Index">Blog</a>
+                </div>
+            </div>
+            <div>
+                <div class="jc-footer-col-title">Dành cho ứng viên</div>
+                <div class="jc-footer-links">
+                    <a asp-controller="Account" asp-action="Register">Đăng ký ứng viên</a>
+                    <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                    <a asp-controller="Candidate" asp-action="CvManager">Quản lý CV</a>
+                    <a asp-controller="Candidate" asp-action="AiCvBuilder">Tạo CV bằng AI</a>
+                </div>
+            </div>
+            <div>
+                <div class="jc-footer-col-title">Dành cho nhà tuyển dụng</div>
+                <div class="jc-footer-links">
+                    <a asp-controller="Account" asp-action="RegisterEmployer">Đăng ký nhà tuyển dụng</a>
+                    <a asp-controller="Employer" asp-action="PostJob">Đăng tin tuyển dụng</a>
+                    <a asp-controller="Employer" asp-action="Dashboard">Quản lý tuyển dụng</a>
+                </div>
+            </div>
+        </div>
+        <div class="jc-footer-bottom">
+            &copy; @DateTime.Now.Year JobConnect. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- ===== Modal Đăng nhập / Đăng ký (dùng chung mọi trang) ===== -->
+    <div id="jcAuthOverlay" class="jc-auth-overlay" onclick="if(event.target===this) jcCloseAuth()">
+        <div class="jc-auth-modal">
+            <button type="button" class="jc-auth-close" onclick="jcCloseAuth()" aria-label="Đóng">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="jc-auth-header">
+                <a href="/" class="jc-auth-logo">
+                    <span class="material-symbols-outlined" style="font-size:1.8rem;color:#3b82f6;">bolt</span>
+                    JobConnect
+                </a>
+                <h2 id="jcAuthTitle" class="jc-auth-title">Đăng nhập</h2>
+            </div>
+            <div id="jcAuthBody" class="jc-auth-body">
+                <div class="jc-auth-loading">
+                    <span class="material-symbols-outlined" style="font-size:2rem;color:#94a3b8;animation:jc-spin 1s linear infinite;">progress_activity</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+            .jc-auth-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15,23,42,.55);
+                backdrop-filter: blur(4px);
+                z-index: 1000;
+                align-items: flex-start;
+                justify-content: center;
+                overflow-y: auto;
+                padding: 40px 16px;
+            }
+
+                .jc-auth-overlay.open {
+                    display: flex;
+                }
+
+            .jc-auth-modal {
+                position: relative;
+                background: #ffffff;
+                border-radius: 20px;
+                width: 100%;
+                max-width: 480px;
+                padding: 32px;
+                box-shadow: 0 30px 60px -12px rgba(15,23,42,.35);
+                animation: jc-pop .18s ease;
+            }
+
+                .jc-auth-modal.jc-auth-wide {
+                    max-width: 620px;
+                }
+
+            .jc-auth-close {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: none;
+                background: #f1f5f9;
+                color: #475569;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+
+                .jc-auth-close:hover {
+                    background: #e2e8f0;
+                    color: #1e293b;
+                }
+
+            .jc-auth-header {
+                text-align: center;
+                margin-bottom: 24px;
+            }
+
+            .jc-auth-logo {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 800;
+                font-size: 1.15rem;
+                color: #1e293b;
+                text-decoration: none;
+            }
+
+            .jc-auth-title {
+                margin-top: 10px;
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #1e293b;
+            }
+
+            .jc-auth-loading {
+                display: flex;
+                justify-content: center;
+                padding: 40px 0;
+            }
+
+            @@keyframes jc-pop {
+                from {
+                    opacity: 0;
+                    transform: scale(.96) translateY(6px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            @@keyframes jc-spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            body.jc-modal-open {
+                overflow: hidden;
+            }
+    </style>
+
+    <script>
+            const jcAuthOverlay = document.getElementById('jcAuthOverlay');
+            const jcAuthBody = document.getElementById('jcAuthBody');
+            const jcAuthTitle = document.getElementById('jcAuthTitle');
+            const jcAuthModal = document.querySelector('.jc-auth-modal');
+
+            const jcAuthConfig = {
+                'login': { url: '/Account/Login', title: 'Đăng nhập', wide: false },
+                'register': { url: '/Account/Register', title: 'Đăng ký ứng viên', wide: false },
+                'register-employer': { url: '/Account/RegisterEmployer', title: 'Đăng ký Nhà tuyển dụng', wide: true }
+            };
+
+            // [ĐÃ BỎ] Hàm toggleSaveJob (thả tim lưu việc làm) từng nằm ở đây.
+
+            async function jcOpenAuth(e, type) {
+                if (e) e.preventDefault();
+                const cfg = jcAuthConfig[type];
+                if (!cfg) return;
+
+                jcAuthTitle.textContent = cfg.title;
+                jcAuthModal.classList.toggle('jc-auth-wide', !!cfg.wide);
+                jcAuthBody.innerHTML = '<div class="jc-auth-loading"><span class="material-symbols-outlined" style="font-size:2rem;color:#94a3b8;animation:jc-spin 1s linear infinite;">progress_activity</span></div>';
+
+                document.body.classList.add('jc-modal-open');
+                jcAuthOverlay.classList.add('open');
+
+                try {
+                    const res = await fetch(cfg.url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const contentType = res.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await res.json();
+                        if (data.redirectUrl) window.location.href = data.redirectUrl;
+                        return;
+                    }
+                    jcAuthBody.innerHTML = await res.text();
+                    jcBindAuthForm(type);
+                } catch (err) {
+                    jcAuthBody.innerHTML = '<p class="text-rose-600 text-sm text-center">Không thể tải form. Vui lòng thử lại.</p>';
+                }
+            }
+
+            function jcCloseAuth() {
+                jcAuthOverlay.classList.remove('open');
+                document.body.classList.remove('jc-modal-open');
+            }
+
+            function jcTogglePwd(inputId, iconId) {
+                const input = document.getElementById(inputId);
+                const icon = document.getElementById(iconId);
+                if (!input || !icon) return;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.textContent = 'visibility';
+                } else {
+                    input.type = 'password';
+                    icon.textContent = 'visibility_off';
+                }
+            }
+
+            function jcBindAuthForm(type) {
+                const form = document.getElementById('authForm');
+                if (!form) return;
+
+                // Bật lại jQuery Unobtrusive Validation cho form vừa load qua AJAX (nếu có)
+                if (window.jQuery && $.validator && $.validator.unobtrusive) {
+                    $.validator.unobtrusive.parse(form);
+                }
+
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalHtml = submitBtn ? submitBtn.innerHTML : null;
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1" style="animation:jc-spin 1s linear infinite;">progress_activity</span> Đang xử lý...';
+                    }
+
+                    try {
+                        const res = await fetch(form.action, {
+                            method: 'POST',
+                            body: new FormData(form),
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const contentType = res.headers.get('content-type') || '';
+
+                        if (contentType.includes('application/json')) {
+                            const data = await res.json();
+                            if (data.success) {
+                                window.location.href = data.redirectUrl || '/';
+                                return;
+                            }
+                        }
+
+                        // Trả lại HTML (có lỗi validate / lỗi nghiệp vụ) -> render lại form trong modal
+                        jcAuthBody.innerHTML = await res.text();
+                        jcBindAuthForm(type);
+                    } catch (err) {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHtml;
+                        }
+                        alert('Có lỗi xảy ra, vui lòng thử lại.');
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && jcAuthOverlay.classList.contains('open')) jcCloseAuth();
+            });
+    </script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script src="~/js/smooth-nav.js" asp-append-version="true"></script>
+    <script src="~/js/loading-ui.js" asp-append-version="true"></script>
+    <script>
+            document.addEventListener('click', function(e) {
+                var dropdown = document.getElementById('jcUserDropdown');
+                var trigger = document.querySelector('.jc-user-trigger');
+                if (!dropdown) return;
+                if (trigger && trigger.contains(e.target)) return;
+                if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+            });
+    </script>
+    @if (isAuthed)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+        <script src="~/js/notifications-realtime.js" asp-append-version="true"></script>
+    }
+    <div id="jc-page-scripts">@await RenderSectionAsync("Scripts", required: false)</div>
+</body>
+</html>

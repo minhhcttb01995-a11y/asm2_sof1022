@@ -1,0 +1,458 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "PostJob" trong khu vực trang quản lý Nhà tuyển dụng (EmployerController).
+*@
+@model JobConnect.Models.JobPost
+@{
+    ViewData["Title"] = "Đăng tin tuyển dụng";
+    Layout = "_LayoutEmployer";
+}
+
+<!-- Quill CSS -->
+<link href="/lib/quill/quill.snow.css" rel="stylesheet" />
+<style>
+    .ql-toolbar.ql-snow {
+        border-radius: 12px 12px 0 0;
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .ql-container.ql-snow {
+        border-radius: 0 0 12px 12px;
+        border-color: #e2e8f0;
+        font-size: 14px;
+    }
+
+    .ql-editor {
+        min-height: 320px;
+        line-height: 1.75;
+    }
+
+        .ql-editor.ql-blank::before {
+            color: #94a3b8;
+            font-style: normal;
+        }
+</style>
+
+<div class="max-w-[1300px] mx-auto pb-10">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="ManageJobs"
+           class="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1e293b] border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined text-xl">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-xl font-bold text-white">Đăng tin tuyển dụng</h1>
+            <p class="text-sm text-slate-400">Tạo tin tuyển dụng mới để thu hút ứng viên</p>
+        </div>
+    </div>
+
+    <form asp-action="PostJob" method="post" id="jobForm">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-5"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- Cột chính -->
+            <div class="lg:col-span-2 space-y-5">
+
+                <!-- Thông tin cơ bản -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">edit_note</span>
+                        Thông tin cơ bản
+                    </h3>
+
+                    <div class="space-y-1 mb-4">
+                        <label class="block text-sm font-medium text-slate-300">
+                            Tiêu đề công việc <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Title" id="titleInput" placeholder="VD: Senior Backend Developer" required
+                               class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        <div class="flex justify-between mt-1">
+                            <span asp-validation-for="Title" class="text-red-500 text-xs"></span>
+                            <span class="text-xs text-slate-400" id="titleCount">0 / 120</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Loại công việc</label>
+                            <select asp-for="JobType"
+                                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+                                <option value="FullTime">Full-time</option>
+                                <option value="PartTime">Part-time</option>
+                                <option value="Contract">Hợp đồng</option>
+                                <option value="Intern">Thực tập</option>
+                                <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Cấp bậc kinh nghiệm</label>
+                            <select asp-for="ExperienceLevel"
+                                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+                                <option value="">Không yêu cầu</option>
+                                <option value="Fresher">Fresher</option>
+                                <option value="Junior">Junior</option>
+                                <option value="Middle">Middle</option>
+                                <option value="Senior">Senior</option>
+                                <option value="Manager">Manager</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Địa điểm làm việc</label>
+                            <input asp-for="Location" placeholder="VD: Hà Nội, TP. HCM"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Ngành nghề</label>
+                            <select asp-for="CategoryID"
+                                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+                                <option value="">Chọn ngành nghề</option>
+                                @foreach (var cat in (ViewBag.Categories as List<JobConnect.Models.Category> ?? new()))
+                                {
+                                    <option value="@cat.CategoryID">@cat.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lương & Thời hạn -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">payments</span>
+                        Lương &amp; Thời hạn
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Lương tối thiểu (VND)</label>
+                            <input asp-for="SalaryMin" type="number" min="0" placeholder="VD: 15000000"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Lương tối đa (VND)</label>
+                            <input asp-for="SalaryMax" type="number" min="0" placeholder="VD: 30000000"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                        <div id="salaryErrorBox" class="hidden md:col-span-3 -mt-1">
+                            <p id="salaryErrorText" class="text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2"></p>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-slate-300">Ngày hết hạn</label>
+                            <input asp-for="Deadline" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                                   class="w-full px-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nội dung chi tiết -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">description</span>
+                        Nội dung chi tiết
+                    </h3>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Mô tả công việc <span class="text-red-500">*</span>
+                        </label>
+                        <input type="hidden" asp-for="Description" id="descriptionHidden" />
+                        <div id="descriptionEditor" class="rounded-xl overflow-hidden border border-slate-700"></div>
+                        <span asp-validation-for="Description" class="text-red-500 text-xs mt-1 block"></span>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            Hỗ trợ định dạng văn bản, heading, danh sách, link và hình ảnh
+                        </p>
+                    </div>
+
+                    <div class="space-y-1 mt-5">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Yêu cầu ứng viên <span class="text-red-500">*</span>
+                        </label>
+                        <input type="hidden" asp-for="Requirements" id="requirementsHidden" />
+                        <div id="requirementsEditor" class="rounded-xl overflow-hidden border border-slate-700"></div>
+                        <span asp-validation-for="Requirements" class="text-red-500 text-xs mt-1 block"></span>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            VD: số năm kinh nghiệm, bằng cấp, kỹ năng bắt buộc, ngoại ngữ...
+                        </p>
+                    </div>
+
+                    <div class="space-y-1 mt-5">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Quyền lợi ứng viên <span class="text-red-500">*</span>
+                        </label>
+                        <input type="hidden" asp-for="Benefits" id="benefitsHidden" />
+                        <div id="benefitsEditor" class="rounded-xl overflow-hidden border border-slate-700"></div>
+                        <span asp-validation-for="Benefits" class="text-red-500 text-xs mt-1 block"></span>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">info</span>
+                            VD: lương thưởng, bảo hiểm, lộ trình thăng tiến, chế độ nghỉ phép...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phụ -->
+            <div class="space-y-5">
+
+                <!-- Gửi duyệt -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm lg:sticky lg:top-5">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">send</span>
+                        Gửi duyệt
+                    </h3>
+                    <div class="flex items-start gap-2 px-3 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-300 mb-4">
+                        <span class="material-symbols-outlined text-sm mt-0.5">info</span>
+                        <span>Tin đăng sẽ được gửi cho quản trị viên duyệt trước khi hiển thị công khai.</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button type="submit"
+                                class="w-full px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-base">send</span>
+                            Gửi tin để duyệt
+                        </button>
+                        <a asp-action="ManageJobs"
+                           class="w-full text-center px-4 py-2.5 border border-slate-700 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-700 transition-colors">
+                            Hủy
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quy mô công ty -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">groups</span>
+                        Quy mô công ty
+                    </h3>
+                    @{
+                        var companySize = ViewBag.CompanySize as string;
+                        var companySizeLabel = companySize switch
+                        {
+                            "1-10" => "1 - 10 nhân viên",
+                            "11-50" => "11 - 50 nhân viên",
+                            "51-200" => "51 - 200 nhân viên",
+                            "200+" => "Trên 200 nhân viên",
+                            _ => null
+                        };
+                    }
+                    @if (companySizeLabel != null)
+                    {
+                        <p class="text-sm font-medium text-slate-100">@companySizeLabel</p>
+                    }
+                    else
+                    {
+                        <p class="text-sm text-slate-400 italic">Chưa cập nhật quy mô công ty</p>
+                    }
+                    <a asp-action="CompanyProfile"
+                       class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        Sửa tại Hồ sơ công ty
+                    </a>
+                </div>
+
+                <!-- Mẹo viết tin -->
+                <div class="bg-[#1e293b] rounded-2xl border border-slate-700 p-5 shadow-sm">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-500 text-base">lightbulb</span>
+                        Mẹo viết tin hiệu quả
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-400 leading-relaxed">
+                        <li class="flex gap-2">
+                            <span class="w-1.5 h-1.5 mt-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                            Tiêu đề ngắn gọn, nêu rõ vị trí và cấp bậc.
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="w-1.5 h-1.5 mt-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                            Mô tả công việc càng chi tiết, ứng viên phù hợp càng dễ tìm thấy tin.
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="w-1.5 h-1.5 mt-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                            Ghi rõ mức lương giúp tăng tỷ lệ ứng tuyển.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="/lib/quill/quill.js"></script>
+<script>
+    const titleInput = document.getElementById('titleInput');
+    const titleCount = document.getElementById('titleCount');
+    if (titleInput && titleCount) {
+        const updateCount = () => titleCount.textContent = titleInput.value.length + ' / 120';
+        titleInput.addEventListener('input', updateCount);
+        updateCount();
+    }
+
+    // Khởi tạo Quill an toàn: nếu Quill không tải/không chạy được (mạng, lỗi JS...),
+    // tự động thay bằng ô textarea thường để người dùng vẫn gõ được nội dung.
+    function createRichEditor(editorId, hiddenId, quillOptions) {
+        const editorEl = document.getElementById(editorId);
+        const hiddenEl = document.getElementById(hiddenId);
+        try {
+            if (typeof Quill === 'undefined') throw new Error('Quill chưa tải được');
+            const quill = new Quill('#' + editorId, quillOptions);
+            if (hiddenEl && hiddenEl.value) {
+                quill.root.innerHTML = hiddenEl.value;
+            }
+            return {
+                getText: () => quill.getText().trim(),
+                syncToHidden: () => { hiddenEl.value = quill.root.innerHTML; }
+            };
+        } catch (err) {
+            console.error('Không khởi tạo được Quill cho #' + editorId + ', chuyển sang ô nhập chữ thường.', err);
+            const textarea = document.createElement('textarea');
+            textarea.id = editorId;
+            textarea.rows = 8;
+            textarea.className = 'w-full px-4 py-3 rounded-xl border border-slate-700 bg-[#0f172a] text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary';
+            textarea.placeholder = (quillOptions && quillOptions.placeholder) || '';
+            textarea.value = hiddenEl && hiddenEl.value ? hiddenEl.value.replace(/<[^>]*>/g, ' ') : '';
+            editorEl.replaceWith(textarea);
+            return {
+                getText: () => textarea.value.trim(),
+                syncToHidden: () => { hiddenEl.value = textarea.value; }
+            };
+        }
+    }
+
+    // Toolbar đầy đủ chức năng cho Mô tả công việc
+    const descriptionEditor = createRichEditor('descriptionEditor', 'descriptionHidden', {
+        theme: 'snow',
+        placeholder: 'Mô tả chi tiết về vị trí công việc...',
+        modules: {
+            toolbar: [
+                [{ header: [2, 3, 4, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ color: [] }, { background: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ indent: '-1' }, { indent: '+1' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+
+    const simpleToolbar = [
+        [{ header: [3, 4, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean']
+    ];
+
+    const requirementsEditor = createRichEditor('requirementsEditor', 'requirementsHidden', {
+        theme: 'snow',
+        placeholder: 'VD: Có 2-4 năm kinh nghiệm ở vị trí tương đương. Thành thạo ... Tốt nghiệp Đại học chuyên ngành liên quan...',
+        modules: { toolbar: simpleToolbar }
+    });
+
+    const benefitsEditor = createRichEditor('benefitsEditor', 'benefitsHidden', {
+        theme: 'snow',
+        placeholder: 'VD: Lương thỏa thuận theo năng lực. Thưởng hiệu suất theo quý. BHXH/BHYT/BHTN đầy đủ. Lộ trình thăng tiến rõ ràng...',
+        modules: { toolbar: simpleToolbar }
+    });
+
+    // ─── Kiểm tra logic Lương tối thiểu / tối đa (chặn ngay khi nhập sai logic) ───
+    const salaryMinInput = document.getElementById('SalaryMin');
+    const salaryMaxInput = document.getElementById('SalaryMax');
+    const salaryErrorBox = document.getElementById('salaryErrorBox');
+    const salaryErrorText = document.getElementById('salaryErrorText');
+
+    // LỖI CỨNG: bắt buộc phải chặn đăng vì dữ liệu vô lý/không thể chấp nhận (âm, Min>Max).
+    function getSalaryHardError() {
+        const minVal = salaryMinInput.value === '' ? null : Number(salaryMinInput.value);
+        const maxVal = salaryMaxInput.value === '' ? null : Number(salaryMaxInput.value);
+
+        if (minVal !== null && minVal < 0) return 'Lương tối thiểu không được là số âm.';
+        if (maxVal !== null && maxVal < 0) return 'Lương tối đa không được là số âm.';
+        if (minVal !== null && maxVal !== null && minVal > maxVal) {
+            return 'Lương tối thiểu (' + minVal.toLocaleString('vi-VN') + ' VNĐ) đang LỚN HƠN lương tối đa (' + maxVal.toLocaleString('vi-VN') + ' VNĐ). Đây là dữ liệu sai logic, vui lòng nhập lại.';
+        }
+        return null;
+    }
+
+    // CẢNH BÁO: chỉ nhắc nhở, không chặn đăng (có thể là case hợp lệ: lương KPI/hoa hồng, C-level...).
+    function getSalaryWarning() {
+        const minVal = salaryMinInput.value === '' ? null : Number(salaryMinInput.value);
+        const maxVal = salaryMaxInput.value === '' ? null : Number(salaryMaxInput.value);
+
+        if (minVal !== null && maxVal !== null && minVal > 0 && maxVal / minVal >= 10) {
+            return 'Lưu ý: khoảng lương chênh lệch khá lớn (tối đa gấp ' + Math.round(maxVal / minVal) + ' lần tối thiểu) — Staff kiểm duyệt có thể yêu cầu giải thích thêm.';
+        }
+        if (maxVal !== null && maxVal >= 100000000) {
+            return 'Lưu ý: lương tối đa từ 100.000.000 VNĐ/tháng trở lên — Staff kiểm duyệt có thể yêu cầu xác minh thêm.';
+        }
+        return null;
+    }
+
+    // Trả về lỗi cứng nếu có (ưu tiên hiển thị), không thì trả về cảnh báo nếu có.
+    function validateSalaryLive() {
+        const hardError = getSalaryHardError();
+        const warning = !hardError ? getSalaryWarning() : null;
+        const msg = hardError || warning;
+
+        if (msg) {
+            salaryErrorText.textContent = msg;
+            salaryErrorBox.classList.remove('hidden');
+        } else {
+            salaryErrorBox.classList.add('hidden');
+        }
+
+        if (hardError) {
+            salaryMinInput.classList.add('border-red-500');
+            salaryMaxInput.classList.add('border-red-500');
+            salaryErrorText.classList.remove('text-amber-400', 'bg-amber-500/10', 'border-amber-500/30');
+            salaryErrorText.classList.add('text-red-400', 'bg-red-500/10', 'border-red-500/30');
+        } else {
+            salaryMinInput.classList.remove('border-red-500');
+            salaryMaxInput.classList.remove('border-red-500');
+            if (warning) {
+                salaryErrorText.classList.remove('text-red-400', 'bg-red-500/10', 'border-red-500/30');
+                salaryErrorText.classList.add('text-amber-400', 'bg-amber-500/10', 'border-amber-500/30');
+            }
+        }
+        // Chỉ lỗi cứng mới được phép chặn submit; hàm gọi ngoài sẽ check giá trị trả về này.
+        return hardError;
+    }
+
+    if (salaryMinInput && salaryMaxInput) {
+        salaryMinInput.addEventListener('input', validateSalaryLive);
+        salaryMaxInput.addEventListener('input', validateSalaryLive);
+    }
+
+    // Đồng bộ nội dung Mô tả/Yêu cầu/Quyền lợi → hidden input trước khi submit
+    document.getElementById('jobForm').addEventListener('submit', function(e) {
+        if (descriptionEditor.getText().length === 0) {
+            e.preventDefault();
+            alert('Vui lòng nhập mô tả công việc!');
+            return;
+        }
+        if (requirementsEditor.getText().length === 0) {
+            e.preventDefault();
+            alert('Vui lòng nhập yêu cầu ứng viên!');
+            return;
+        }
+        if (benefitsEditor.getText().length === 0) {
+            e.preventDefault();
+            alert('Vui lòng nhập quyền lợi ứng viên!');
+            return;
+        }
+        const salaryMsg = validateSalaryLive();
+        if (salaryMsg) {
+            e.preventDefault();
+            salaryErrorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            alert(salaryMsg);
+            return;
+        }
+        descriptionEditor.syncToHidden();
+        requirementsEditor.syncToHidden();
+        benefitsEditor.syncToHidden();
+    });
+</script>

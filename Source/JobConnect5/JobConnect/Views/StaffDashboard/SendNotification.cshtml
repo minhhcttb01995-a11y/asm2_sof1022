@@ -1,0 +1,88 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "SendNotification" trong khu vực trang làm việc của Staff (StaffDashboardController).
+*@
+@{
+    ViewData["Title"] = "Gửi Thông báo";
+    Layout = "_StaffLayout";
+}
+
+<div class="glass-card rounded-xl p-6 mb-6">
+    <h2 class="text-2xl font-bold mb-6">Gửi thông báo hàng loạt</h2>
+    
+    <form asp-action="SendNotification" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="grid grid-cols-1 gap-6">
+            <div>
+                <label class="block text-sm text-gray-400 mb-2">Tiêu đề</label>
+                <input name="title" type="text" required placeholder="Nhập tiêu đề thông báo..."
+                       class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500" />
+            </div>
+            
+            <div>
+                <label class="block text-sm text-gray-400 mb-2">Nội dung</label>
+                <textarea name="content" rows="5" required placeholder="Nhập nội dung thông báo..."
+                          class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"></textarea>
+            </div>
+            
+            <div>
+                <label class="block text-sm text-gray-400 mb-2">Đối tượng nhận</label>
+                <select id="targetSelect" name="target" onchange="jcToggleSpecificEmails()"
+                        class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+                    <option value="All">Tất cả người dùng</option>
+                    <option value="Candidate">Ứng viên</option>
+                    <option value="Employer">Nhà tuyển dụng</option>
+                    <option value="Specific">Người cụ thể (1 hoặc nhiều người)</option>
+                </select>
+            </div>
+
+            <div id="specificEmailsBox" style="display:none;">
+                <label class="block text-sm text-gray-400 mb-2">Email người nhận</label>
+                <textarea name="specificEmails" rows="3" placeholder="Nhập email, cách nhau bằng dấu phẩy hoặc xuống dòng.&#10;VD: nguyenvana@gmail.com, congty@abc.com"
+                          class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"></textarea>
+                <p class="text-xs text-gray-500 mt-1">Có thể nhập 1 email (gửi cho 1 người) hoặc nhiều email (gửi cho nhiều người cùng lúc).</p>
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="submit" 
+                        class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                    Gửi thông báo
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function jcToggleSpecificEmails() {
+        var target = document.getElementById('targetSelect').value;
+        document.getElementById('specificEmailsBox').style.display = target === 'Specific' ? 'block' : 'none';
+    }
+</script>
+
+<!-- Recent Notifications -->
+<div class="glass-card rounded-xl p-6">
+    <h3 class="text-lg font-semibold mb-4">Thông báo gần đây</h3>
+    <div class="space-y-3">
+        <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+            <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <span class="material-icons text-blue-600 text-sm">notifications</span>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-medium">Chào mừng đến với JobConnect</p>
+                <p class="text-xs text-gray-400">Gửi đến: Tất cả người dùng</p>
+            </div>
+            <p class="text-xs text-gray-500">Hôm nay</p>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+            <div class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                <span class="material-icons text-green-600 text-sm">check_circle</span>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-medium">Tính năng mới đã được cập nhật</p>
+                <p class="text-xs text-gray-400">Gửi đến: Ứng viên</p>
+            </div>
+            <p class="text-xs text-gray-500">Hôm qua</p>
+        </div>
+    </div>
+</div>

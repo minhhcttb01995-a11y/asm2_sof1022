@@ -1,0 +1,336 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "Register" trong khu vực quản lý tài khoản (AccountController).
+*@
+@model JobConnect.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký – JobConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+        theme: {
+        extend: {
+        colors: {
+        primary: '#3b82f6',
+        dark: '#f8fafc',
+        card: '#ffffff',
+        }
+        }
+        }
+        }
+    </script>
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+
+        body {
+        font-family: 'Inter', sans-serif;
+        background: #f1f5f9;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        }
+
+                                        /* GLASS CARD */
+        .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(59, 130, 246, 0.08) inset;
+        }
+
+        .glass-card:hover {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 30px 60px -12px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-field {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: #f1f5f9;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        outline: none;
+        transition: all 0.2s ease;
+        color: #0f172a;
+        }
+
+        .input-field:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-field::placeholder {
+        color: #475569;
+        }
+
+        .label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+        }
+
+        /* Animated gradient orbs */
+        .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        z-index: 0;
+        pointer-events: none;
+        }
+
+        .orb-1 {
+        width: 400px;
+        height: 400px;
+        background: #3b82f6;
+        top: -150px;
+        right: -150px;
+        }
+
+        .orb-2 {
+        width: 500px;
+        height: 500px;
+        background: #8b5cf6;
+        bottom: -200px;
+        left: -200px;
+        }
+
+        .orb-3 {
+        width: 300px;
+        height: 300px;
+        background: #06b6d4;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+        width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+        background: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Orbs trang trí -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Container hiệu ứng mưa -->
+    <!-- Logo + tagline -->
+    <div class="relative z-10 text-center mb-8 pt-8">
+        <a href="/" class="inline-flex items-center gap-2 text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            <span class="material-symbols-outlined text-4xl text-blue-500">bolt</span>
+            JobConnect
+        </a>
+        <p class="text-slate-600 text-sm mt-2 max-w-xs mx-auto">Tham gia cộng đồng ứng viên hàng đầu Việt Nam</p>
+    </div>
+
+    <!-- Card chính -->
+    <div class="relative z-10 w-full max-w-md mx-auto px-4 pb-8">
+        <div class="glass-card rounded-2xl p-8 transition-all duration-300">
+            <div class="text-center mb-6">
+                <h1 class="text-xl font-bold text-slate-900">Tạo tài khoản ứng viên</h1>
+                <p class="text-slate-600 text-sm mt-1">Đăng ký miễn phí, trải nghiệm ngay</p>
+            </div>
+
+            <form asp-action="Register" method="post" class="space-y-4">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All" class="text-rose-600 text-sm bg-rose-50 border border-rose-200 p-3 rounded-xl backdrop-blur-sm"></div>
+
+                <!-- Họ và tên -->
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">badge</span>
+                        Họ và tên <span class="text-rose-600">*</span>
+                    </label>
+                    <input asp-for="FullName" placeholder="Nguyễn Văn A" class="input-field" />
+                    <span asp-validation-for="FullName" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">mail</span>
+                        Email <span class="text-rose-600">*</span>
+                    </label>
+                    <input asp-for="Email" type="email" placeholder="your@email.com" class="input-field" />
+                    <span asp-validation-for="Email" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <!-- Số điện thoại -->
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">phone</span>
+                        Số điện thoại
+                    </label>
+                    <input asp-for="PhoneNumber" type="tel" placeholder="0901 234 567" class="input-field" />
+                    <span asp-validation-for="PhoneNumber" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <!-- Mật khẩu -->
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">lock</span>
+                        Mật khẩu <span class="text-rose-600">*</span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="Password" type="password" id="passwordInput" placeholder="Ít nhất 8 ký tự" class="input-field" style="padding-right: 2.75rem" />
+                        <button type="button" onclick="togglePwd('passwordInput', 'eyeIcon')"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600 transition-colors">
+                            <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon">visibility_off</span>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <!-- Xác nhận mật khẩu -->
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">verified</span>
+                        Xác nhận mật khẩu <span class="text-rose-600">*</span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput" placeholder="Nhập lại mật khẩu" class="input-field" style="padding-right: 2.75rem" />
+                        <button type="button" onclick="togglePwd('confirmPasswordInput', 'eyeIcon2')"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600 transition-colors">
+                            <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon2">visibility_off</span>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <!-- Agree Terms -->
+                <label class="flex items-start gap-2 text-sm text-slate-600 cursor-pointer">
+                    <input asp-for="AgreeTerms" type="checkbox"
+                           class="mt-0.5 rounded border-slate-200 bg-white text-blue-500 focus:ring-blue-500 focus:ring-offset-0" />
+                    <span>Tôi đồng ý với <a href="#" class="text-blue-600 hover:underline">Điều khoản sử dụng</a></span>
+                </label>
+                <span asp-validation-for="AgreeTerms" class="text-rose-600 text-xs block"></span>
+
+                <!-- Submit -->
+                <button type="submit"
+                        class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-sm tracking-wide shadow-lg shadow-blue-900/30 transform hover:scale-[1.02] active:scale-[0.98]">
+                    <span class="material-symbols-outlined text-sm align-middle mr-1">person_add</span>
+                    Tạo tài khoản
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3 my-6">
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+                <span class="text-xs text-slate-600 font-medium">HOẶC</span>
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+            </div>
+
+            <!-- Social Register -->
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" class="social-btn group" onclick="alert('Đăng ký với Google')">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                    </svg>
+                    <span class="group-hover:text-slate-900 transition-colors">Google</span>
+                </button>
+                <button type="button" class="social-btn group" onclick="alert('Đăng ký với LinkedIn')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                    </svg>
+                    <span class="group-hover:text-slate-900 transition-colors">LinkedIn</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer links -->
+        <div class="text-center mt-6">
+            <p class="text-sm text-slate-600">
+                Đã có tài khoản?
+                <a asp-controller="Account" asp-action="Login" class="text-blue-600 font-bold hover:text-blue-700 transition-colors">Đăng nhập ngay</a>
+            </p>
+            <div class="flex gap-4 text-xs text-slate-600 justify-center pt-4">
+                <span>© 2024 JobConnect.</span>
+                <a href="#" class="hover:text-blue-600 transition-colors">Điều khoản</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Bảo mật</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Liên hệ</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: #f1f5f9;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1e293b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        }
+
+        .social-btn:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        transform: translateY(-2px);
+        }
+    </style>
+
+    <script>
+        // Toggle mật khẩu
+        function togglePwd(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const eyeIcon = document.getElementById(iconId);
+        if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.textContent = 'visibility';
+        } else {
+        input.type = 'password';
+        eyeIcon.textContent = 'visibility_off';
+        }
+        }
+
+        // Hiệu ứng mưa
+                </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "Applications" trong khu vực trang cá nhân Ứng viên (CandidateController).
+*@
+@using JobConnect.Models
+@model List<Application>
+
+@{
+    ViewData["Title"] = "Việc làm đã ứng tuyển";
+    Layout = "_Layout";
+}
+
+<style>
+    body {
+        background-color: #f8fafc !important;
+    }
+
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        transition: all 0.3s ease;
+    }
+
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .status-reviewed {
+        background: #dbeafe;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    .status-interview {
+        background: #ede9fe;
+        color: #6d28d9;
+        border: 1px solid #ddd6fe;
+    }
+
+    .status-offered {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    /* ==== To/dài hơn, chiếm gần hết 2 bên ==== */
+    .apps-wrap {
+        max-width: 1920px;
+    }
+
+    .apps-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+    }
+
+    @@media (max-width: 1100px) {
+        .apps-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .app-card {
+        padding: 32px;
+    }
+
+    .app-logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 1rem;
+    }
+
+    .app-title {
+        font-size: 1.35rem;
+    }
+
+    .app-company {
+        font-size: 1rem;
+    }
+
+    .app-meta {
+        font-size: 0.875rem;
+        gap: 16px;
+        margin-top: 10px;
+    }
+
+    .status-badge-lg {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .stat-card {
+        padding: 28px;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="apps-wrap mx-auto px-6 py-10">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-8">
+        <span class="material-symbols-outlined text-4xl text-blue-600">work_history</span>
+        <h1 class="text-3xl font-bold text-slate-900">Việc làm đã ứng tuyển</h1>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="glass-card p-20 text-center">
+            <span class="material-symbols-outlined text-7xl text-slate-500 block mb-4">send</span>
+            <p class="text-slate-500 text-xl mb-2">Bạn chưa ứng tuyển việc làm nào</p>
+            <p class="text-slate-500 text-base mb-6">Hãy khám phá các cơ hội việc làm hấp dẫn ngay hôm nay!</p>
+            <a href="/Job" class="inline-block px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all">
+                🔍 Tìm việc ngay
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="apps-grid">
+            @foreach (var app in Model)
+            {
+                <div class="glass-card app-card transition-all hover:scale-[1.01]">
+                    <div class="flex flex-col gap-5 h-full justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-start gap-4">
+                                <div class="app-logo bg-white flex items-center justify-center overflow-hidden shrink-0">
+                                    @if (app.Job?.Employer != null && !string.IsNullOrEmpty(app.Job.Employer.LogoURL))
+                                    {
+                                        <img src="@app.Job.Employer.LogoURL" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-slate-500 text-3xl">business</span>
+                                    }
+                                </div>
+                                <div class="min-w-0">
+                                    <a href="/Job/Detail/@app.JobId" class="app-title text-slate-900 font-bold hover:text-blue-600 transition-colors block">
+                                        @(app.Job?.Title ?? "Không có tiêu đề")
+                                    </a>
+                                    <p class="app-company text-slate-500">@(app.Job?.Employer?.CompanyName ?? "Đang cập nhật")</p>
+                                    <div class="flex flex-wrap app-meta text-slate-500">
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-base">location_on</span>
+                                            @(app.Job?.Location ?? "Toàn quốc")
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-base">payments</span>
+                                            @(app.Job?.SalaryMin?.ToString("N0") ?? "0") - @(app.Job?.SalaryMax?.ToString("N0") ?? "0")đ
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-base">schedule</span>
+                                            @app.AppliedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+                            <span class="status-badge status-badge-lg status-@(app.Status?.ToLower() ?? "pending")">
+                                @(app.Status switch
+                                {
+                                    "Pending" => "⏳ Chờ xét duyệt",
+                                    "Reviewed" => "📄 Đã xem hồ sơ",
+                                    "Interview" => "🎯 Phỏng vấn",
+                                    "Offered" => "🎉 Nhận offer",
+                                    "Rejected" => "❌ Không phù hợp",
+                                    _ => "📌 " + (app.Status ?? "Chờ xét duyệt")
+                                })
+                            </span>
+
+                            <a href="/Job/Detail/@app.JobId" class="text-blue-600 text-sm font-semibold hover:underline">
+                                Xem chi tiết →
+                            </a>
+
+                            <!-- Comment hoặc bỏ phần Note nếu chưa có -->
+                            @* @if (!string.IsNullOrEmpty(app.Note))
+                            {
+                                <p class="text-slate-500 text-xs mt-2 text-right italic">📝 Ghi chú: @app.Note</p>
+                            } *@
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Thống kê -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
+            <div class="glass-card stat-card text-center">
+                <div class="stat-number font-bold text-blue-600">@Model.Count</div>
+                <div class="stat-label text-slate-500">Tổng ứng tuyển</div>
+            </div>
+            <div class="glass-card stat-card text-center">
+                <div class="stat-number font-bold text-yellow-600">@Model.Count(x => x.Status == "Pending")</div>
+                <div class="stat-label text-slate-500">Đang xét duyệt</div>
+            </div>
+            <div class="glass-card stat-card text-center">
+                <div class="stat-number font-bold text-purple-600">@Model.Count(x => x.Status == "Interview")</div>
+                <div class="stat-label text-slate-500">Phỏng vấn</div>
+            </div>
+            <div class="glass-card stat-card text-center">
+                <div class="stat-number font-bold text-green-600">@Model.Count(x => x.Status == "Offered")</div>
+                <div class="stat-label text-slate-500">Offer nhận được</div>
+            </div>
+        </div>
+    }
+</div>

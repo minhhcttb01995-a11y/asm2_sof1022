@@ -1,0 +1,361 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "RegisterEmployer" trong khu vực quản lý tài khoản (AccountController).
+*@
+@model JobConnect.ViewModels.RegisterEmployerViewModel
+@{
+    ViewData["Title"] = "Đăng ký Nhà tuyển dụng";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký NTD – JobConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+        theme: {
+        extend: {
+        colors: {
+        primary: '#3b82f6',
+        dark: '#f8fafc',
+        card: '#ffffff',
+        }
+        }
+        }
+        }
+    </script>
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+
+        body {
+        font-family: 'Inter', sans-serif;
+        background: #f1f5f9;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        }
+
+                                        /* GLASS CARD */
+        .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(59, 130, 246, 0.08) inset;
+        }
+
+        .glass-card:hover {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 30px 60px -12px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-field {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: #f1f5f9;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        outline: none;
+        transition: all 0.2s ease;
+        color: #0f172a;
+        }
+
+        .input-field:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-field::placeholder {
+        color: #475569;
+        }
+
+        .label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #3b82f6;
+        margin: 1rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        }
+
+        /* Animated gradient orbs */
+        .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        z-index: 0;
+        pointer-events: none;
+        }
+
+        .orb-1 {
+        width: 400px;
+        height: 400px;
+        background: #3b82f6;
+        top: -150px;
+        right: -150px;
+        }
+
+        .orb-2 {
+        width: 500px;
+        height: 500px;
+        background: #8b5cf6;
+        bottom: -200px;
+        left: -200px;
+        }
+
+        .orb-3 {
+        width: 300px;
+        height: 300px;
+        background: #06b6d4;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+        width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+        background: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Orbs trang trí -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Container hiệu ứng mưa -->
+    <!-- Logo + tagline -->
+    <div class="relative z-10 text-center mb-6 pt-8">
+        <a href="/" class="inline-flex items-center gap-2 text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            <span class="material-symbols-outlined text-4xl text-blue-500">bolt</span>
+            JobConnect
+        </a>
+        <p class="text-slate-600 text-sm mt-2 max-w-xs mx-auto">Đăng ký tài khoản nhà tuyển dụng để đăng tin tuyển dụng</p>
+    </div>
+
+    <!-- Card chính -->
+    <div class="relative z-10 w-full max-w-lg mx-auto px-4 pb-8">
+        <div class="glass-card rounded-2xl p-8 transition-all duration-300">
+            <div class="text-center mb-6">
+                <h1 class="text-xl font-bold text-slate-900">🏢 Đăng ký Nhà tuyển dụng</h1>
+                <p class="text-slate-600 text-sm mt-1">Tuyển dụng nhân tài hiệu quả cùng JobConnect</p>
+            </div>
+
+            <form asp-action="RegisterEmployer" method="post" class="space-y-4">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All" class="text-rose-600 text-sm bg-rose-50 border border-rose-200 p-3 rounded-xl backdrop-blur-sm"></div>
+
+                <!-- Thông tin liên hệ -->
+                <div class="section-title">
+                    <span class="material-symbols-outlined text-sm">person</span>
+                    Thông tin liên hệ
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">
+                            <span class="material-symbols-outlined text-sm align-middle mr-1">badge</span>
+                            Họ tên <span class="text-rose-600">*</span>
+                        </label>
+                        <input asp-for="ContactName" placeholder="Nguyễn Văn A" class="input-field" />
+                        <span asp-validation-for="ContactName" class="text-rose-600 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="label">
+                            <span class="material-symbols-outlined text-sm align-middle mr-1">phone</span>
+                            Số điện thoại
+                        </label>
+                        <input asp-for="PhoneNumber" type="tel" placeholder="0901 234 567" class="input-field" />
+                        <span asp-validation-for="PhoneNumber" class="text-rose-600 text-xs mt-1 block"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">mail</span>
+                        Email <span class="text-rose-600">*</span>
+                    </label>
+                    <input asp-for="Email" type="email" placeholder="contact@company.com" class="input-field" />
+                    <span asp-validation-for="Email" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">
+                            <span class="material-symbols-outlined text-sm align-middle mr-1">lock</span>
+                            Mật khẩu <span class="text-rose-600">*</span>
+                        </label>
+                        <div class="relative">
+                            <input asp-for="Password" type="password" id="passwordInput" placeholder="Ít nhất 8 ký tự" class="input-field" style="padding-right: 2.75rem" />
+                            <button type="button" onclick="togglePwd('passwordInput', 'eyeIcon')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600 transition-colors">
+                                <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon">visibility_off</span>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-rose-600 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="label">
+                            <span class="material-symbols-outlined text-sm align-middle mr-1">verified</span>
+                            Xác nhận <span class="text-rose-600">*</span>
+                        </label>
+                        <div class="relative">
+                            <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput" placeholder="Nhập lại mật khẩu" class="input-field" style="padding-right: 2.75rem" />
+                            <button type="button" onclick="togglePwd('confirmPasswordInput', 'eyeIcon2')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-600 transition-colors">
+                                <span class="material-symbols-outlined text-xl leading-none" id="eyeIcon2">visibility_off</span>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-rose-600 text-xs mt-1 block"></span>
+                    </div>
+                </div>
+
+                <!-- Thông tin công ty -->
+                <div class="section-title">
+                    <span class="material-symbols-outlined text-sm">business</span>
+                    Thông tin công ty
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">apartment</span>
+                        Tên công ty <span class="text-rose-600">*</span>
+                    </label>
+                    <input asp-for="CompanyName" placeholder="Công ty TNHH ABC" class="input-field" />
+                    <span asp-validation-for="CompanyName" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">
+                            <span class="material-symbols-outlined text-sm align-middle mr-1">receipt</span>
+                            Mã số thuế
+                        </label>
+                        <input asp-for="TaxCode" placeholder="0123456789" class="input-field" />
+                        <span asp-validation-for="TaxCode" class="text-rose-600 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="label">
+                            <span class="material-symbols-outlined text-sm align-middle mr-1">category</span>
+                            Ngành nghề
+                        </label>
+                        <input asp-for="Industry" placeholder="Công nghệ thông tin" class="input-field" />
+                        <span asp-validation-for="Industry" class="text-rose-600 text-xs mt-1 block"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">location_on</span>
+                        Địa chỉ
+                    </label>
+                    <input asp-for="Address" placeholder="Tầng 10, Tòa nhà ABC, Hà Nội" class="input-field" />
+                    <span asp-validation-for="Address" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">language</span>
+                        Website
+                    </label>
+                    <input asp-for="Website" type="url" placeholder="https://company.com" class="input-field" />
+                    <span asp-validation-for="Website" class="text-rose-600 text-xs mt-1 block"></span>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit"
+                        class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-sm tracking-wide shadow-lg shadow-blue-900/30 transform hover:scale-[1.02] active:scale-[0.98] mt-4">
+                    <span class="material-symbols-outlined text-sm align-middle mr-1">business_center</span>
+                    Đăng ký Nhà tuyển dụng
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3 my-6">
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+                <span class="text-xs text-slate-600 font-medium">HOẶC</span>
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+            </div>
+
+            <!-- Footer links -->
+            <div class="text-center">
+                <p class="text-sm text-slate-600">
+                    Đã có tài khoản?
+                    <a asp-controller="Account" asp-action="Login" class="text-blue-600 font-bold hover:text-blue-700 transition-colors">Đăng nhập ngay</a>
+                </p>
+                <p class="text-xs text-slate-600 mt-3">
+                    Bạn là ứng viên?
+                    <a asp-controller="Account" asp-action="Register" class="text-blue-600 hover:text-blue-700 transition-colors">Đăng ký tài khoản ứng viên</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-6">
+            <div class="flex gap-4 text-xs text-slate-600 justify-center">
+                <span>© 2024 JobConnect.</span>
+                <a href="#" class="hover:text-blue-600 transition-colors">Điều khoản</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Bảo mật</a>
+                <a href="#" class="hover:text-blue-600 transition-colors">Liên hệ</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle mật khẩu
+        function togglePwd(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const eyeIcon = document.getElementById(iconId);
+        if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.textContent = 'visibility';
+        } else {
+        input.type = 'password';
+        eyeIcon.textContent = 'visibility_off';
+        }
+        }
+
+        // Hiệu ứng mưa
+                </script>
+</body>
+</html>

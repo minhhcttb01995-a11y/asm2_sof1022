@@ -1,0 +1,28 @@
+@* CSS & Fonts *@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+@* Material Symbols *@
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+@* Tailwind CSS *@
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'sans-serif'] },
+                colors: {
+                    primary: '#3b82f6',
+                    'on-surface': '#1e293b',
+                    secondary: '#64748b',
+                    'surface-container': '#f8fafc',
+                    'surface-container-low': '#f8fafc',
+                    'surface-container-high': '#eef2f7',
+                    'outline-variant': '#e2e8f0'
+                }
+            }
+        }
+    }
+</script>

@@ -1,0 +1,132 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "Interviews" trong khu vực trang quản lý Nhà tuyển dụng (EmployerController).
+*@
+@model List<JobConnect.Models.Interview>
+@{
+    ViewData["Title"] = "Lịch phỏng vấn";
+    Layout = "_LayoutEmployer";
+}
+
+<div class="space-y-6">
+    <div class="jc-page-header">
+        <div>
+            <h1 class="jc-page-title">Lịch phỏng vấn</h1>
+            <p class="jc-page-subtitle">Danh sách các lịch hẹn phỏng vấn với ứng viên</p>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="jc-empty">
+            <span class="material-symbols-outlined">event_busy</span>
+            Chưa có lịch phỏng vấn nào được lên lịch.
+            <div class="mt-4">
+                <a asp-action="ManageJobs" class="jc-btn jc-btn-primary">Xem danh sách tin tuyển dụng</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="jc-table-wrap">
+            <table class="jc-table">
+                <thead>
+                    <tr>
+                        <th>Ứng viên</th>
+                        <th>Vị trí</th>
+                        <th>Thời gian</th>
+                        <th>Địa điểm</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-600 font-bold">
+                                        @((item.Application?.CandidateProfile?.FullName?[0].ToString().ToUpper() ?? "U"))
+                                    </div>
+                                    <span class="font-medium text-white">@item.Application?.CandidateProfile?.FullName</span>
+                                </div>
+                            </td>
+                            <td class="text-slate-400">@item.Application?.Job?.Title</td>
+                            <td class="text-slate-400">@item.InterviewDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-slate-400">@item.Location</td>
+                            <td>
+                                <div class="jc-actions">
+                                    <a asp-action="EditInterview" asp-route-id="@item.InterviewID"
+                                       class="jc-action-btn edit" title="Sửa lịch phỏng vấn">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </a>
+                                    <button type="button" title="Hủy lịch phỏng vấn"
+                                            class="jc-action-btn delete js-cancel-interview-btn"
+                                            data-id="@item.InterviewID"
+                                            data-name="@item.Application?.CandidateProfile?.FullName"
+                                            data-job="@item.Application?.Job?.Title">
+                                        <span class="material-symbols-outlined">event_busy</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal xác nhận hủy lịch phỏng vấn -->
+<div id="modalCancelInterview" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+    <div class="bg-[#1e293b] border border-slate-700 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-red-500/15 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-400">event_busy</span>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-white">Hủy lịch phỏng vấn</h2>
+                <p class="text-sm text-slate-400">Ứng viên sẽ được thông báo về việc hủy lịch.</p>
+            </div>
+        </div>
+        <p class="text-sm text-slate-300 mb-5">
+            Bạn có chắc muốn hủy lịch phỏng vấn với <strong id="cancelInterviewName" class="text-white"></strong>
+            cho vị trí <strong id="cancelInterviewJob" class="text-white"></strong>?
+        </p>
+        <form asp-action="DeleteInterview" method="post" id="cancelInterviewForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="cancelInterviewId" />
+            <div class="flex gap-3">
+                <button type="button" onclick="closeCancelInterviewModal()"
+                        class="flex-1 px-4 py-2.5 border border-slate-600 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700">
+                    Đóng
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700">
+                    Hủy lịch
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCancelInterviewModal(id, name, job) {
+        document.getElementById('cancelInterviewId').value = id;
+        document.getElementById('cancelInterviewName').textContent = name || 'ứng viên này';
+        document.getElementById('cancelInterviewJob').textContent = job || '';
+        document.getElementById('modalCancelInterview').classList.remove('hidden');
+        document.getElementById('modalCancelInterview').classList.add('flex');
+    }
+    function closeCancelInterviewModal() {
+        document.getElementById('modalCancelInterview').classList.add('hidden');
+        document.getElementById('modalCancelInterview').classList.remove('flex');
+    }
+    document.getElementById('modalCancelInterview').addEventListener('click', function (e) {
+        if (e.target === this) closeCancelInterviewModal();
+    });
+    document.querySelectorAll('.js-cancel-interview-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            openCancelInterviewModal(btn.dataset.id, btn.dataset.name, btn.dataset.job);
+        });
+    });
+</script>
