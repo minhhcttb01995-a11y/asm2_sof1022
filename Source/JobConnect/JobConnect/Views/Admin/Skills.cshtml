@@ -1,0 +1,568 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "Skills" trong khu vực trang quản trị Admin (AdminController).
+*@
+@using JobConnect.Models
+@using JobConnect.Helpers
+@{
+    ViewData["Title"] = "Quản lý Kỹ năng";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="w-full px-6 py-8 xl:px-10">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Quản lý Kỹ năng</h1>
+            <p class="text-secondary text-sm">Quản lý danh sách kỹ năng cho ứng viên</p>
+        </div>
+        <button type="button" onclick="openCreateSkillModal()" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">add</span>
+            Thêm kỹ năng mới
+        </button>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2 auto-hide-alert">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl p-5 border border-outline-variant mb-6">
+        <form asp-action="Skills" method="get" class="flex flex-wrap gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="keyword" value="@ViewBag.KeywordFilter" placeholder="Tìm kiếm kỹ năng..."
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+            <div class="min-w-[150px]">
+                <select name="category" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="">Tất cả danh mục</option>
+                    @if (ViewBag.Categories != null)
+                    {
+                        @foreach (SkillCategory cat in ViewBag.Categories)
+                        {
+                            @if (ViewBag.CategoryFilter?.ToString() == cat.ToString())
+                            {
+                                <option value="@cat" selected>@SkillCategoryLabels.GetLabel(cat)</option>
+                            }
+                            else
+                            {
+                                <option value="@cat">@SkillCategoryLabels.GetLabel(cat)</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+                Lọc
+            </button>
+            <a asp-action="Skills" class="px-5 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Đặt lại
+            </a>
+        </form>
+    </div>
+
+    <!-- Skills Table -->
+    @if (ViewBag.Skills != null && ((List<Skill>)ViewBag.Skills).Any())
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-surface-container">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Tên kỹ năng</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Danh mục</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface">Mô tả</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Trạng thái</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Ngày tạo</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var skill in (List<Skill>)ViewBag.Skills)
+                    {
+                        <tr class="border-t border-outline-variant hover:bg-surface-container-low">
+                            <td class="px-6 py-4">
+                                <span class="font-medium text-on-surface">@skill.Name</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">@SkillCategoryLabels.GetLabel((SkillCategory)(skill.CategoryId ?? 0))</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm text-secondary line-clamp-1">@skill.Description</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if (skill.IsActive)
+                                {
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Đã khóa</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="text-sm text-secondary">@skill.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button"
+                                            class="edit-skill-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Sửa"
+                                            data-id="@skill.SkillID"
+                                            data-name="@skill.Name"
+                                            data-category="@(((SkillCategory)(skill.CategoryId ?? 0)))"
+                                            data-description="@(skill.Description ?? "")"
+                                            data-active="@(skill.IsActive ? "true" : "false")">
+                                        <span class="material-symbols-outlined text-sm">edit</span>
+                                    </button>
+                                    <form asp-action="SkillToggle" asp-route-id="@skill.SkillID" method="post" class="js-toggle-skill-form inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button" title="@(skill.IsActive ? "Khóa" : "Kích hoạt")"
+                                                class="js-toggle-skill-btn p-2 @(skill.IsActive ? "text-orange-600 hover:bg-orange-50" : "text-green-600 hover:bg-green-50") rounded-lg"
+                                                data-name="@skill.Name" data-active="@(skill.IsActive ? "true" : "false")">
+                                            <span class="material-symbols-outlined text-sm">@(skill.IsActive ? "lock" : "lock_open")</span>
+                                        </button>
+                                    </form>
+                                    @if (skill.IsActive)
+                                    {
+                                        <form asp-action="SkillDelete" asp-route-id="@skill.SkillID" method="post" class="js-delete-skill-form inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="button" class="js-delete-skill-btn p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Ẩn kỹ năng" data-name="@skill.Name">
+                                                <span class="material-symbols-outlined text-sm">delete</span>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="SkillHardDelete" asp-route-id="@skill.SkillID" method="post" class="js-hard-delete-skill-form inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="button" class="js-hard-delete-skill-btn p-2 text-red-700 hover:bg-red-100 rounded-lg" title="Xóa vĩnh viễn" data-name="@skill.Name">
+                                                <span class="material-symbols-outlined text-sm">delete_forever</span>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="flex items-center justify-center gap-2 mt-6">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <a asp-action="Skills" asp-route-page="@i" asp-route-category="@ViewBag.CategoryFilter" asp-route-keyword="@ViewBag.KeywordFilter"
+                       class="px-4 py-2 rounded-lg text-sm font-medium @(i == ViewBag.CurrentPage ? "bg-primary text-white" : "bg-white border border-outline-variant text-secondary hover:bg-surface-container")">
+                        @i
+                    </a>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl p-12 text-center border border-outline-variant">
+            <span class="material-symbols-outlined text-6xl text-secondary mb-4">psychology</span>
+            <p class="text-lg text-secondary">Không tìm thấy kỹ năng nào</p>
+            <button type="button" onclick="openCreateSkillModal()" class="inline-block mt-4 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90">
+                Thêm kỹ năng đầu tiên
+            </button>
+        </div>
+    }
+</div>
+
+<!-- Create Skill Modal -->
+<div id="createSkillModal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl border border-outline-variant p-8 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-on-surface">Thêm Kỹ năng mới</h2>
+            <button type="button" onclick="closeCreateSkillModal()" class="p-2 text-secondary hover:bg-surface-container rounded-lg">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div id="createSkillError" class="hidden mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            <span id="createSkillErrorText"></span>
+        </div>
+
+        <form id="createSkillForm" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+
+            <div>
+                <label for="skillName" class="block text-sm font-medium text-on-surface mb-1">Tên kỹ năng <span class="text-red-500">*</span></label>
+                <input id="skillName" name="Name" required type="text" placeholder="Ví dụ: C#, UI/UX Design, Digital Marketing"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+
+            <div>
+                <label for="skillCategory" class="block text-sm font-medium text-on-surface mb-1">Danh mục <span class="text-red-500">*</span></label>
+                <select id="skillCategory" name="Category" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    @if (ViewBag.Categories != null)
+                    {
+                        foreach (SkillCategory cat in ViewBag.Categories)
+                        {
+                            <option value="@cat">@SkillCategoryLabels.GetLabel(cat)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="skillDescription" class="block text-sm font-medium text-on-surface mb-1">Mô tả</label>
+                <textarea id="skillDescription" name="Description" rows="4" placeholder="Mô tả ngắn về kỹ năng này..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"></textarea>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="hidden" name="IsActive" value="false" />
+                <input id="skillIsActive" name="IsActive" type="checkbox" value="true" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" />
+                <label for="skillIsActive" class="text-sm font-medium text-on-surface">Kích hoạt ngay</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeCreateSkillModal()" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container text-center whitespace-nowrap">
+                    Huỷ
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 whitespace-nowrap">
+                    Tạo kỹ năng
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Skill Modal -->
+<div id="editSkillModal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl border border-outline-variant p-8 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-on-surface">Chỉnh sửa Kỹ năng</h2>
+                <p class="text-secondary text-sm">Cập nhật thông tin kỹ năng</p>
+            </div>
+            <button type="button" onclick="closeEditSkillModal()" class="p-2 text-secondary hover:bg-surface-container rounded-lg">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div id="editSkillError" class="hidden mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm font-medium items-center gap-2">
+            <span class="material-symbols-outlined text-base">error</span>
+            <span id="editSkillErrorText"></span>
+        </div>
+
+        <form id="editSkillForm" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editSkillId" name="SkillID" />
+
+            <div>
+                <label for="editSkillName" class="block text-sm font-medium text-on-surface mb-1">Tên kỹ năng <span class="text-red-500">*</span></label>
+                <input id="editSkillName" name="Name" required type="text" placeholder="Ví dụ: C#, UI/UX Design, Digital Marketing"
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+
+            <div>
+                <label for="editSkillCategory" class="block text-sm font-medium text-on-surface mb-1">Danh mục <span class="text-red-500">*</span></label>
+                <select id="editSkillCategory" name="Category" class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    @if (ViewBag.Categories != null)
+                    {
+                        foreach (SkillCategory cat in ViewBag.Categories)
+                        {
+                            <option value="@cat">@SkillCategoryLabels.GetLabel(cat)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="editSkillDescription" class="block text-sm font-medium text-on-surface mb-1">Mô tả</label>
+                <textarea id="editSkillDescription" name="Description" rows="4" placeholder="Mô tả ngắn về kỹ năng này..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"></textarea>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="hidden" name="IsActive" value="false" />
+                <input id="editSkillIsActive" name="IsActive" type="checkbox" value="true" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" />
+                <label for="editSkillIsActive" class="text-sm font-medium text-on-surface">Kích hoạt</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeEditSkillModal()" class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container text-center whitespace-nowrap">
+                    Huỷ
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 whitespace-nowrap">
+                    Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Xác nhận Khóa/Mở khóa kỹ năng -->
+<div id="modalToggleSkill" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-orange-600" id="toggleSkillIcon">lock</span>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-on-surface" id="toggleSkillTitle">Xác nhận thay đổi trạng thái</h2>
+                <p class="text-sm text-secondary">Bạn có chắc muốn thay đổi trạng thái kỹ năng <strong id="toggleSkillName"></strong>?</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" onclick="closeToggleSkillModal()"
+                    class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Huỷ
+            </button>
+            <button type="button" onclick="confirmToggleSkill()"
+                    class="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-xl text-sm font-semibold hover:bg-orange-700">
+                Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận ẩn kỹ năng -->
+<div id="modalDeleteSkill" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600">delete</span>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-on-surface">Xác nhận ẩn kỹ năng</h2>
+                <p class="text-sm text-secondary">Kỹ năng sẽ bị gỡ khỏi tất cả hồ sơ ứng viên đang dùng và không cho chọn nữa.</p>
+            </div>
+        </div>
+        <p class="text-sm text-secondary mb-5">Bạn có chắc muốn ẩn kỹ năng <strong id="deleteSkillName"></strong>?</p>
+        <div class="flex gap-3">
+            <button type="button" onclick="closeDeleteSkillModal()"
+                    class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Huỷ
+            </button>
+            <button type="button" onclick="confirmDeleteSkill()"
+                    class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700">
+                Ẩn kỹ năng
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận xóa vĩnh viễn kỹ năng -->
+<div id="modalHardDeleteSkill" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600">delete_forever</span>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-on-surface">Xác nhận xóa vĩnh viễn</h2>
+                <p class="text-sm text-secondary">Kỹ năng sẽ bị xóa hoàn toàn khỏi hệ thống và KHÔNG THỂ khôi phục.</p>
+            </div>
+        </div>
+        <p class="text-sm text-secondary mb-5">Bạn có chắc muốn xóa vĩnh viễn kỹ năng <strong id="hardDeleteSkillName"></strong>?</p>
+        <div class="flex gap-3">
+            <button type="button" onclick="closeHardDeleteSkillModal()"
+                    class="flex-1 px-4 py-2.5 border border-outline-variant rounded-xl text-sm font-medium text-secondary hover:bg-surface-container">
+                Huỷ
+            </button>
+            <button type="button" onclick="confirmHardDeleteSkill()"
+                    class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700">
+                Xóa vĩnh viễn
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditSkillModal(id, name, category, description, isActive) {
+        document.getElementById('editSkillId').value = id;
+        document.getElementById('editSkillName').value = name;
+        document.getElementById('editSkillCategory').value = category;
+        document.getElementById('editSkillDescription').value = description;
+        document.getElementById('editSkillIsActive').checked = isActive === true || isActive === 'true';
+        document.getElementById('editSkillError').classList.add('hidden');
+        document.getElementById('editSkillModal').classList.remove('hidden');
+        document.getElementById('editSkillModal').classList.add('flex');
+    }
+
+    function closeEditSkillModal() {
+        document.getElementById('editSkillModal').classList.add('hidden');
+        document.getElementById('editSkillModal').classList.remove('flex');
+        document.getElementById('editSkillError').classList.add('hidden');
+    }
+
+    document.querySelectorAll('.edit-skill-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openEditSkillModal(
+                this.dataset.id,
+                this.dataset.name,
+                this.dataset.category,
+                this.dataset.description,
+                this.dataset.active === 'true'
+            );
+        });
+    });
+
+    document.getElementById('editSkillModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditSkillModal();
+    });
+
+    // ===== Modal Khóa/Mở khóa =====
+    let toggleSkillForm = null;
+    document.querySelectorAll('.js-toggle-skill-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            toggleSkillForm = btn.closest('.js-toggle-skill-form');
+            const isActive = btn.dataset.active === 'true';
+            document.getElementById('toggleSkillName').textContent = btn.dataset.name;
+            document.getElementById('toggleSkillTitle').textContent = isActive ? 'Xác nhận khóa kỹ năng' : 'Xác nhận kích hoạt kỹ năng';
+            document.getElementById('toggleSkillIcon').textContent = isActive ? 'lock' : 'lock_open';
+            document.getElementById('modalToggleSkill').classList.remove('hidden');
+            document.getElementById('modalToggleSkill').classList.add('flex');
+        });
+    });
+    function closeToggleSkillModal() {
+        document.getElementById('modalToggleSkill').classList.add('hidden');
+        document.getElementById('modalToggleSkill').classList.remove('flex');
+        toggleSkillForm = null;
+    }
+    function confirmToggleSkill() {
+        if (toggleSkillForm) toggleSkillForm.submit();
+    }
+    document.getElementById('modalToggleSkill').addEventListener('click', function(e) {
+        if (e.target === this) closeToggleSkillModal();
+    });
+
+    // ===== Modal Ẩn kỹ năng =====
+    let deleteSkillForm = null;
+    document.querySelectorAll('.js-delete-skill-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            deleteSkillForm = btn.closest('.js-delete-skill-form');
+            document.getElementById('deleteSkillName').textContent = btn.dataset.name;
+            document.getElementById('modalDeleteSkill').classList.remove('hidden');
+            document.getElementById('modalDeleteSkill').classList.add('flex');
+        });
+    });
+    function closeDeleteSkillModal() {
+        document.getElementById('modalDeleteSkill').classList.add('hidden');
+        document.getElementById('modalDeleteSkill').classList.remove('flex');
+        deleteSkillForm = null;
+    }
+    function confirmDeleteSkill() {
+        if (deleteSkillForm) deleteSkillForm.submit();
+    }
+    document.getElementById('modalDeleteSkill').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteSkillModal();
+    });
+
+    // ===== Modal Xóa vĩnh viễn kỹ năng =====
+    let hardDeleteSkillForm = null;
+    document.querySelectorAll('.js-hard-delete-skill-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            hardDeleteSkillForm = btn.closest('.js-hard-delete-skill-form');
+            document.getElementById('hardDeleteSkillName').textContent = btn.dataset.name;
+            document.getElementById('modalHardDeleteSkill').classList.remove('hidden');
+            document.getElementById('modalHardDeleteSkill').classList.add('flex');
+        });
+    });
+    function closeHardDeleteSkillModal() {
+        document.getElementById('modalHardDeleteSkill').classList.add('hidden');
+        document.getElementById('modalHardDeleteSkill').classList.remove('flex');
+        hardDeleteSkillForm = null;
+    }
+    function confirmHardDeleteSkill() {
+        if (hardDeleteSkillForm) hardDeleteSkillForm.submit();
+    }
+    document.getElementById('modalHardDeleteSkill').addEventListener('click', function(e) {
+        if (e.target === this) closeHardDeleteSkillModal();
+    });
+
+    document.getElementById('editSkillForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const token = document.querySelector('#editSkillForm input[name="__RequestVerificationToken"]').value;
+        const errorBox = document.getElementById('editSkillError');
+        const errorText = document.getElementById('editSkillErrorText');
+
+        try {
+            const response = await fetch('@Url.Action("SkillEdit", "Admin")', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.reload();
+            } else {
+                errorText.textContent = 'Không thể cập nhật kỹ năng. Vui lòng kiểm tra lại thông tin.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
+            }
+        } catch (err) {
+            errorText.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+        }
+    });
+</script>
+
+<script>
+    function openCreateSkillModal() {
+        document.getElementById('createSkillModal').classList.remove('hidden');
+        document.getElementById('createSkillModal').classList.add('flex');
+    }
+
+    function closeCreateSkillModal() {
+        document.getElementById('createSkillModal').classList.add('hidden');
+        document.getElementById('createSkillModal').classList.remove('flex');
+        document.getElementById('createSkillForm').reset();
+        document.getElementById('createSkillError').classList.add('hidden');
+    }
+
+    document.getElementById('createSkillModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCreateSkillModal();
+    });
+
+    document.getElementById('createSkillForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const token = document.querySelector('#createSkillForm input[name="__RequestVerificationToken"]').value;
+        const errorBox = document.getElementById('createSkillError');
+        const errorText = document.getElementById('createSkillErrorText');
+
+        try {
+            const response = await fetch('@Url.Action("SkillCreate", "Admin")', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.reload();
+            } else {
+                errorText.textContent = 'Không thể thêm kỹ năng. Vui lòng kiểm tra lại thông tin.';
+                errorBox.classList.remove('hidden');
+                errorBox.classList.add('flex');
+            }
+        } catch (err) {
+            errorText.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorBox.classList.remove('hidden');
+            errorBox.classList.add('flex');
+        }
+    });
+</script>

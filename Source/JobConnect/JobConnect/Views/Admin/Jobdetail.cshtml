@@ -1,0 +1,161 @@
+@* [VIEW-ADDED]
+   View cho action "JobDetail" trong khu vực trang quản trị Admin (AdminController).
+   Cho phép admin xem chi tiết 1 tin tuyển dụng ở BẤT KỲ trạng thái nào
+   (Chờ duyệt / Bản nháp / Từ chối / Đã khóa / Đang mở), khác với trang
+   public (Job/Detail) chỉ hiển thị tin đã duyệt và công khai.
+*@
+@using JobConnect.Models
+@model JobPost
+@{
+    ViewData["Title"] = "Chi tiết tin tuyển dụng";
+    Layout = "_LayoutAdmin";
+
+    var (statusBg, statusColor, statusLabel) = Model.Status switch
+    {
+        "Active" => ("#f0fdf4", "#16a34a", "Đang mở"),
+        "Pending" => ("#fefce8", "#a16207", "Chờ duyệt"),
+        "Rejected" => ("#fef2f2", "#dc2626", "Từ chối"),
+        "Banned" => ("#fef2f2", "#dc2626", "Đã khóa"),
+        "Draft" => ("#f8fafc", "#94a3b8", "Bản nháp"),
+        _ => ("#f8fafc", "#94a3b8", Model.Status)
+    };
+
+    string FormatSalary()
+    {
+        if (Model.SalaryNegotiable) return "Thoả thuận";
+        if (Model.SalaryMin.HasValue && Model.SalaryMax.HasValue)
+            return $"{Model.SalaryMin:N0} - {Model.SalaryMax:N0} VNĐ";
+        if (Model.SalaryMin.HasValue) return $"Từ {Model.SalaryMin:N0} VNĐ";
+        if (Model.SalaryMax.HasValue) return $"Đến {Model.SalaryMax:N0} VNĐ";
+        return "—";
+    }
+}
+
+<div style="padding:24px" class="space-y-6">
+
+    @* ── Breadcrumb + Title ── *@
+    <div class="flex items-center gap-3">
+        <button type="button" onclick="history.length > 1 ? history.back() : (window.location.href = '@Url.Action("Jobs", "Admin")')"
+                class="flex items-center gap-1 text-sm font-medium transition-colors bg-transparent border-0 cursor-pointer p-0"
+                style="color:#64748b" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            Quay lại
+        </button>
+        <span style="color:#cbd5e1">/</span>
+        <h1 class="text-xl font-bold" style="color:#1e293b">Chi tiết tin tuyển dụng</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        @* ── Cột nội dung chính ── *@
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl p-6" style="border:1px solid #f1f5f9">
+                <div class="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                        <h2 class="text-lg font-bold" style="color:#1e293b">@Model.Title</h2>
+                        <p class="text-sm mt-1" style="color:#64748b">
+                            <a asp-action="Companydetail" asp-route-id="@Model.EmployerId" style="color:#3b82f6">@Model.Employer.CompanyName</a>
+                        </p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0"
+                          style="background:@statusBg;color:@statusColor">
+                        @statusLabel
+                    </span>
+                </div>
+
+                <div class="flex flex-wrap gap-x-5 gap-y-1.5 text-xs mt-3" style="color:#94a3b8">
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span>@(Model.Location ?? "—")</span>
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">work</span>@(Model.JobType ?? "—")</span>
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">payments</span>@FormatSalary()</span>
+                    @if (Model.Deadline.HasValue)
+                    {
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">event</span>Hạn nộp: @Model.Deadline.Value.ToString("dd/MM/yyyy")</span>
+                    }
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">visibility</span>@Model.ViewCount lượt xem</span>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div class="mt-5">
+                        <h3 class="text-sm font-bold mb-1.5" style="color:#1e293b">Mô tả công việc</h3>
+                        <div class="text-sm jc-richtext" style="color:#475569">@Html.Raw(System.Net.WebUtility.HtmlDecode(Model.Description))</div>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Requirements))
+                {
+                    <div class="mt-5">
+                        <h3 class="text-sm font-bold mb-1.5" style="color:#1e293b">Yêu cầu ứng viên</h3>
+                        <div class="text-sm jc-richtext" style="color:#475569">@Html.Raw(System.Net.WebUtility.HtmlDecode(Model.Requirements))</div>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Benefits))
+                {
+                    <div class="mt-5">
+                        <h3 class="text-sm font-bold mb-1.5" style="color:#1e293b">Quyền lợi</h3>
+                        <div class="text-sm jc-richtext" style="color:#475569">@Html.Raw(System.Net.WebUtility.HtmlDecode(Model.Benefits))</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* ── Cột thông tin phụ ── *@
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl p-5" style="border:1px solid #f1f5f9">
+                <h3 class="text-sm font-bold mb-3" style="color:#1e293b">Thông tin tin đăng</h3>
+                <dl class="space-y-2.5 text-sm">
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Mã tin</dt><dd style="color:#1e293b">@(Model.JobCode ?? "—")</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Danh mục</dt><dd style="color:#1e293b">@(Model.Category?.Name ?? "—")</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Kinh nghiệm</dt><dd style="color:#1e293b">@(Model.ExperienceLevel ?? "—")</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Ngày đăng</dt><dd style="color:#1e293b">@Model.CreatedAt.ToString("dd/MM/yyyy")</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Cập nhật</dt><dd style="color:#1e293b">@(Model.UpdatedAt?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Số ứng tuyển</dt><dd style="color:#1e293b">@Model.Applications.Count</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Nổi bật</dt><dd style="color:#1e293b">@(Model.IsFeatured ? "Có" : "Không")</dd></div>
+                </dl>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5" style="border:1px solid #f1f5f9">
+                <h3 class="text-sm font-bold mb-3" style="color:#1e293b">Nhà tuyển dụng</h3>
+                <dl class="space-y-2.5 text-sm">
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Công ty</dt><dd style="color:#1e293b">@Model.Employer.CompanyName</dd></div>
+                    <div class="flex justify-between"><dt style="color:#94a3b8">Email</dt><dd style="color:#1e293b">@(Model.Employer.User?.Email ?? "—")</dd></div>
+                </dl>
+                <a asp-action="Companydetail" asp-route-id="@Model.EmployerId"
+                   class="mt-4 flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                   style="border:1px solid #e2e8f0;color:#3b82f6">
+                    <span class="material-symbols-outlined text-base">domain</span>
+                    Xem hồ sơ công ty
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Nội dung Mô tả/Yêu cầu/Quyền lợi được lưu dạng HTML (từ trình soạn thảo
+               rich-text khi Nhà tuyển dụng đăng tin), nên cần style lại các thẻ cơ bản
+               để hiển thị đẹp thay vì dính sát nhau. */
+    .jc-richtext p {
+        margin: 0 0 8px 0;
+    }
+
+        .jc-richtext p:last-child {
+            margin-bottom: 0;
+        }
+
+    .jc-richtext ul, .jc-richtext ol {
+        margin: 0 0 8px 20px;
+    }
+
+    .jc-richtext li {
+        margin-bottom: 4px;
+    }
+
+    .jc-richtext strong, .jc-richtext b {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .jc-richtext a {
+        color: #3b82f6;
+        text-decoration: underline;
+    }
+</style>

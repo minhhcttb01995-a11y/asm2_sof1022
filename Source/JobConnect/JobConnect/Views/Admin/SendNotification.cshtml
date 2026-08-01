@@ -1,0 +1,78 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "SendNotification" trong khu vực quản trị Admin (AdminController).
+*@
+@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Gửi thông báo";
+}
+
+<div class="space-y-5">
+    <div>
+        <h1 class="text-2xl font-bold text-on-surface">Gửi thông báo</h1>
+        <p class="text-sm text-secondary">Gửi thông báo hệ thống tới ứng viên, nhà tuyển dụng, nhân viên/admin, hoặc người dùng cụ thể.</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="px-4 py-3 bg-green-100 text-green-700 rounded-xl text-sm flex items-center gap-2 auto-hide-alert">
+            <span class="material-symbols-outlined text-base">check_circle</span> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="px-4 py-3 bg-red-100 text-red-700 rounded-xl text-sm flex items-center gap-2 auto-hide-alert">
+            <span class="material-symbols-outlined text-base">error</span> @TempData["Error"]
+        </div>
+    }
+
+    <div class="bg-white rounded-2xl p-6 border border-outline-variant shadow-sm">
+        <form asp-action="SendNotification" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+
+            <div>
+                <label class="block text-xs text-secondary mb-1">Tiêu đề</label>
+                <input name="title" type="text" required placeholder="Nhập tiêu đề thông báo..."
+                       class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary" />
+            </div>
+
+            <div>
+                <label class="block text-xs text-secondary mb-1">Nội dung</label>
+                <textarea name="content" rows="5" required placeholder="Nhập nội dung thông báo..."
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs text-secondary mb-1">Đối tượng nhận</label>
+                <select id="targetSelect" name="target" onchange="jcToggleSpecificEmails()"
+                        class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary">
+                    <option value="All">Tất cả người dùng</option>
+                    <option value="Candidate">Ứng viên</option>
+                    <option value="Employer">Nhà tuyển dụng</option>
+                    <option value="StaffAdmin">Nhân viên / Admin</option>
+                    <option value="Specific">Người cụ thể (1 hoặc nhiều người)</option>
+                </select>
+            </div>
+
+            <div id="specificEmailsBox" style="display:none;">
+                <label class="block text-xs text-secondary mb-1">Email người nhận</label>
+                <textarea name="specificEmails" rows="3" placeholder="Nhập email, cách nhau bằng dấu phẩy hoặc xuống dòng.&#10;VD: nguyenvana@gmail.com, congty@abc.com"
+                          class="w-full px-4 py-2.5 border border-outline-variant rounded-xl text-sm outline-none focus:border-primary resize-none"></textarea>
+                <p class="text-xs text-secondary mt-1">Có thể nhập 1 email (gửi cho 1 người) hoặc nhiều email (gửi cho nhiều người cùng lúc).</p>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-base">send</span>
+                    Gửi thông báo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function jcToggleSpecificEmails() {
+        var target = document.getElementById('targetSelect').value;
+        document.getElementById('specificEmailsBox').style.display = target === 'Specific' ? 'block' : 'none';
+    }
+</script>

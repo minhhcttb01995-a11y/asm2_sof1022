@@ -1,0 +1,95 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "Index" trong khu vực nhắn tin (ChatController).
+   [UPDATED] Viết lại giao diện theo đúng style chung của khu Admin (Tailwind, nền
+   sáng, full-width) thay vì theme tối riêng biệt bị bó hẹp max-width trước đây.
+*@
+@using System.Linq
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Tin nhắn";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    Layout = (role == "Admin") ? "_LayoutAdmin"
+             : (role == "Staff") ? "_StaffLayout"
+             : (role == "Employer") ? "_LayoutEmployer"
+             : "_Layout";
+
+    bool hasConversations = false;
+    if (ViewBag.Conversations != null)
+    {
+        try { hasConversations = ((System.Collections.IEnumerable)ViewBag.Conversations).Cast<object>().Any(); }
+        catch { }
+    }
+}
+
+<div class="w-full px-6 py-8 xl:px-10">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Tin nhắn</h1>
+            <p class="text-secondary text-sm">Tất cả cuộc trò chuyện của bạn</p>
+        </div>
+        @if (role == "Admin")
+        {
+            <a asp-action="Contacts" class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:opacity-90 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">add_comment</span>
+                Nhắn tin mới
+            </a>
+        }
+    </div>
+
+    @if (!hasConversations)
+    {
+        <div class="bg-white rounded-2xl border border-outline-variant p-12 text-center">
+            <span class="material-symbols-outlined text-6xl text-secondary mb-4">chat_bubble_outline</span>
+            <p class="text-lg text-secondary mb-1">Bạn chưa có cuộc trò chuyện nào.</p>
+
+            @if (ViewBag.AvailableStaff != null)
+            {
+                <p class="text-sm text-secondary mb-6">Chọn nhân viên hỗ trợ để bắt đầu trò chuyện:</p>
+                <div class="max-w-2xl mx-auto bg-white rounded-2xl border border-outline-variant overflow-hidden text-left">
+                    @foreach (var staff in ViewBag.AvailableStaff)
+                    {
+                        <a asp-action="StartConversation" asp-route-staffId="@staff.UserId"
+                           class="flex items-center gap-4 px-5 py-4 border-t border-outline-variant first:border-t-0 hover:bg-surface-container-low transition-colors">
+                            <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                                @(staff.FullName?[0].ToString().ToUpper() ?? "S")
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-on-surface truncate">@staff.FullName</h3>
+                                <p class="text-sm text-secondary truncate">@staff.Staff?.Position</p>
+                            </div>
+                            <span class="material-symbols-outlined text-secondary flex-shrink-0">chevron_right</span>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        var conversations = (dynamic)ViewBag.Conversations;
+        <div class="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+            @foreach (var conv in conversations)
+            {
+                bool unread = conv.UnreadCount > 0;
+                <a asp-action="Conversation" asp-route-userId="@conv.OtherUserId"
+                   class="flex items-center gap-4 px-6 py-4 border-t border-outline-variant first:border-t-0 transition-colors @(unread ? "bg-blue-50/60 hover:bg-blue-50" : "hover:bg-surface-container-low")">
+                    <div class="rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg flex-shrink-0" style="width:52px;height:52px;">
+                        @(conv.OtherUser.FullName?[0].ToString().ToUpper() ?? "U")
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline justify-between gap-3">
+                            <h3 class="font-semibold text-on-surface truncate">@conv.OtherUser.FullName</h3>
+                            <span class="text-xs text-secondary flex-shrink-0">@conv.LastMessage.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <p class="text-sm truncate mt-0.5 @(unread ? "text-on-surface font-medium" : "text-secondary")">@conv.LastMessage.Content</p>
+                    </div>
+                    @if (unread)
+                    {
+                        <span class="flex-shrink-0 min-w-[24px] h-6 px-2 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center">@conv.UnreadCount</span>
+                    }
+                </a>
+            }
+        </div>
+    }
+</div>

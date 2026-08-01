@@ -1,0 +1,156 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   notifications.css — Style DÙNG CHUNG cho chuông thông báo (bell) ở TẤT CẢ
+   các layout: trang công khai (_Layout), Admin (_LayoutAdmin), Nhà tuyển dụng
+   (_LayoutEmployer), Nhân viên (_StaffLayout).
+   Dropdown luôn có nền trắng nên hiển thị tốt cả trên header sáng lẫn header
+   tối (dashboard dark theme).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.jc-notif-bell {
+    position: relative;
+}
+
+.jc-notif-trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    border: none;
+    cursor: pointer;
+    color: #1e293b;
+    transition: background 0.15s;
+}
+
+.jc-notif-trigger:hover {
+    background: #e2e8f0;
+}
+
+.jc-notif-trigger .material-symbols-outlined,
+.jc-notif-trigger .material-icons {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+/* Biến thể cho nền tối (dashboard Admin/Staff/Employer) */
+.jc-notif-trigger.jc-notif-trigger-dark {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+
+.jc-notif-trigger.jc-notif-trigger-dark:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.jc-notif-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    line-height: 1;
+}
+
+.jc-notif-trigger-dark + .jc-notif-badge,
+.jc-notif-trigger.jc-notif-trigger-dark .jc-notif-badge {
+    border-color: #0f172a;
+}
+
+.jc-notif-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 340px;
+    max-width: 90vw;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.24);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    z-index: 200;
+}
+
+.jc-notif-dropdown.open {
+    display: block;
+}
+
+/* ── Toast báo có thông báo mới (góc dưới bên phải màn hình) ──────────── */
+.jc-realtime-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.28);
+    border: 1px solid #f1f5f9;
+    padding: 14px 16px;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.jc-realtime-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.jc-realtime-toast-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.jc-realtime-toast-body {
+    min-width: 0;
+    flex: 1;
+}
+
+.jc-realtime-toast-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1e293b;
+}
+
+.jc-realtime-toast-content {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.jc-realtime-toast-close {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+}

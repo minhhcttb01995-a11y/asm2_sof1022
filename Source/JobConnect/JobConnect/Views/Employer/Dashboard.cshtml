@@ -1,0 +1,372 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "Dashboard" — CHỈ hiển thị số liệu thống kê tổng quan.
+   Danh sách tin đăng (sửa/xóa/quản lý đơn) đã tách sang trang riêng "ManageJobs".
+*@
+@using JobConnect.Models
+@model List<JobPost>
+@{
+    ViewData["Title"] = "Dashboard tuyển dụng";
+    Layout = "_LayoutEmployer";
+
+    var employer = ViewBag.Employer as Employer;
+    int jobCount = (int)(ViewBag.JobCount ?? 0);
+    int openCount = (int)(ViewBag.OpenCount ?? 0);
+    int appCount = (int)(ViewBag.AppCount ?? 0);
+    int totalCvReceived = (int)(ViewBag.TotalCvReceived ?? 0);
+    int cvToday = (int)(ViewBag.CvToday ?? 0);
+    int totalViews = (int)(ViewBag.TotalViews ?? 0);
+    int totalApplies = (int)(ViewBag.TotalApplies ?? 0);
+    double applyViewRate = (double)(ViewBag.ApplyViewRate ?? 0);
+    int expiredCount = (int)(ViewBag.ExpiredCount ?? 0);
+    int expiringSoonCount = (int)(ViewBag.ExpiringSoonCount ?? 0);
+    var expiringSoonJobs = ViewBag.ExpiringSoonJobs as List<JobPost> ?? new List<JobPost>();
+
+    string Greeting()
+    {
+        var h = DateTime.Now.Hour;
+        if (h < 11) return "Chào buổi sáng";
+        if (h < 13) return "Chào buổi trưa";
+        if (h < 18) return "Chào buổi chiều";
+        return "Chào buổi tối";
+    }
+}
+
+<style>
+    /* ===== Dashboard v2 — giao diện hiện đại hơn, chỉ áp dụng trong trang này ===== */
+    .jcd-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        padding: 28px 32px;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(59,130,246,.25), transparent 45%),
+            radial-gradient(circle at 85% 80%, rgba(168,85,247,.22), transparent 50%),
+            linear-gradient(135deg, #1e293b 0%, #172033 100%);
+        border: 1px solid #334155;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .jcd-hero-eyebrow {
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: #93c5fd;
+        margin: 0 0 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .jcd-hero h1 {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 6px;
+    }
+
+    .jcd-hero p {
+        font-size: .85rem;
+        color: #94a3b8;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .jcd-hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-size: .88rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: #fff;
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        box-shadow: 0 8px 20px -6px rgba(59,130,246,.55);
+        transition: transform .15s, box-shadow .15s;
+        white-space: nowrap;
+    }
+
+        .jcd-hero-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px -6px rgba(59,130,246,.7);
+            color: #fff;
+        }
+
+    /* ── Section label ─────────────────────────────── */
+    .jcd-section-label {
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: #64748b;
+        margin: 4px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── Modern stat cards (override .jc-stat-card look for this page) ── */
+    .jcd-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    @@media (max-width: 900px) {
+        .jcd-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 480px) {
+        .jcd-grid { grid-template-columns: 1fr; }
+    }
+
+    .jcd-card {
+        position: relative;
+        background: linear-gradient(160deg, #1e293b 0%, #19243a 100%);
+        border: 1px solid #2f3c53;
+        border-radius: 16px;
+        padding: 18px 20px;
+        overflow: hidden;
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+        .jcd-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+            background: var(--accent, #3b82f6);
+            opacity: .9;
+        }
+
+        .jcd-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent, #3b82f6);
+            box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--accent, #3b82f6) 60%, transparent);
+        }
+
+    .jcd-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+
+    .jcd-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: color-mix(in srgb, var(--accent, #3b82f6) 18%, transparent);
+        color: var(--accent, #3b82f6);
+    }
+
+    .jcd-card-value {
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1;
+        margin: 0;
+    }
+
+    .jcd-card-label {
+        font-size: .8rem;
+        color: #8492a6;
+        margin: 6px 0 0;
+    }
+
+    /* ── Reminder banner ─────────────────────────────── */
+    .jcd-alert {
+        border-radius: 16px;
+        padding: 18px 20px;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        background: linear-gradient(135deg, rgba(239,68,68,.12), rgba(239,68,68,.04));
+        border: 1px solid rgba(239,68,68,.3);
+    }
+
+    .jcd-alert-icon {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border-radius: 11px;
+        background: rgba(239,68,68,.18);
+        color: #f87171;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .jcd-alert a {
+        color: #fca5a5;
+        font-weight: 700;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(252,165,165,.4);
+    }
+
+        .jcd-alert a:hover { color: #fff; border-color: #fff; }
+
+    .jcd-toast {
+        border-radius: 14px;
+        padding: 13px 18px;
+        font-size: .87rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .jcd-toast.success { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+    .jcd-toast.error   { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+</style>
+
+<div class="space-y-6">
+
+    <!-- Hero header -->
+    <div class="jcd-hero">
+        <div>
+            <p class="jcd-hero-eyebrow">
+                <span class="material-symbols-outlined" style="font-size:14px">waving_hand</span>
+                @Greeting(), @(employer?.CompanyName ?? "bạn")
+            </p>
+            <h1>Dashboard tuyển dụng</h1>
+            <p>
+                <span class="material-symbols-outlined" style="font-size:15px">apartment</span>
+                @(employer?.CompanyName ?? "Công ty của bạn")
+                <span style="opacity:.5">•</span>
+                @DateTime.Now.ToString("dddd, dd/MM/yyyy HH:mm", new System.Globalization.CultureInfo("vi-VN"))
+            </p>
+        </div>
+        <a asp-action="ManageJobs" class="jcd-hero-btn">
+            <span class="material-symbols-outlined" style="font-size:19px">list_alt</span>
+            Quản lý tin đăng
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="jcd-toast success">
+            <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="jcd-toast error">
+            <span class="material-symbols-outlined" style="font-size:18px">error</span>
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (expiringSoonJobs.Any())
+    {
+        <div class="jcd-alert">
+            <div class="jcd-alert-icon">
+                <span class="material-symbols-outlined" style="font-size:20px">notification_important</span>
+            </div>
+            <div style="flex:1">
+                <p style="color:#fca5a5;font-weight:700;font-size:14px;margin:0 0 6px">Nhắc hết hạn</p>
+                <p style="color:#e2e8f0;font-size:13px;margin:0;line-height:1.6">
+                    Có <strong>@expiringSoonJobs.Count</strong> tin tuyển dụng sắp hết hạn trong 7 ngày tới:
+                    @string.Join(", ", expiringSoonJobs.Take(3).Select(j => $"\"{j.Title}\" ({j.Deadline:dd/MM})"))
+                    @(expiringSoonJobs.Count > 3 ? $" và {expiringSoonJobs.Count - 3} tin khác" : "")
+                    — <a asp-action="ManageJobs">xem trong Quản lý tin đăng</a>
+                </p>
+            </div>
+        </div>
+    }
+
+    <!-- Nhóm 1: Tổng quan tin đăng -->
+    <div>
+        <p class="jcd-section-label">
+            <span class="material-symbols-outlined" style="font-size:16px">work</span>
+            Tổng quan tin đăng
+        </p>
+        <div class="jcd-grid">
+            <div class="jcd-card" style="--accent:#3b82f6">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">work</span></div>
+                </div>
+                <p class="jcd-card-value">@openCount</p>
+                <p class="jcd-card-label">Tổng số tin đang tuyển</p>
+            </div>
+
+            <div class="jcd-card" style="--accent:#9ca3af">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">event_busy</span></div>
+                </div>
+                <p class="jcd-card-value">@expiredCount</p>
+                <p class="jcd-card-label">Tin hết hạn</p>
+            </div>
+
+            <div class="jcd-card" style="--accent:#f87171">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">schedule</span></div>
+                </div>
+                <p class="jcd-card-value">@expiringSoonCount</p>
+                <p class="jcd-card-label">Tin sắp hết hạn (7 ngày)</p>
+            </div>
+
+            <div class="jcd-card" style="--accent:#38bdf8">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">visibility</span></div>
+                </div>
+                <p class="jcd-card-value">@totalViews</p>
+                <p class="jcd-card-label">Lượt xem tin</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nhóm 2: Ứng viên & hiệu quả -->
+    <div>
+        <p class="jcd-section-label">
+            <span class="material-symbols-outlined" style="font-size:16px">groups</span>
+            Ứng viên &amp; hiệu quả
+        </p>
+        <div class="jcd-grid">
+            <div class="jcd-card" style="--accent:#a78bfa">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">description</span></div>
+                </div>
+                <p class="jcd-card-value">@totalCvReceived</p>
+                <p class="jcd-card-label">Tổng CV nhận được</p>
+            </div>
+
+            <div class="jcd-card" style="--accent:#34d399">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">today</span></div>
+                </div>
+                <p class="jcd-card-value">@cvToday</p>
+                <p class="jcd-card-label">CV hôm nay</p>
+            </div>
+
+            <div class="jcd-card" style="--accent:#c084fc">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">touch_app</span></div>
+                </div>
+                <p class="jcd-card-value">@totalApplies</p>
+                <p class="jcd-card-label">Lượt Apply</p>
+            </div>
+
+            <div class="jcd-card" style="--accent:#facc15">
+                <div class="jcd-card-top">
+                    <div class="jcd-card-icon"><span class="material-symbols-outlined">percent</span></div>
+                </div>
+                <p class="jcd-card-value">@applyViewRate%</p>
+                <p class="jcd-card-label">Tỷ lệ Apply/View</p>
+            </div>
+        </div>
+    </div>
+</div>

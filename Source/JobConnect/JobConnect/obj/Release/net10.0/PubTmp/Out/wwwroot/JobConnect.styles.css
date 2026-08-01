@@ -1,0 +1,904 @@
+/* /Views/Shared/_FlashMessages.cshtml.rz.scp.css */
+/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-6lndqfkib7] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-6lndqfkib7] {
+  color: #0077cc;
+}
+
+.btn-primary[b-6lndqfkib7] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-6lndqfkib7], .nav-pills .show > .nav-link[b-6lndqfkib7] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-6lndqfkib7] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-6lndqfkib7] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-6lndqfkib7] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-6lndqfkib7] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-6lndqfkib7] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}
+/* /Views/Shared/_HeadAssets.cshtml.rz.scp.css */
+/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-4qcqnvcb65] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-4qcqnvcb65] {
+  color: #0077cc;
+}
+
+.btn-primary[b-4qcqnvcb65] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-4qcqnvcb65], .nav-pills .show > .nav-link[b-4qcqnvcb65] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-4qcqnvcb65] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-4qcqnvcb65] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-4qcqnvcb65] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-4qcqnvcb65] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-4qcqnvcb65] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}
+/* /Views/Shared/_Layout.cshtml.rz.scp.css */
+/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-uj0nnjm85q] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-uj0nnjm85q] {
+  color: #0077cc;
+}
+
+.btn-primary[b-uj0nnjm85q] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-uj0nnjm85q], .nav-pills .show > .nav-link[b-uj0nnjm85q] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-uj0nnjm85q] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-uj0nnjm85q] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-uj0nnjm85q] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-uj0nnjm85q] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-uj0nnjm85q] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}
+/* /Views/Shared/_LayoutAdmin.cshtml.rz.scp.css */
+/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-41cy3wvxl0] {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+a[b-41cy3wvxl0] {
+    color: #0077cc;
+}
+
+.btn-primary[b-41cy3wvxl0] {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-41cy3wvxl0], .nav-pills .show > .nav-link[b-41cy3wvxl0] {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.border-top[b-41cy3wvxl0] {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom[b-41cy3wvxl0] {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-41cy3wvxl0] {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-41cy3wvxl0] {
+    font-size: 1rem; /* ============================================================
+   JobConnect – Admin Panel Layout CSS
+   ============================================================ */
+    /* ── Reset / Base ─────────────────────────────────────────── */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    body[b-41cy3wvxl0] {
+        margin: 0;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+    /* ── CSS Design Tokens ────────────────────────────────────── */
+    :root[b-41cy3wvxl0] {
+        --sidebar-width: 240px;
+        --sidebar-bg: #0f172a;
+        --sidebar-border: #1e293b;
+        --sidebar-text: #94a3b8;
+        --sidebar-text-hover: #f1f5f9;
+        --sidebar-active-bg: rgba(59,130,246,.15);
+        --sidebar-active-text: #60a5fa;
+        --sidebar-active-border: #3b82f6;
+        --header-height: 64px;
+        --header-bg: #0f172a;
+        --header-border: #1e293b;
+        --primary: #3b82f6;
+        --on-surface: #1e293b;
+        --secondary: #64748b;
+        --surface-container: #f8fafc;
+        --surface-container-low: #f8fafc;
+        --outline-variant: #e2e8f0;
+    }
+    /* ── Dashboard Shell ──────────────────────────────────────── */
+    .jc-dashboard[b-41cy3wvxl0] {
+        display: flex;
+        min-height: 100vh;
+    }
+    /* ── Sidebar ──────────────────────────────────────────────── */
+    .jc-sidebar[b-41cy3wvxl0] {
+        width: var(--sidebar-width);
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 100;
+        overflow-y: auto;
+        transition: transform .25s ease;
+    }
+
+    .jc-sidebar-brand[b-41cy3wvxl0] {
+        padding: 20px 16px 16px;
+        border-bottom: 1px solid var(--sidebar-border);
+    }
+
+        .jc-sidebar-brand h1[b-41cy3wvxl0] {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .jc-sidebar-brand p[b-41cy3wvxl0] {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin: 0;
+        }
+    /* ── Nav ──────────────────────────────────────────────────── */
+    .jc-sidebar-nav[b-41cy3wvxl0] {
+        flex: 1;
+        padding: 12px 10px;
+        overflow-y: auto;
+    }
+
+        .jc-sidebar-nav ul[b-41cy3wvxl0] {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+    .jc-sidebar-link[b-41cy3wvxl0] {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--sidebar-text);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background .15s, color .15s;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+        width: 100%;
+        background: none;
+        border-top: none;
+        border-right: none;
+        border-bottom: none;
+    }
+
+        .jc-sidebar-link:hover[b-41cy3wvxl0] {
+            background: rgba(255,255,255,.06);
+            color: var(--sidebar-text-hover);
+        }
+
+        .jc-sidebar-link.active[b-41cy3wvxl0] {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            border-left-color: var(--sidebar-active-border);
+        }
+
+        .jc-sidebar-link .material-symbols-outlined[b-41cy3wvxl0] {
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+    /* ── Sidebar Footer ───────────────────────────────────────── */
+    .jc-sidebar-footer[b-41cy3wvxl0] {
+        padding: 12px 10px;
+        border-top: 1px solid var(--sidebar-border);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .jc-sidebar-footer .jc-sidebar-link[b-41cy3wvxl0] {
+            font-size: 0.8rem;
+        }
+    /* ── Main Content ─────────────────────────────────────────── */
+    .jc-dashboard-main[b-41cy3wvxl0] {
+        margin-left: var(--sidebar-width);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-width: 0;
+    }
+    /* ── Top Header ───────────────────────────────────────────── */
+    .jc-dashboard-header[b-41cy3wvxl0] {
+        height: var(--header-height);
+        background: var(--header-bg);
+        border-bottom: 1px solid var(--header-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+        .jc-dashboard-header h2[b-41cy3wvxl0] {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .jc-dashboard-header p[b-41cy3wvxl0] {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0;
+        }
+    /* ── Page Body Padding ────────────────────────────────────── */
+    .jc-dashboard-main > *:not(.jc-dashboard-header)[b-41cy3wvxl0] {
+        padding: 24px;
+    }
+    /* Fix: space-y-6 div doesn't get padding from above rule */
+    .jc-dashboard-main > div.space-y-6[b-41cy3wvxl0] {
+        padding: 24px;
+    }
+    /* ── Button Icon ──────────────────────────────────────────── */
+    .jc-btn-icon[b-41cy3wvxl0] {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+        .jc-btn-icon:hover[b-41cy3wvxl0] {
+            background: #273449;
+            color: #fff;
+        }
+    /* ── Tailwind token overrides ─────────────────────────────── */
+    .text-on-surface[b-41cy3wvxl0] {
+        color: var(--on-surface) !important;
+    }
+
+    .text-secondary[b-41cy3wvxl0] {
+        color: var(--secondary) !important;
+    }
+
+    .text-primary[b-41cy3wvxl0] {
+        color: var(--primary) !important;
+    }
+
+    .bg-surface-container[b-41cy3wvxl0] {
+        background: var(--surface-container);
+    }
+
+    .bg-surface-container-low[b-41cy3wvxl0] {
+        background: var(--surface-container-low);
+    }
+
+    .border-outline-variant[b-41cy3wvxl0] {
+        border-color: var(--outline-variant);
+    }
+
+    .divide-outline-variant > * + *[b-41cy3wvxl0] {
+        border-color: var(--outline-variant);
+    }
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 1023px) {
+        .jc-sidebar[b-41cy3wvxl0] {
+            transform: translateX(-100%);
+        }
+
+            .jc-sidebar.open[b-41cy3wvxl0] {
+                transform: translateX(0);
+            }
+
+        .jc-dashboard-main[b-41cy3wvxl0] {
+            margin-left: 0;
+        }
+    }
+    /* ── Scrollbar (sidebar) ──────────────────────────────────── */
+    .jc-sidebar[b-41cy3wvxl0]::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .jc-sidebar[b-41cy3wvxl0]::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .jc-sidebar[b-41cy3wvxl0]::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+    }
+/* /Views/Shared/_LayoutEmployer.cshtml.rz.scp.css */
+/* ============================================================
+   JobConnect – Employer Dashboard Layout CSS
+   ============================================================ */
+
+*[b-xnvx1j3cne], *[b-xnvx1j3cne]::before, *[b-xnvx1j3cne]::after {
+    box-sizing: border-box;
+}
+
+body[b-xnvx1j3cne] {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* ── CSS Tokens ─────────────────────────────────────────── */
+:root[b-xnvx1j3cne] {
+    --sidebar-width: 240px;
+    --sidebar-bg: #080f1e;
+    --sidebar-border: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-hover: #f1f5f9;
+    --sidebar-active-bg: rgba(59,130,246,.15);
+    --sidebar-active-text: #60a5fa;
+    --sidebar-active-border: #3b82f6;
+    --header-height: 64px;
+    --header-bg: #080f1e;
+    --header-border: #1e293b;
+}
+
+/* ── Dashboard Shell ──────────────────────────────────────── */
+.jc-dashboard[b-xnvx1j3cne] {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.jc-sidebar[b-xnvx1j3cne] {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+    overflow-y: auto;
+    transition: transform .25s ease;
+}
+
+    .jc-sidebar[b-xnvx1j3cne]::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .jc-sidebar[b-xnvx1j3cne]::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .jc-sidebar[b-xnvx1j3cne]::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+    }
+
+.jc-sidebar-brand[b-xnvx1j3cne] {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+.jc-sidebar-nav[b-xnvx1j3cne] {
+    flex: 1;
+    padding: 12px 10px;
+    overflow-y: auto;
+}
+
+    .jc-sidebar-nav ul[b-xnvx1j3cne] {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+.jc-sidebar-section[b-xnvx1j3cne] {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #475569;
+    padding: 14px 12px 6px;
+}
+
+.jc-sidebar-link[b-xnvx1j3cne] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--sidebar-text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    width: 100%;
+    background: none;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+}
+
+    .jc-sidebar-link:hover[b-xnvx1j3cne] {
+        background: rgba(255,255,255,.06);
+        color: var(--sidebar-text-hover);
+    }
+
+    .jc-sidebar-link.active[b-xnvx1j3cne] {
+        background: var(--sidebar-active-bg);
+        color: var(--sidebar-active-text);
+        border-left-color: var(--sidebar-active-border);
+    }
+
+    .jc-sidebar-link .material-symbols-outlined[b-xnvx1j3cne] {
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+
+.jc-sidebar-footer[b-xnvx1j3cne] {
+    padding: 12px 10px;
+    border-top: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ── Main Content ─────────────────────────────────────────── */
+.jc-dashboard-main[b-xnvx1j3cne] {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 0;
+    background: #0f172a;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.jc-dashboard-header[b-xnvx1j3cne] {
+    height: var(--header-height);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* ── Body Padding ─────────────────────────────────────────── */
+.jc-dashboard-main > *:not(.jc-dashboard-header)[b-xnvx1j3cne] {
+    padding: 24px;
+}
+
+.jc-dashboard-main > div.space-y-6[b-xnvx1j3cne] {
+    padding: 24px;
+}
+
+/* ── Page Header ──────────────────────────────────────────── */
+.jc-page-header[b-xnvx1j3cne] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.jc-page-title[b-xnvx1j3cne] {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.jc-page-subtitle[b-xnvx1j3cne] {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 4px 0 0;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.jc-btn[b-xnvx1j3cne] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .15s;
+    cursor: pointer;
+    border: none;
+}
+
+.jc-btn-primary[b-xnvx1j3cne] {
+    background: #3b82f6;
+    color: #fff;
+}
+
+    .jc-btn-primary:hover[b-xnvx1j3cne] {
+        background: #2563eb;
+        color: #fff;
+    }
+
+.jc-btn-secondary[b-xnvx1j3cne] {
+    background: rgba(255,255,255,.07);
+    border: 1px solid #334155;
+    color: #94a3b8;
+}
+
+    .jc-btn-secondary:hover[b-xnvx1j3cne] {
+        background: rgba(255,255,255,.12);
+        color: #fff;
+    }
+
+/* ── Stat Cards ───────────────────────────────────────────── */
+.jc-stat-card[b-xnvx1j3cne] {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+    .jc-stat-card:hover[b-xnvx1j3cne] {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59,130,246,.15);
+    }
+
+.jc-stat-icon[b-xnvx1j3cne] {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.jc-stat-value[b-xnvx1j3cne] {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1;
+}
+
+.jc-stat-label[b-xnvx1j3cne] {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 6px 0 0;
+}
+
+/* ── Table ────────────────────────────────────────────────── */
+.jc-table-wrap[b-xnvx1j3cne] {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.jc-table[b-xnvx1j3cne] {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+    .jc-table thead tr[b-xnvx1j3cne] {
+        background: rgba(255,255,255,.04);
+        border-bottom: 1px solid #334155;
+    }
+
+    .jc-table th[b-xnvx1j3cne] {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #64748b;
+    }
+
+    .jc-table tbody tr[b-xnvx1j3cne] {
+        border-bottom: 1px solid rgba(255,255,255,.05);
+        transition: background .12s;
+    }
+
+        .jc-table tbody tr:last-child[b-xnvx1j3cne] {
+            border-bottom: none;
+        }
+
+        .jc-table tbody tr:hover[b-xnvx1j3cne] {
+            background: rgba(255,255,255,.03);
+        }
+
+    .jc-table td[b-xnvx1j3cne] {
+        padding: 13px 16px;
+        color: #cbd5e1;
+        vertical-align: middle;
+    }
+
+.jc-table-link[b-xnvx1j3cne] {
+    color: #93c5fd;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .jc-table-link:hover[b-xnvx1j3cne] {
+        color: #60a5fa;
+        text-decoration: underline;
+    }
+
+/* ── Badges ───────────────────────────────────────────────── */
+.jc-badge[b-xnvx1j3cne] {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.jc-badge-success[b-xnvx1j3cne] {
+    background: rgba(16,185,129,.15);
+    color: #34d399;
+}
+
+.jc-badge-warning[b-xnvx1j3cne] {
+    background: rgba(245,158,11,.15);
+    color: #fbbf24;
+}
+
+.jc-badge-danger[b-xnvx1j3cne] {
+    background: rgba(239,68,68,.15);
+    color: #f87171;
+}
+
+.jc-badge-neutral[b-xnvx1j3cne] {
+    background: rgba(148,163,184,.1);
+    color: #94a3b8;
+}
+
+.jc-badge-info[b-xnvx1j3cne] {
+    background: rgba(59,130,246,.15);
+    color: #60a5fa;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+.jc-card[b-xnvx1j3cne] {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.jc-card-padded[b-xnvx1j3cne] {
+    padding: 20px;
+}
+
+.jc-card-padded-lg[b-xnvx1j3cne] {
+    padding: 24px;
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.jc-input[b-xnvx1j3cne] {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid #334155;
+    border-radius: 10px;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color .15s;
+}
+
+    .jc-input:focus[b-xnvx1j3cne] {
+        border-color: #3b82f6;
+    }
+
+    .jc-input[b-xnvx1j3cne]::placeholder {
+        color: #475569;
+    }
+
+.jc-label[b-xnvx1j3cne] {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1023px) {
+    .jc-sidebar[b-xnvx1j3cne] {
+        transform: translateX(-100%);
+    }
+
+        .jc-sidebar.open[b-xnvx1j3cne] {
+            transform: translateX(0);
+        }
+
+    .jc-dashboard-main[b-xnvx1j3cne] {
+        margin-left: 0;
+    }
+}
+/* /Views/Shared/_NotificationDropdown.cshtml.rz.scp.css */
+/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-67u39fpzha] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-67u39fpzha] {
+  color: #0077cc;
+}
+
+.btn-primary[b-67u39fpzha] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-67u39fpzha], .nav-pills .show > .nav-link[b-67u39fpzha] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-67u39fpzha] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-67u39fpzha] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-67u39fpzha] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-67u39fpzha] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-67u39fpzha] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}

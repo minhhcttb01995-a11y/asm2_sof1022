@@ -1,0 +1,147 @@
+@* [VIEW-HEADER-ADDED]
+   View cho action "PendingCompanies" trong khu vực trang làm việc của Staff (StaffDashboardController).
+*@
+@model List<JobConnect.Models.Employer>
+@using JobConnect.Models
+@{
+    ViewData["Title"] = "Duyệt Công ty";
+    Layout = "_StaffLayout";
+    var companyStatuses = ViewBag.CompanyStatuses as List<StatusCatalog>;
+}
+
+<!-- Filter -->
+<form method="get" class="glass-card rounded-xl p-4 mb-6 flex gap-4">
+    <select name="status" class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm outline-none focus:border-blue-500">
+        <option value="All" selected="@((string?)ViewBag.Status == "All" ? "selected" : null)">Tất cả trạng thái</option>
+        @if (companyStatuses != null)
+        {
+            @foreach (var status in companyStatuses)
+            {
+                <option value="@status.Code" selected="@((string?)ViewBag.Status == status.Code ? "selected" : null)">@status.Name</option>
+            }
+        }
+    </select>
+    <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+        Lọc
+    </button>
+</form>
+
+<!-- Companies Table -->
+<div class="glass-card rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-white/5 border-b border-white/10">
+            <tr>
+                <th class="text-left px-6 py-4 font-semibold">Mã</th>
+                <th class="text-left px-6 py-4 font-semibold">Tên công ty</th>
+                <th class="text-left px-6 py-4 font-semibold">Email</th>
+                <th class="text-left px-6 py-4 font-semibold">Ngành nghề</th>
+                <th class="text-left px-6 py-4 font-semibold">Quy mô</th>
+                <th class="text-left px-6 py-4 font-semibold">Trạng thái</th>
+                <th class="text-left px-6 py-4 font-semibold">Ngày đăng ký</th>
+                <th class="text-center px-6 py-4 font-semibold">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-white/10">
+            @if (Model.Any())
+            {
+                @foreach (var company in Model)
+                {
+                    var statusInfo = companyStatuses?.FirstOrDefault(s => s.Code == company.Status);
+                    var statusLabel = statusInfo?.Name ?? company.Status;
+                    var statusClass = statusInfo?.ColorClass ?? "bg-gray-500/20 text-gray-300";
+
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-xs text-gray-400">@(company.CompanyCode ?? company.EmployerId.ToString())</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <span class="material-icons text-blue-400">business</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">@company.CompanyName</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-300">@company.User?.Email ?? "-"</td>
+                        <td class="px-6 py-4 text-gray-300">@company.Industry ?? "-"</td>
+                        <td class="px-6 py-4 text-gray-300">@company.CompanySize ?? "-"</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium @statusClass">@statusLabel</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400">@company.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="@Url.Action("UserDetail", "StaffDashboard", new { id = company.UserId })"
+                                   class="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                                   title="Xem chi tiết">
+                                    <span class="material-icons text-sm">visibility</span>
+                                </a>
+                                <form asp-action="ChangeCompanyStatus" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="employerId" value="@company.EmployerId" />
+                                    <select name="newStatus" onchange="this.form.submit()"
+                                            class="px-2 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs outline-none focus:border-blue-500">
+                                        @if (companyStatuses != null)
+                                        {
+                                            @foreach (var status in companyStatuses)
+                                            {
+                                                <option value="@status.Code" selected="@(company.Status == status.Code ? "selected" : null)">@status.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-400">
+                        Không có công ty nào
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center justify-center gap-2 mt-6">
+        @if (ViewBag.Page > 1)
+        {
+            <a href="@Url.Action("PendingCompanies", new { status = ViewBag.Status, page = ViewBag.Page - 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_left</span>
+            </a>
+        }
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            if (i == ViewBag.Page || i == 1 || i == ViewBag.TotalPages || (i >= ViewBag.Page - 1 && i <= ViewBag.Page + 1))
+            {
+                <a href="@Url.Action("PendingCompanies", new { status = ViewBag.Status, page = i })"
+                   class="px-4 py-2 @(i == ViewBag.Page ? "bg-blue-500" : "bg-white/5 border border-white/10 hover:bg-white/10") rounded-lg transition-colors">
+                    @i
+                </a>
+            }
+            else if (i == ViewBag.Page - 2 || i == ViewBag.Page + 2)
+            {
+                <span class="px-2">...</span>
+            }
+        }
+
+        @if (ViewBag.Page < ViewBag.TotalPages)
+        {
+            <a href="@Url.Action("PendingCompanies", new { status = ViewBag.Status, page = ViewBag.Page + 1 })"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                <span class="material-icons text-sm">chevron_right</span>
+            </a>
+        }
+    </div>
+}
