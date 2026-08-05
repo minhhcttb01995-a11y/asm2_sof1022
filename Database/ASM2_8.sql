@@ -15,17 +15,17 @@
 USE master;
 GO
 
-IF DB_ID('JobConnectDB27') IS NOT NULL
+IF DB_ID('JobConnectDB31') IS NOT NULL
 BEGIN
-    ALTER DATABASE JobConnectDB27 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE JobConnectDB27;
+    ALTER DATABASE JobConnectDB31 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE JobConnectDB31;
 END
 GO
 
-CREATE DATABASE JobConnectDB27;
+CREATE DATABASE JobConnectDB31;
 GO
 
-USE JobConnectDB27;
+USE JobConnectDB31;
 GO
 
 /* ================= USERS ================= */
@@ -475,6 +475,31 @@ GO
 
 CREATE INDEX IX_StatusCatalog_EntityType ON StatusCatalog(EntityType);
 GO
+
+
+-- Bảng cache kết quả kiểm duyệt AI cho từng tin tuyển dụng.
+-- Mục đích: tránh gọi lại Gemini API (tốn token) mỗi lần Staff mở lại trang duyệt tin
+-- khi nội dung tin KHÔNG thay đổi so với lần chấm trước (so bằng ContentHash).
+
+CREATE TABLE JobModerationLog (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    JobId INT NOT NULL,
+    ContentHash VARCHAR(64) NOT NULL,
+    OverallRisk INT NOT NULL,
+    Recommendation NVARCHAR(20) NOT NULL,
+    Summary NVARCHAR(MAX) NULL,
+    ModulesJson NVARCHAR(MAX) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_JobModerationLog_JobPosts FOREIGN KEY (JobId)
+        REFERENCES JobPosts(JobId) ON DELETE CASCADE
+);
+
+-- 1 JobPost chỉ giữ 1 log mới nhất (Upsert theo JobId khi tin được chỉnh sửa).
+CREATE UNIQUE INDEX UQ_JobModerationLog_JobId ON JobModerationLog(JobId);
+GO
+
 INSERT INTO StatusCatalog (EntityType, Code, Name, ColorClass, Description, IsActive, BlocksLogin, ShowPublicly, IsSystem) VALUES
 ('Candidate', 'Active', N'Đang hoạt động', 'bg-green-100 text-green-700', NULL, 1, 0, 1, 1),
 ('Candidate', 'Pending', N'Chờ xác thực', 'bg-yellow-100 text-yellow-700', NULL, 1, 0, 1, 1),
@@ -498,9 +523,6 @@ INSERT INTO StatusCatalog (EntityType, Code, Name, ColorClass, Description, IsAc
 ('BlogPost', 'Published', N'Đã xuất bản', 'bg-green-100 text-green-700', NULL, 1, 0, 1, 1),
 ('BlogPost', 'Draft', N'Bản nháp', 'bg-yellow-100 text-yellow-700', NULL, 1, 0, 0, 1),
 ('BlogPost', 'Pending', N'Chờ duyệt', 'bg-blue-100 text-blue-700', NULL, 1, 0, 0, 1);
-GO
-
-ALTER DATABASE JobConnectDB21 SET MULTI_USER;
 GO
 
 INSERT INTO Users (Email, PasswordHash, Role, FullName, PhoneNumber, Status) VALUES
